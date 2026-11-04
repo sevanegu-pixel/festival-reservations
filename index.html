@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Réservations</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0d0b12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Réservations">
+<link rel="apple-touch-icon" href="icone_180.png">
+<link rel="icon" href="icone_192.png">
+<style>
+html, body { margin: 0; min-height: 100%; background: #0d0b12; color: #f6f2ff; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 440px; margin: 0 auto; padding: calc(40px + env(safe-area-inset-top)) 20px 40px; text-align: center; }
+img.logo { width: 112px; height: 112px; border-radius: 26px; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+h1 { font-size: 26px; margin: 18px 0 4px; }
+p { color: #bdb4d0; line-height: 1.45; font-size: 15px; }
+.carte { background: #1a1623; border-radius: 16px; padding: 14px 16px; margin-top: 18px; text-align: left; font-size: 14px; line-height: 1.5; color: #ddd6ea; }
+.carte b { color: #ff7a7e; }
+.btn { display: inline-block; border: 0; border-radius: 14px; background: #ff5a5f; color: #1a0607; font: inherit; font-weight: 700; font-size: 15px; padding: 10px 14px; cursor: pointer; }
+.partage { display: inline-block; vertical-align: -3px; width: 16px; height: 16px; }
+main[hidden], #barreBouton[hidden], #sansLien[hidden] { display: none; }
+iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: 0; background: #0d0b12; }
+#barre { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10; display: none; max-width: 520px; margin: 0 auto;
+  background: #1a1623; color: #f6f2ff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.5); padding: 12px 40px 12px 14px; gap: 12px; align-items: center; font-size: 14px; line-height: 1.4; }
+#barre.ouvert { display: flex; }
+#barre img { width: 44px; height: 44px; border-radius: 11px; flex: none; }
+#barre .txt { flex: 1; min-width: 0; }
+#barre .txt b { display: block; color: #ff7a7e; font-size: 15px; }
+#barre .fermer { position: absolute; top: 4px; right: 6px; border: 0; background: none; color: #8a8096; font-size: 22px; padding: 4px 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+<main id="accueil">
+  <img class="logo" src="icone_192.png" alt="">
+  <h1>Réservations</h1>
+  <p>La gestion des réservations du festival.</p>
+  <div class="carte" id="sansLien" hidden>Ouvre ton <b>lien personnel</b> (celui donné par la page « C'est installé ! » ou par le menu Festival de la feuille Google) : il ouvre l'appli directement, sans mot de passe. Ensuite, l'icône s'en souvient.</div>
+</main>
+<div id="barre" role="dialog" aria-label="Installer l'appli">
+  <img src="icone_192.png" alt="">
+  <div class="txt" id="barreTexte"></div>
+  <button class="btn" id="barreBouton" hidden>Installer</button>
+  <button class="fermer" id="barreFermer" aria-label="Fermer">×</button>
+</div>
+<script>
+(function () {
+  // Adresse de l'application Apps Script (/exec). Vide tant qu'elle n'est pas déployée : elle arrive alors par le lien personnel.
+  var EXEC_DEFAUT = "";
+  var PREFIXE = "festival_resa_";
+  function lire(k) { try { return localStorage.getItem(PREFIXE + k) || ""; } catch (e) { return ""; } }
+  function garder(k, v) { try { localStorage.setItem(PREFIXE + k, v); } catch (e) {} }
+  var execValide = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/;
+
+  var q = new URLSearchParams(location.search);
+  var cle = q.get("cle"), exec = q.get("exec");
+  if (cle && /^[A-Za-z0-9]{16,64}$/.test(cle)) garder("cle", cle);
+  if (exec && execValide.test(exec)) garder("exec", exec);
+  // Le lien personnel reste dans l'adresse : sur iPhone, l'icône posée sur l'écran d'accueil s'ouvre sur cette adresse-là
+  // (elle n'a pas accès à ce que Safari a gardé). Le manifeste n'a donc pas de start_url.
+  cle = lire("cle");
+  exec = lire("exec") || EXEC_DEFAUT;
+
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+  if (!cle || !execValide.test(exec)) { document.getElementById("sansLien").hidden = false; return; }
+
+  document.getElementById("accueil").hidden = true;
+  var cadre = document.createElement("iframe");
+  cadre.id = "app"; cadre.title = "Réservations";
+  cadre.setAttribute("allow", "clipboard-read; clipboard-write; web-share");
+  cadre.src = exec + "?cle=" + encodeURIComponent(cle);
+  document.body.insertBefore(cadre, document.body.firstChild);
+
+  // Pas encore installée : petit bandeau pour mettre l'icône (masquable 14 jours).
+  var installee = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+  var masque = parseInt(lire("install_masque") || "0", 10);
+  if (installee || masque > Date.now()) return;
+  var barre = document.getElementById("barre"), texte = document.getElementById("barreTexte"), bouton = document.getElementById("barreBouton");
+  var ua = navigator.userAgent || "";
+  var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var safari = ios && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA|FBAN|FBAV|Instagram|WhatsApp/.test(ua);
+  var partage = '<svg class="partage" viewBox="0 0 24 24" fill="none" stroke="#ff7a7e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg>';
+  var promesse = null;
+  function montrer(html, avecBouton) { texte.innerHTML = html; bouton.hidden = !avecBouton; barre.classList.add("ouvert"); }
+  document.getElementById("barreFermer").onclick = function () { barre.classList.remove("ouvert"); garder("install_masque", String(Date.now() + 14 * 864e5)); };
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); promesse = e; montrer("<b>Installer l'appli</b>Elle s'ouvrira avec son icône, en plein écran.", true); });
+  bouton.onclick = function () {
+    if (!promesse) return;
+    promesse.prompt();
+    promesse.userChoice.then(function (r) { if (r && r.outcome === "accepted") barre.classList.remove("ouvert"); promesse = null; });
+  };
+  window.addEventListener("appinstalled", function () { barre.classList.remove("ouvert"); });
+  setTimeout(function () {
+    if (promesse) return;
+    if (ios && safari) montrer("<b>Mettre l'icône</b>Appuie sur " + partage + " <b style=\"display:inline\">Partager</b>, puis «&nbsp;Sur l'écran d'accueil&nbsp;».", false);
+    else if (ios) montrer("<b>Mettre l'icône</b>Ouvre ce lien dans Safari (menu ⋯ › « Ouvrir dans Safari »).", false);
+    else if (/Android/.test(ua)) montrer("<b>Mettre l'icône</b>Menu ⋮ en haut à droite › «&nbsp;Ajouter à l'écran d'accueil&nbsp;».", false);
+    else montrer("<b>Installer l'appli</b>Dans Chrome ou Edge : icône d'installation à droite de la barre d'adresse.", false);
+  }, 3500);
+})();
+</script>
+</body>
+</html>

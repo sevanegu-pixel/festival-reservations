@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--fond:#0b0a10;--carte:#17141f;--ligne:#2c2640;--texte:#f4f1ff;--doux:#b9aee6;--lav:#ff5a5f;--lav2:#ff8f92;--rouge:#ff7a8a;--vert:#7ee0b0}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fond);color:var(--texte);font:16px/1.45 Barlow,system-ui,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--fond);border-bottom:1px solid var(--ligne);padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+h1{font:700 22px/1.1 "Bricolage Grotesque",sans-serif;margin:0;flex:1;min-width:180px}
+h1 small{display:block;font:500 13px Barlow,sans-serif;color:var(--doux);letter-spacing:.04em;text-transform:uppercase}
+h2{font:700 20px "Bricolage Grotesque",sans-serif;margin:24px 0 10px}
+nav button,.btn{font:600 15px Barlow,sans-serif;border:1px solid var(--lav);background:transparent;color:var(--lav2);border-radius:999px;padding:8px 14px;cursor:pointer}
+nav button.on,.btn.plein{background:var(--lav);color:#0b0a10;border-color:var(--lav)}
+.btn.petit{padding:4px 10px;font-size:13px}
+.btn.danger{border-color:var(--rouge);color:var(--rouge)}
+.btn:disabled{opacity:.5;cursor:default}
+main{max-width:980px;margin:0 auto;padding:8px 16px 80px}
+.liste{display:grid;gap:10px}
+.ev{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:12px;cursor:pointer;text-align:left;color:inherit;font:inherit;width:100%}
+.ev:hover{border-color:var(--lav)}
+.jour{text-align:center;border-right:1px solid var(--ligne);padding-right:10px}
+.jour b{display:block;font:700 26px/1 "Bricolage Grotesque",sans-serif}
+.jour span{font-size:12px;text-transform:uppercase;color:var(--doux)}
+.ev h3{margin:0 0 2px;font-size:17px}
+.ev p{margin:0;color:var(--doux);font-size:14px}
+.jauge{min-width:92px;text-align:right;font-size:14px}
+.jauge .barre{height:5px;background:var(--ligne);border-radius:3px;margin-top:5px;overflow:hidden}
+.jauge .barre i{display:block;height:100%;background:var(--lav)}
+.badge{display:inline-block;font-size:12px;border-radius:999px;padding:1px 8px;margin-left:6px;border:1px solid var(--ligne);color:var(--doux);vertical-align:2px}
+.badge.Ouvert{border-color:var(--vert);color:var(--vert)}
+.badge.Annulé{border-color:var(--rouge);color:var(--rouge)}
+.vide{color:var(--doux);font-style:italic}
+form .grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:block;font-size:13px;color:var(--doux);margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;color:var(--texte);background:#100e17;border:1px solid var(--ligne);border-radius:8px;padding:9px 10px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--lav);border-color:var(--lav)}
+textarea{min-height:110px;resize:vertical}
+.large{grid-column:1/-1}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.panneau{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:16px;margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--ligne);vertical-align:top}
+th{color:var(--doux);font-weight:500}
+tr.annulee td{opacity:.45;text-decoration:line-through}
+tr.annulee td:last-child{text-decoration:none}
+.tableau{overflow-x:auto}
+.aide{font-size:13px;color:var(--doux);margin:4px 0 0}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--lav);color:#0b0a10;font-weight:600;padding:10px 16px;border-radius:999px;display:none;z-index:20;max-width:92vw}
+#toast.erreur{background:var(--rouge)}
+#charge{position:fixed;top:0;left:0;height:3px;width:100%;background:var(--lav);display:none;z-index:30;animation:c 1s infinite linear}
+@keyframes c{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
+@media (max-width:560px){.ev{grid-template-columns:52px 1fr}.jauge{grid-column:2;text-align:left}.jauge .barre{width:120px}}
+</style>
+</head>
+<body>
+<div id="charge"></div>
+<header>
+  <h1><small id="nomFestival">Festival</small>Réservations</h1>
+  <nav><button data-vue="evenements" class="on">Événements</button> <button data-vue="reglages">Réglages</button></nav>
+</header>
+<main id="vue"><p class="vide">Chargement…</p></main>
+<div id="toast"></div>
+
+<script>
+var CLE = <?!= JSON.stringify(cle) ?>;
+var D = null, vue = 'evenements', ouvert = null;
+var MOIS = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+
+function $(s, r) { return (r || document).querySelector(s); }
+function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function toast(t, err) { var b = $('#toast'); b.textContent = t; b.className = err ? 'erreur' : ''; b.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(function () { b.style.display = 'none'; }, err ? 6000 : 2500); }
+function aujourdhui() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+
+function appel(fn, args, ok) {
+  $('#charge').style.display = 'block';
+  var r = google.script.run.withSuccessHandler(function (res) { $('#charge').style.display = 'none'; ok(res); })
+    .withFailureHandler(function (e) { $('#charge').style.display = 'none'; toast(e.message || String(e), true); });
+  r[fn].apply(r, [CLE].concat(args || []));
+}
+function recharger(res) { D = res; $('#nomFestival').textContent = D.reglages.nomFestival || 'Festival'; afficher(); }
+
+document.querySelectorAll('nav button').forEach(function (b) {
+  b.onclick = function () { vue = b.dataset.vue; ouvert = null; document.querySelectorAll('nav button').forEach(function (x) { x.classList.toggle('on', x === b); }); afficher(); };
+});
+
+function afficher() {
+  if (!D) return;
+  if (vue === 'reglages') return afficherReglages();
+  if (ouvert) return afficherEvenement(ouvert);
+  var today = aujourdhui();
+  var evs = D.evenements.slice().sort(function (a, b) { return (a.date + a.debut) < (b.date + b.debut) ? -1 : 1; });
+  var avenir = evs.filter(function (e) { return e.date >= today; });
+  var passes = evs.filter(function (e) { return e.date < today; }).reverse();
+  var h = '<div class="actions"><button class="btn plein" id="nouveau">+ Nouvel événement</button></div>';
+  h += '<h2>À venir</h2>' + liste(avenir) + '<h2>Passés</h2>' + liste(passes);
+  $('#vue').innerHTML = h;
+  $('#nouveau').onclick = function () { ouvert = 'nouveau'; afficher(); };
+  document.querySelectorAll('.ev').forEach(function (b) { b.onclick = function () { ouvert = b.dataset.id; afficher(); scrollTo(0, 0); }; });
+}
+
+function liste(evs) {
+  if (!evs.length) return '<p class="vide">Aucun événement.</p>';
+  return '<div class="liste">' + evs.map(function (e) {
+    var p = e.date.split('-'), places = Number(e.places) || 0;
+    var pc = places ? Math.min(100, Math.round(100 * e.prises / places)) : 0;
+    return '<button class="ev" data-id="' + esc(e.id) + '"><div class="jour"><b>' + Number(p[2]) + '</b><span>' + MOIS[Number(p[1]) - 1] + ' ' + p[0] + '</span></div>' +
+      '<div><h3>' + esc(e.titre) + '<span class="badge ' + esc(e.statut) + '">' + esc(e.statut) + '</span></h3>' +
+      '<p>' + esc([e.debut && (e.debut + (e.fin ? '–' + e.fin : '')), e.lieu].filter(Boolean).join(' · ')) + '</p></div>' +
+      '<div class="jauge">' + e.prises + (places ? ' / ' + places : '') + ' place' + (e.prises > 1 || places > 1 ? 's' : '') +
+      (places ? '<div class="barre"><i style="width:' + pc + '%"></i></div>' : '') + '</div></button>';
+  }).join('') + '</div>';
+}
+
+function champ(nom, label, val, type, attrs) {
+  return '<div' + (type === 'textarea' ? ' class="large"' : '') + '><label for="f-' + nom + '">' + label + '</label>' +
+    (type === 'textarea' ? '<textarea id="f-' + nom + '" name="' + nom + '">' + esc(val) + '</textarea>'
+      : '<input id="f-' + nom + '" name="' + nom + '" type="' + (type || 'text') + '" value="' + esc(val) + '" ' + (attrs || '') + '>') + '</div>';
+}
+
+function afficherEvenement(id) {
+  var nouveau = id === 'nouveau' || id === 'copie';
+  var e = id === 'nouveau' ? { statut: 'Ouvert', places: '45', lieu: 'Théâtricul', adresse: 'Chêne-Bourg' } : (id === 'copie' ? afficherEvenement.copie : D.evenements.filter(function (x) { return x.id === id; })[0]);
+  if (!e) { ouvert = null; return afficher(); }
+  var h = '<div class="actions"><button class="btn" id="retour">← Tous les événements</button></div>';
+  h += '<h2>' + (nouveau ? 'Nouvel événement' : esc(e.titre)) + '</h2>';
+  h += '<form id="form" class="panneau"><div class="grille">' +
+    champ('titre', 'Titre affiché', e.titre, 'text', 'required list="spectacles"') +
+    '<datalist id="spectacles">' + D.spectacles.map(function (s) { return '<option value="' + esc(s) + '">'; }).join('') + '</datalist>' +
+    champ('spectacle', 'Spectacle (pour regrouper les séances)', e.spectacle, 'text', 'list="spectacles" placeholder="Vide = même que le titre"') +
+    champ('compagnie', 'Compagnie / artistes', e.compagnie) +
+    champ('date', 'Date', e.date, 'date', 'required') +
+    champ('debut', 'Début', e.debut, 'time') +
+    champ('fin', 'Fin', e.fin, 'time') +
+    champ('duree', 'Durée', e.duree, 'text', 'placeholder="50 min"') +
+    champ('age', 'Âge', e.age, 'text', 'placeholder="Dès 6 ans, tout public…"') +
+    champ('lieu', 'Lieu', e.lieu) +
+    champ('adresse', 'Adresse', e.adresse) +
+    champ('tarif', 'Tarif (texte)', e.tarif, 'text', 'placeholder="Prix libre, paiement sur place"') +
+    champ('places', 'Nombre de places (vide = illimité)', e.places, 'number', 'min="0"') +
+    '<div><label for="f-statut">Statut</label><select id="f-statut" name="statut">' +
+      D.statuts.map(function (s) { return '<option' + (s === e.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
+      '<p class="aide">Ouvert : réservable. Fermé : affiché sans réservation. Brouillon et Annulé : cachés du site.</p></div>' +
+    champ('image', 'Image (adresse, facultatif)', e.image) +
+    champ('description', 'Description', e.description, 'textarea') +
+    '</div><div class="actions"><button class="btn plein" type="submit">Enregistrer</button>' +
+    (nouveau ? '' : '<button class="btn" type="button" id="dupliquer">Dupliquer (autre date)</button><button class="btn danger" type="button" id="supprimer">Supprimer</button>') +
+    '</div></form>';
+
+  if (!nouveau) {
+    var resas = D.reservations.filter(function (r) { return r.evenement === e.id; });
+    var actives = resas.filter(function (r) { return r.statut !== 'Annulée'; });
+    var total = actives.reduce(function (s, r) { return s + r.places; }, 0);
+    h += '<h2>Réservations · ' + total + (Number(e.places) ? ' / ' + e.places : '') + ' places</h2><div class="panneau">';
+    if (!resas.length) h += '<p class="vide">Pas encore de réservation.</p>';
+    else h += '<div class="tableau"><table><tr><th>Nom</th><th>Places</th><th>Contact</th><th>Message</th><th>Reçue</th><th></th></tr>' +
+      resas.map(function (r) {
+        return '<tr class="' + (r.statut === 'Annulée' ? 'annulee' : '') + '"><td>' + esc(r.nom) + '</td><td>' + r.places + '</td><td>' +
+          (r.email ? '<a style="color:var(--lav2)" href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>' : '') + (r.telephone ? '<br>' + esc(r.telephone) : '') +
+          '</td><td>' + esc(r.message) + '</td><td>' + esc(r.recue) + '</td><td>' +
+          (r.statut === 'Annulée' ? 'Annulée' : '<button class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler</button>') + '</td></tr>';
+      }).join('') + '</table></div>';
+    h += '<div class="actions">' + (actives.length ? '<button class="btn" id="copier">Copier les e-mails</button>' : '') + '</div>';
+    h += '<h2>Ajouter une réservation à la main</h2><form id="ajout"><div class="grille">' +
+      (champ('nom', 'Nom', '', 'text', 'required') + champ('email', 'E-mail', '', 'email') + champ('telephone', 'Téléphone', '') +
+      champ('places', 'Places', '1', 'number', 'min="1"')).replace(/(id|for)="f-/g, '$1="a-') +
+      '<div><label><input type="checkbox" name="envoyerMail" style="width:auto"> envoyer l\'e-mail de confirmation</label></div>' +
+      '</div><div class="actions"><button class="btn plein" type="submit">Ajouter</button></div></form></div>';
+  }
+  $('#vue').innerHTML = h;
+  $('#retour').onclick = function () { ouvert = null; afficher(); };
+  $('#form').onsubmit = function (ev) {
+    ev.preventDefault();
+    var o = { id: nouveau ? '' : e.id };
+    new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
+    appel('adminEnregistrerEvenement', [o], function (res) { recharger(res); ouvert = null; afficher(); toast('Enregistré'); });
+  };
+  if (nouveau) return;
+  $('#dupliquer').onclick = function () {
+    var c = {}; Object.keys(e).forEach(function (k) { c[k] = e[k]; }); c.id = ''; c.date = '';
+    afficherEvenement.copie = c; ouvert = 'copie'; afficher(); toast('Copie : choisissez la nouvelle date');
+  };
+  $('#supprimer').onclick = function () {
+    if (!confirm('Supprimer « ' + e.titre + ' » ?')) return;
+    appel('adminSupprimerEvenement', [e.id], function (res) { ouvert = null; recharger(res); toast('Supprimé'); });
+  };
+  document.querySelectorAll('[data-annuler]').forEach(function (b) {
+    b.onclick = function () {
+      if (!confirm('Annuler cette réservation ?')) return;
+      var prevenir = confirm('Prévenir la personne par e-mail ?');
+      appel('adminAnnulerReservation', [b.dataset.annuler, prevenir], function (res) { recharger(res); toast('Réservation annulée'); });
+    };
+  });
+  var cp = $('#copier');
+  if (cp) cp.onclick = function () {
+    var mails = actives.map(function (r) { return r.email; }).filter(Boolean).join(', ');
+    (navigator.clipboard ? navigator.clipboard.writeText(mails) : Promise.reject()).then(function () { toast('E-mails copiés'); }, function () { prompt('E-mails :', mails); });
+  };
+  $('#ajout').onsubmit = function (ev) {
+    ev.preventDefault();
+    var o = { evenement: e.id };
+    new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
+    o.envoyerMail = !!o.envoyerMail;
+    appel('adminAjouterReservation', [o], function (res) { recharger(res); toast('Réservation ajoutée'); });
+  };
+}
+
+function afficherReglages() {
+  var r = D.reglages;
+  var h = '<h2>Réglages</h2><form id="regl" class="panneau"><div class="grille">' +
+    champ('nomFestival', 'Nom du festival (signature des e-mails)', r.nomFestival) +
+    champ('copieA', 'Adresse qui reçoit une copie de chaque réservation', r.copieA, 'email') +
+    champ('sujet', 'Sujet de la confirmation', r.sujet) +
+    champ('message', 'Message de confirmation', r.message, 'textarea') +
+    champ('sujetAnnulation', 'Sujet de l\'annulation', r.sujetAnnulation) +
+    champ('messageAnnulation', 'Message d\'annulation', r.messageAnnulation, 'textarea') +
+    '</div><p class="aide">Remplacés automatiquement : {nom} {places} {titre} {date} {heure} {lieu} {tarif} {festival}</p>' +
+    '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="essai">M\'envoyer un essai</button></div></form>';
+  $('#vue').innerHTML = h;
+  $('#regl').onsubmit = function (ev) {
+    ev.preventDefault();
+    var o = {}; new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
+    appel('adminEnregistrerReglages', [o], function (res) { recharger(res); toast('Enregistré'); });
+  };
+  $('#essai').onclick = function () { appel('adminEssaiMail', [], function (t) { toast(t); }); };
+}
+
+appel('adminCharger', [], recharger);
+</script>
+</body>
+</html>

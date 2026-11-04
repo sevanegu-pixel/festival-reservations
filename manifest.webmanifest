@@ -1,0 +1,15 @@
+{
+  "name": "Réservations du festival",
+  "short_name": "Réservations",
+  "lang": "fr",
+  "id": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d0b12",
+  "theme_color": "#0d0b12",
+  "icons": [
+    { "src": "icone_192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icone_512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icone_maskable_512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
