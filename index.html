@@ -69,12 +69,11 @@ iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
   if (!cle || !execValide.test(exec)) { document.getElementById("sansLien").hidden = false; return; }
 
+  // Google refuse d'afficher l'appli dans un cadre (« Impossible d'ouvrir le fichier ») : on y va directement.
+  // L'icône garde la clé et l'adresse, et ouvre l'appli à chaque lancement.
   document.getElementById("accueil").hidden = true;
-  var cadre = document.createElement("iframe");
-  cadre.id = "app"; cadre.title = "Réservations";
-  cadre.setAttribute("allow", "clipboard-read; clipboard-write; web-share");
-  cadre.src = exec + "?cle=" + encodeURIComponent(cle);
-  document.body.insertBefore(cadre, document.body.firstChild);
+  location.replace(exec + "?cle=" + encodeURIComponent(cle));
+  return;
 
   // Pas encore installée : petit bandeau pour mettre l'icône (masquable 14 jours).
   var installee = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
