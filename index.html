@@ -64,7 +64,7 @@ iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border
   // Le lien personnel reste dans l'adresse : sur iPhone, l'icône posée sur l'écran d'accueil s'ouvre sur cette adresse-là
   // (elle n'a pas accès à ce que Safari a gardé). Le manifeste n'a donc pas de start_url.
   cle = lire("cle");
-  exec = lire("exec") || EXEC_DEFAUT;
+  exec = EXEC_DEFAUT || lire("exec"); // l'adresse intégrée à l'icône fait foi (une ancienne adresse mémorisée ne doit pas la remplacer)
 
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
   if (!cle || !execValide.test(exec)) { document.getElementById("sansLien").hidden = false; return; }
