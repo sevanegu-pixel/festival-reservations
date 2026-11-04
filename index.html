@@ -22,9 +22,10 @@ h1 { font-size: 26px; margin: 18px 0 4px; }
 p { color: #bdb4d0; line-height: 1.45; font-size: 15px; }
 .carte { background: #1a1623; border-radius: 16px; padding: 14px 16px; margin-top: 18px; text-align: left; font-size: 14px; line-height: 1.5; color: #ddd6ea; }
 .carte b { color: #ff7a7e; }
+.btn.grand { display: block; width: 100%; box-sizing: border-box; font-size: 17px; padding: 15px; margin-top: 22px; text-decoration: none; }
 .btn { display: inline-block; border: 0; border-radius: 14px; background: #ff5a5f; color: #1a0607; font: inherit; font-weight: 700; font-size: 15px; padding: 10px 14px; cursor: pointer; }
 .partage { display: inline-block; vertical-align: -3px; width: 16px; height: 16px; }
-main[hidden], #barreBouton[hidden], #sansLien[hidden] { display: none; }
+main[hidden], #barreBouton[hidden], #sansLien[hidden], #ouvrir[hidden] { display: none; }
 iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: 0; background: #0d0b12; }
 #barre { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10; display: none; max-width: 520px; margin: 0 auto;
   background: #1a1623; color: #f6f2ff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.5); padding: 12px 40px 12px 14px; gap: 12px; align-items: center; font-size: 14px; line-height: 1.4; }
@@ -40,6 +41,7 @@ iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border
   <img class="logo" src="icone_192.png" alt="">
   <h1>Réservations</h1>
   <p>La gestion des réservations du festival.</p>
+  <a class="btn grand" id="ouvrir" hidden>Ouvrir l'appli</a>
   <div class="carte" id="sansLien" hidden>Ouvre ton <b>lien personnel</b> (celui donné par la page « C'est installé ! » ou par le menu Festival de la feuille Google) : il ouvre l'appli directement, sans mot de passe. Ensuite, l'icône s'en souvient.</div>
 </main>
 <div id="barre" role="dialog" aria-label="Installer l'appli">
@@ -70,13 +72,15 @@ iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border
   if (!cle || !execValide.test(exec)) { document.getElementById("sansLien").hidden = false; return; }
 
   // Google refuse d'afficher l'appli dans un cadre (« Impossible d'ouvrir le fichier ») : on y va directement.
-  // L'icône garde la clé et l'adresse, et ouvre l'appli à chaque lancement.
-  document.getElementById("accueil").hidden = true;
-  location.replace(exec + "?cle=" + encodeURIComponent(cle));
-  return;
+  // Lancée depuis son icône, la page file vers l'appli ; ouverte dans un navigateur, elle montre un bouton
+  // (et le bandeau d'installation, qui a besoin que la page reste affichée).
+  var adresse = exec + "?cle=" + encodeURIComponent(cle);
+  var installee = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+  if (installee) { document.getElementById("accueil").hidden = true; location.replace(adresse); return; }
+  var ouvrir = document.getElementById("ouvrir");
+  ouvrir.href = adresse; ouvrir.hidden = false;
 
   // Pas encore installée : petit bandeau pour mettre l'icône (masquable 14 jours).
-  var installee = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
   var masque = parseInt(lire("install_masque") || "0", 10);
   if (installee || masque > Date.now()) return;
   var barre = document.getElementById("barre"), texte = document.getElementById("barreTexte"), bouton = document.getElementById("barreBouton");
@@ -99,7 +103,7 @@ iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border
     if (ios && safari) montrer("<b>Mettre l'icône</b>Appuie sur " + partage + " <b style=\"display:inline\">Partager</b>, puis «&nbsp;Sur l'écran d'accueil&nbsp;».", false);
     else if (ios) montrer("<b>Mettre l'icône</b>Ouvre ce lien dans Safari (menu ⋯ › « Ouvrir dans Safari »).", false);
     else if (/Android/.test(ua)) montrer("<b>Mettre l'icône</b>Menu ⋮ en haut à droite › «&nbsp;Ajouter à l'écran d'accueil&nbsp;».", false);
-    else montrer("<b>Installer l'appli</b>Dans Chrome ou Edge : icône d'installation à droite de la barre d'adresse.", false);
+    else montrer("<b>Installer l'appli</b>Dans Chrome : menu ⋮ › « Caster, enregistrer et partager » › « Installer la page en tant qu'application ».", false);
   }, 3500);
 })();
 </script>
