@@ -51,7 +51,7 @@ iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border
 <script>
 (function () {
   // Adresse de l'application Apps Script (/exec). Vide tant qu'elle n'est pas déployée : elle arrive alors par le lien personnel.
-  var EXEC_DEFAUT = "https://script.google.com/macros/s/AKfycbwWdo5fOb68E1Civ7ToZe5EDYxvq_9GDl97nmEwv7aPYHtQn-vSN_uhZgsjmjZIrLph/exec";
+  var EXEC_DEFAUT = "https://script.google.com/macros/s/AKfycbxR6_jsJa0sC6FSN1Brxohb16fFQF0fad94jrAggqhXsKhE2LI/exec";
   var PREFIXE = "festival_resa_";
   function lire(k) { try { return localStorage.getItem(PREFIXE + k) || ""; } catch (e) { return ""; } }
   function garder(k, v) { try { localStorage.setItem(PREFIXE + k, v); } catch (e) {} }
