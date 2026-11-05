@@ -53,6 +53,27 @@ tr.annulee td:last-child{text-decoration:none}
 #toast.erreur{background:var(--rouge)}
 #charge{position:fixed;top:0;left:0;height:3px;width:100%;background:var(--lav);display:none;z-index:30;animation:c 1s infinite linear}
 @keyframes c{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
+/* Photos et recadrage */
+.photos{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 8px}
+.photo{position:relative;width:150px;aspect-ratio:3/2;background:#100e17;border:1px solid var(--ligne);border-radius:8px;overflow:hidden}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo .outils{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;background:rgba(11,10,16,.8);padding:3px 4px}
+.photo .outils button{background:none;border:0;color:var(--texte);font:600 12px Barlow,sans-serif;cursor:pointer;padding:3px 5px}
+.photo .outils button:hover{color:var(--lav2)}
+.photo .num{position:absolute;left:6px;top:4px;font:700 12px Barlow,sans-serif;background:var(--lav);color:#0b0a10;border-radius:999px;padding:1px 7px}
+.photos .ajout{width:150px;aspect-ratio:3/2;border:1px dashed var(--lav);border-radius:8px;background:none;color:var(--lav2);font:600 14px Barlow,sans-serif;cursor:pointer}
+#recadrage{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:40;display:none;align-items:center;justify-content:center;padding:12px}
+#recadrage.ouvert{display:flex}
+#recadrage .boite{background:var(--carte);border:1px solid var(--ligne);border-radius:14px;padding:16px;width:min(96vw,640px)}
+#recadrage canvas{display:block;width:100%;aspect-ratio:3/2;background:#000;border-radius:8px;cursor:grab;touch-action:none}
+#recadrage .reglage{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px;color:var(--doux)}
+#recadrage input[type=range]{flex:1;padding:0}
+/* Aperçu du site */
+.apercu{margin-top:12px}
+.apercu .onglets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.apercu iframe{width:100%;height:min(78vh,900px);border:1px solid var(--ligne);border-radius:12px;background:#120f24}
+.apercu .cadre{position:relative}
+.apercu.tel iframe{width:400px;max-width:100%;margin:0 auto;display:block}
 @media (max-width:560px){.ev{grid-template-columns:52px 1fr}.jauge{grid-column:2;text-align:left}.jauge .barre{width:120px}}
 </style>
 </head>
@@ -63,6 +84,10 @@ tr.annulee td:last-child{text-decoration:none}
   <nav><button data-vue="evenements" class="on">Événements</button> <button data-vue="reglages">Réglages</button></nav>
 </header>
 <main id="vue"><p class="vide">Chargement…</p></main>
+<input type="file" id="fichierPhoto" accept="image/*" hidden>
+<div id="recadrage"><div class="boite"><canvas id="cv"></canvas><div class="reglage">Zoom <input type="range" id="zoom" min="1" max="4" step="0.01" value="1"></div>
+<p class="aide">Déplacez la photo pour choisir le cadrage. Le cadre correspond aux photos du programme.</p>
+<div class="actions"><button type="button" class="btn plein" id="recadrerOk">Utiliser cette photo</button><button type="button" class="btn" id="recadrerNon">Annuler</button></div></div></div>
 <div id="toast"></div>
 
 <script>
@@ -144,12 +169,15 @@ function afficherEvenement(id) {
     '<div><label for="f-statut">Statut</label><select id="f-statut" name="statut">' +
       D.statuts.map(function (s) { return '<option' + (s === e.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
       '<p class="aide">Ouvert : réservable. Fermé : affiché sans réservation. Brouillon et Annulé : cachés du site.</p></div>' +
-    champ('image', 'Image (adresse, facultatif)', e.image) +
+    '<div class="large"><label>Photos (la première est celle du programme ; sur la fiche, toutes s\'affichent)</label>' +
+    '<div class="photos" id="photos"></div><textarea id="f-image" name="image" hidden>' + esc(e.image) + '</textarea>' +
+    '<p class="aide">Choisissez une photo, cadrez-la, et elle est rangée dans le Drive du festival. Vous pouvez aussi <button type="button" class="btn petit" id="urlPhoto">coller une adresse</button>.</p></div>' +
     champ('description', 'Description', e.description, 'textarea') +
     '</div><div class="actions"><button class="btn plein" type="submit">Enregistrer</button>' +
     (nouveau ? '' : '<button class="btn" type="button" id="dupliquer">Dupliquer (autre date)</button><button class="btn danger" type="button" id="supprimer">Supprimer</button>') +
     '</div></form>';
 
+  if (!nouveau) h += apercuSite(e);
   if (!nouveau) {
     var resas = D.reservations.filter(function (r) { return r.evenement === e.id; });
     var actives = resas.filter(function (r) { return r.statut !== 'Annulée'; });
@@ -172,6 +200,8 @@ function afficherEvenement(id) {
   }
   $('#vue').innerHTML = h;
   $('#retour').onclick = function () { ouvert = null; afficher(); };
+  photosInit();
+  if (!nouveau) apercuInit(e);
   $('#form').onsubmit = function (ev) {
     ev.preventDefault();
     var o = { id: nouveau ? '' : e.id };
@@ -212,6 +242,7 @@ function afficherReglages() {
   var r = D.reglages;
   var h = '<h2>Réglages</h2><form id="regl" class="panneau"><div class="grille">' +
     champ('nomFestival', 'Nom du festival (signature des e-mails)', r.nomFestival) +
+    champ('siteUrl', 'Adresse du site (pour les aperçus)', r.siteUrl, 'url') +
     champ('copieA', 'Adresse qui reçoit une copie de chaque réservation', r.copieA, 'email') +
     champ('sujet', 'Sujet de la confirmation', r.sujet) +
     champ('message', 'Message de confirmation', r.message, 'textarea') +
@@ -226,6 +257,84 @@ function afficherReglages() {
     appel('adminEnregistrerReglages', [o], function (res) { recharger(res); toast('Enregistré'); });
   };
   $('#essai').onclick = function () { appel('adminEssaiMail', [], function (t) { toast(t); }); };
+}
+
+// ---------- Photos d'un événement : liste, ordre, recadrage ----------
+function listePhotos() { return $('#f-image').value.split(/\s*[\n,]\s*/).filter(Boolean); }
+function ecrirePhotos(l) { $('#f-image').value = l.join('\n'); photosAfficher(); }
+function photosAfficher() {
+  var l = listePhotos();
+  $('#photos').innerHTML = l.map(function (u, i) {
+    return '<div class="photo"><img src="' + esc(u) + '" alt="" loading="lazy"><span class="num">' + (i + 1) + '</span><div class="outils">' +
+      (i ? '<button type="button" data-premiere="' + i + '" title="Mettre en premier">↑ Première</button>' : '<span></span>') +
+      '<button type="button" data-retirer="' + i + '">Retirer</button></div></div>';
+  }).join('') + '<button type="button" class="ajout" id="ajoutPhoto">+ Ajouter une photo</button>';
+  document.querySelectorAll('[data-retirer]').forEach(function (b) { b.onclick = function () { var l = listePhotos(); l.splice(+b.dataset.retirer, 1); ecrirePhotos(l); }; });
+  document.querySelectorAll('[data-premiere]').forEach(function (b) { b.onclick = function () { var l = listePhotos(); l.unshift(l.splice(+b.dataset.premiere, 1)[0]); ecrirePhotos(l); }; });
+  $('#ajoutPhoto').onclick = function () { $('#fichierPhoto').value = ''; $('#fichierPhoto').click(); };
+}
+function photosInit() {
+  if (!$('#photos')) return;
+  photosAfficher();
+  $('#urlPhoto').onclick = function () { var u = prompt('Adresse de l\'image (https://…) :'); if (u && /^https?:\/\//.test(u.trim())) ecrirePhotos(listePhotos().concat([u.trim()])); };
+  $('#fichierPhoto').onchange = function () { var f = this.files[0]; if (f) recadrer(f, function (base64) {
+    toast('Envoi de la photo…');
+    appel('adminEnregistrerImage', [{ nom: ($('#f-titre').value || 'photo') + ' ' + (listePhotos().length + 1), base64: base64 }], function (r) {
+      ecrirePhotos(listePhotos().concat([r.url])); toast('Photo ajoutée : pensez à enregistrer l\'événement');
+    });
+  }); };
+}
+
+// Recadrage : la photo se déplace au doigt ou à la souris, le curseur zoome ; le cadre est au format 3:2 du site.
+function recadrer(fichier, ok) {
+  var boite = $('#recadrage'), cv = $('#cv'), ctx = cv.getContext('2d'), zoom = $('#zoom');
+  var img, base, s, ox, oy, W = 900, H = 600;
+  cv.width = W; cv.height = H;
+  var charge = window.createImageBitmap ? createImageBitmap(fichier, { imageOrientation: 'from-image' }).catch(function () { return chargerImage(fichier); }) : chargerImage(fichier);
+  charge.then(function (im) {
+    img = im; base = Math.max(W / im.width, H / im.height); s = base; zoom.value = 1;
+    ox = (W - im.width * s) / 2; oy = (H - im.height * s) / 2; dessiner(); boite.classList.add('ouvert');
+  });
+  function chargerImage(f) { return new Promise(function (res, rej) { var u = URL.createObjectURL(f), i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = u; }); }
+  function borner() { ox = Math.min(0, Math.max(W - img.width * s, ox)); oy = Math.min(0, Math.max(H - img.height * s, oy)); }
+  function dessiner() { borner(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.drawImage(img, ox, oy, img.width * s, img.height * s); }
+  zoom.oninput = function () { var ns = base * zoom.value, cx = W / 2, cy = H / 2; ox = cx - (cx - ox) * ns / s; oy = cy - (cy - oy) * ns / s; s = ns; dessiner(); };
+  var drag = null;
+  cv.onpointerdown = function (ev) { drag = { x: ev.clientX, y: ev.clientY, ox: ox, oy: oy }; cv.setPointerCapture(ev.pointerId); };
+  cv.onpointermove = function (ev) { if (!drag) return; var k = W / cv.clientWidth; ox = drag.ox + (ev.clientX - drag.x) * k; oy = drag.oy + (ev.clientY - drag.y) * k; dessiner(); };
+  cv.onpointerup = cv.onpointercancel = function () { drag = null; };
+  $('#recadrerOk').onclick = function () {
+    var out = document.createElement('canvas'), f = 1600 / W; out.width = 1600; out.height = 1067;
+    var c = out.getContext('2d'); c.fillStyle = '#000'; c.fillRect(0, 0, out.width, out.height); c.drawImage(img, ox * f, oy * f, img.width * s * f, img.height * s * f);
+    boite.classList.remove('ouvert'); ok(out.toDataURL('image/jpeg', 0.85));
+  };
+  $('#recadrerNon').onclick = function () { boite.classList.remove('ouvert'); };
+}
+
+// ---------- Aperçu du site ----------
+function siteUrl() { var u = (D.reglages.siteUrl || '').trim(); return u ? u.replace(/\/?$/, '/') : ''; }
+function apercuSite(e) {
+  if (!siteUrl()) return '<h2>Aperçu sur le site</h2><div class="panneau"><p class="aide">Indiquez l\'adresse du site dans les réglages pour voir les aperçus ici.</p></div>';
+  return '<h2>Aperçu sur le site</h2><div class="panneau apercu" id="apercu"><div class="onglets">' +
+    '<button type="button" class="btn petit on" data-page="programme.html#' + esc(e.id) + '">Fiche du spectacle</button>' +
+    '<button type="button" class="btn petit" data-page="programme.html#jour-' + esc(e.date) + '">Journée du ' + esc(e.date.split('-').reverse().join('.')) + '</button>' +
+    '<button type="button" class="btn petit" data-page="programme.html">Programme</button>' +
+    '<button type="button" class="btn petit" data-page="">Accueil</button>' +
+    '<button type="button" class="btn petit" id="tel">Téléphone</button>' +
+    '<a class="btn petit" id="ouvrirSite" href="' + esc(siteUrl() + 'programme.html#' + e.id) + '" target="_blank" rel="noopener">Ouvrir dans un onglet</a></div>' +
+    '<p class="aide">' + (e.statut === 'Ouvert' || e.statut === 'Fermé' ? 'L\'aperçu montre ce qui est enregistré : après une modification, enregistrez puis rechargez l\'aperçu.' : 'Cet événement est « ' + esc(e.statut) + ' » : il n\'apparaît pas sur le site tant qu\'il n\'est pas Ouvert ou Fermé.') + '</p>' +
+    '<div class="cadre"><iframe id="cadreSite" src="' + esc(siteUrl() + 'programme.html#' + e.id) + '" title="Aperçu du site" loading="lazy"></iframe></div></div>';
+}
+function apercuInit(e) {
+  var a = $('#apercu'); if (!a) return;
+  a.querySelectorAll('[data-page]').forEach(function (b) {
+    b.onclick = function () {
+      a.querySelectorAll('[data-page]').forEach(function (x) { x.classList.toggle('on', x === b); });
+      var u = siteUrl() + b.dataset.page; $('#ouvrirSite').href = u;
+      var f = $('#cadreSite'); f.src = 'about:blank'; setTimeout(function () { f.src = u; }, 50);
+    };
+  });
+  $('#tel').onclick = function () { a.classList.toggle('tel'); $('#tel').classList.toggle('on'); };
 }
 
 appel('adminCharger', [], recharger);

@@ -17,6 +17,8 @@ var RESA = {
   maxParReservation: 10,
   cleAdmin: 'RESA_CLE_ADMIN',
   cleReglages: 'RESA_REGLAGES',
+  dossierPhotos: 'Petit Festival · photos du site',
+  cleDossierPhotos: 'RESA_DOSSIER_PHOTOS',
 };
 
 var COL_EV = ['id', 'Titre', 'Spectacle', 'Compagnie', 'Date', 'Début', 'Fin', 'Durée', 'Âge', 'Lieu', 'Adresse',
@@ -34,6 +36,7 @@ var STATUTS_EV = ['Ouvert', 'Fermé', 'Brouillon', 'Annulé'];
 
 var REGLAGES_DEFAUT = {
   nomFestival: 'Le Petit Festival au Théâtricul',
+  siteUrl: 'https://petit-festival.ch/apercu/',
   copieA: 'petitfestival.ge@gmail.com',
   sujet: 'Votre réservation : {titre}',
   message: 'Bonjour {nom},\n\nNous avons bien reçu votre réservation de {places} place(s) pour « {titre} », ' +
@@ -320,6 +323,31 @@ function adminAnnulerReservation(cle, id, prevenir) {
   var ev = lireEvenements_().filter(function (x) { return x.id === resa.evenement; })[0];
   if (prevenir && ev && resa.email) envoyerAnnulation_(ev, resa);
   return adminCharger(cle);
+}
+
+/**
+ * Photo recadrée dans l'appli (JPEG en base64) : enregistrée dans un dossier du Drive, rendue visible
+ * par lien, et renvoyée sous forme d'adresse d'image utilisable par le site.
+ */
+function adminEnregistrerImage(cle, d) {
+  verifierCle_(cle);
+  var base64 = String(d.base64 || '').replace(/^data:[^,]*,/, '');
+  if (!base64 || base64.length > 8e6) throw new Error('Photo manquante ou trop lourde.');
+  var nom = String(d.nom || 'photo').replace(/[^\w\u00C0-\u017F .-]+/g, ' ').trim().slice(0, 80) || 'photo';
+  var blob = Utilities.newBlob(Utilities.base64Decode(base64), 'image/jpeg', nom + '.jpg');
+  var fichier = dossierPhotos_().createFile(blob);
+  fichier.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return { url: 'https://drive.google.com/thumbnail?id=' + fichier.getId() + '&sz=w1600', id: fichier.getId(), nom: fichier.getName() };
+}
+
+function dossierPhotos_() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty(RESA.cleDossierPhotos);
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
+  var existants = DriveApp.getFoldersByName(RESA.dossierPhotos);
+  var dossier = existants.hasNext() ? existants.next() : DriveApp.createFolder(RESA.dossierPhotos);
+  props.setProperty(RESA.cleDossierPhotos, dossier.getId());
+  return dossier;
 }
 
 function adminEnregistrerReglages(cle, r) {
