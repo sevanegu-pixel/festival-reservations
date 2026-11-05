@@ -71,10 +71,10 @@ iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
   if (!cle || !execValide.test(exec)) { document.getElementById("sansLien").hidden = false; return; }
 
-  // Google refuse d'afficher l'appli dans un cadre (« Impossible d'ouvrir le fichier ») : on y va directement.
-  // Lancée depuis son icône, la page file vers l'appli ; ouverte dans un navigateur, elle montre un bouton
-  // (et le bandeau d'installation, qui a besoin que la page reste affichée).
-  var adresse = exec + "?cle=" + encodeURIComponent(cle);
+  // L'écran de gestion (gestion.html) est hébergé ici même et parle au script Google en arrière-plan :
+  // pas de bandeau « application créée par un utilisateur Google Apps Script ». Lancée depuis son icône,
+  // la page y file ; ouverte dans un navigateur, elle montre un bouton (et le bandeau d'installation).
+  var adresse = "gestion.html";
   var installee = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
   if (installee) { document.getElementById("accueil").hidden = true; location.replace(adresse); return; }
   var ouvrir = document.getElementById("ouvrir");

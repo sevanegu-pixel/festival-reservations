@@ -106,7 +106,25 @@ function doPost(e) {
     return json_({ ok: false, erreur: 'Demande illisible.' });
   }
   if (donnees.api === 'reserver') return json_(reserver_(donnees));
+  if (donnees.api === 'admin') return json_(adminApi_(donnees));
   return json_({ ok: false, erreur: 'Demande inconnue.' });
+}
+
+/**
+ * Appli de gestion hébergée sur GitHub Pages (sans le bandeau Google) : elle appelle les fonctions admin*
+ * par POST {api:'admin', cle, fn, args}. Même clé, mêmes fonctions que l'écran Admin.html.
+ */
+var ADMIN_FONCTIONS = ['adminCharger', 'adminEnregistrerEvenement', 'adminSupprimerEvenement', 'adminAjouterReservation',
+  'adminAnnulerReservation', 'adminEnregistrerReglages', 'adminEssaiMail', 'adminEnregistrerImage'];
+function adminApi_(d) {
+  try {
+    if (ADMIN_FONCTIONS.indexOf(d.fn) < 0) throw new Error('Fonction inconnue.');
+    verifierCle_(d.cle);
+    var f = globalThis[d.fn];
+    return { ok: true, resultat: f.apply(null, [d.cle].concat(Array.isArray(d.args) ? d.args : [])) };
+  } catch (err) {
+    return { ok: false, erreur: err.message || String(err) };
+  }
 }
 
 function json_(objet) {
