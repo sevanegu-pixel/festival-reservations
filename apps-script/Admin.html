@@ -33,6 +33,10 @@ main{max-width:980px;margin:0 auto;padding:8px 16px 80px}
 .badge{display:inline-block;font-size:12px;border-radius:999px;padding:1px 8px;margin-left:6px;border:1px solid var(--ligne);color:var(--doux);vertical-align:2px}
 .badge.Ouvert{border-color:var(--vert);color:var(--vert)}
 .badge.Annulé{border-color:var(--rouge);color:var(--rouge)}
+.statutRapide{width:auto;font-size:13px;padding:4px 6px;margin-top:6px;border-radius:999px}
+.photosSite{margin:14px 0 0}
+.photosSite .photo{opacity:.9}
+.photosSite .photo .outils{justify-content:flex-end}
 .vide{color:var(--doux);font-style:italic}
 form .grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 label{display:block;font-size:13px;color:var(--doux);margin-bottom:4px}
@@ -125,6 +129,15 @@ function afficher() {
   $('#vue').innerHTML = h;
   $('#nouveau').onclick = function () { ouvert = 'nouveau'; afficher(); };
   document.querySelectorAll('.ev').forEach(function (b) { b.onclick = function () { ouvert = b.dataset.id; afficher(); scrollTo(0, 0); }; });
+  document.querySelectorAll('.statutRapide').forEach(function (s) {
+    s.onclick = function (ev) { ev.stopPropagation(); };
+    s.onchange = function (ev) {
+      ev.stopPropagation();
+      var e = D.evenements.filter(function (x) { return x.id === s.dataset.id; })[0]; if (!e) return;
+      var o = {}; Object.keys(e).forEach(function (k) { o[k] = e[k]; }); o.statut = s.value;
+      appel('adminEnregistrerEvenement', [o], function (res) { recharger(res); toast('« ' + e.titre + ' » : ' + s.value); });
+    };
+  });
 }
 
 function liste(evs) {
@@ -136,7 +149,8 @@ function liste(evs) {
       '<div><h3>' + esc(e.titre) + '<span class="badge ' + esc(e.statut) + '">' + esc(e.statut) + '</span></h3>' +
       '<p>' + esc([e.debut && (e.debut + (e.fin ? '–' + e.fin : '')), e.lieu].filter(Boolean).join(' · ')) + '</p></div>' +
       '<div class="jauge">' + e.prises + (places ? ' / ' + places : '') + ' place' + (e.prises > 1 || places > 1 ? 's' : '') +
-      (places ? '<div class="barre"><i style="width:' + pc + '%"></i></div>' : '') + '</div></button>';
+      (places ? '<div class="barre"><i style="width:' + pc + '%"></i></div>' : '') +
+      '<select class="statutRapide" data-id="' + esc(e.id) + '" aria-label="Statut">' + D.statuts.map(function (s) { return '<option' + (s === e.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></div></button>';
   }).join('') + '</div>';
 }
 
@@ -171,7 +185,8 @@ function afficherEvenement(id) {
       '<p class="aide">Ouvert : réservable. Fermé : affiché sans réservation. Brouillon et Annulé : cachés du site.</p></div>' +
     '<div class="large"><label>Photos (la première est celle du programme ; sur la fiche, toutes s\'affichent)</label>' +
     '<div class="photos" id="photos"></div><textarea id="f-image" name="image" hidden>' + esc(e.image) + '</textarea>' +
-    '<p class="aide">Choisissez une photo, cadrez-la, et elle est rangée dans le Drive du festival. Vous pouvez aussi <button type="button" class="btn petit" id="urlPhoto">coller une adresse</button>.</p></div>' +
+    '<p class="aide">Choisissez une photo, cadrez-la, et elle est rangée dans le Drive du festival. Vous pouvez aussi <button type="button" class="btn petit" id="urlPhoto">coller une adresse</button>.</p>' +
+    '<div class="photosSite" id="photosSite"></div></div>' +
     champ('description', 'Description', e.description, 'textarea') +
     '</div><div class="actions"><button class="btn plein" type="submit">Enregistrer</button>' +
     (nouveau ? '' : '<button class="btn" type="button" id="dupliquer">Dupliquer (autre date)</button><button class="btn danger" type="button" id="supprimer">Supprimer</button>') +
@@ -261,7 +276,7 @@ function afficherReglages() {
 
 // ---------- Photos d'un événement : liste, ordre, recadrage ----------
 function listePhotos() { return $('#f-image').value.split(/\s*[\n,]\s*/).filter(Boolean); }
-function ecrirePhotos(l) { $('#f-image').value = l.join('\n'); photosAfficher(); }
+function ecrirePhotos(l) { $('#f-image').value = l.join('\n'); photosAfficher(); photosSiteAfficher(); }
 function photosAfficher() {
   var l = listePhotos();
   $('#photos').innerHTML = l.map(function (u, i) {
@@ -273,9 +288,29 @@ function photosAfficher() {
   document.querySelectorAll('[data-premiere]').forEach(function (b) { b.onclick = function () { var l = listePhotos(); l.unshift(l.splice(+b.dataset.premiere, 1)[0]); ecrirePhotos(l); }; });
   $('#ajoutPhoto').onclick = function () { $('#fichierPhoto').value = ''; $('#fichierPhoto').click(); };
 }
+// Photos déjà sur le site (fichier festival.js du site), pour les voir et les reprendre ici.
+function chargerSite(ok) {
+  if (window.SPECTACLES || !siteUrl()) return ok();
+  var sc = document.createElement('script'); sc.src = siteUrl() + 'festival.js?' + Date.now(); sc.onload = ok; sc.onerror = function () { ok(); }; document.head.appendChild(sc);
+}
+function normTitre(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+function photosSiteAfficher() {
+  var z = $('#photosSite'); if (!z) return;
+  chargerSite(function () {
+    var SP = window.SPECTACLES || {}, cle = Object.keys(SP).filter(function (k) { return normTitre(k) === normTitre($('#f-spectacle').value || $('#f-titre').value); })[0];
+    var s = cle ? SP[cle] : null, l = s ? (s.photos || (s.photo ? [{ src: s.photo, credit: s.credit }] : [])) : [];
+    if (!l.length) { z.innerHTML = cle ? '' : '<p class="aide">Aucune fiche du site ne porte ce titre : vérifiez l\'orthographe du titre ou du spectacle.</p>'; return; }
+    z.innerHTML = '<label>Déjà sur le site pour « ' + esc(cle) + ' » (fichier du site, ' + l.length + ' photo' + (l.length > 1 ? 's' : '') + ')</label><div class="photos">' + l.map(function (p, i) {
+      var u = siteUrl() + p.src;
+      return '<div class="photo"><img src="' + esc(u) + '" alt="" loading="lazy" title="' + esc(p.credit || '') + '"><div class="outils">' + (listePhotos().indexOf(u) < 0 ? '<button type="button" data-reprendre="' + esc(u) + '">+ Reprendre ici</button>' : '<span style="color:var(--vert);font-size:12px;padding:3px 5px">Reprise</span>') + '</div></div>';
+    }).join('') + '</div><p class="aide">Ces photos s\'affichent déjà sur le site ; « Reprendre ici » les ajoute à cet événement pour les réordonner ou en ajouter d\'autres.</p>';
+    z.querySelectorAll('[data-reprendre]').forEach(function (b) { b.onclick = function () { ecrirePhotos(listePhotos().concat([b.dataset.reprendre])); }; });
+  });
+}
 function photosInit() {
   if (!$('#photos')) return;
-  photosAfficher();
+  photosAfficher(); photosSiteAfficher();
+  $('#f-titre').onchange = $('#f-spectacle').onchange = photosSiteAfficher;
   $('#urlPhoto').onclick = function () { var u = prompt('Adresse de l\'image (https://…) :'); if (u && /^https?:\/\//.test(u.trim())) ecrirePhotos(listePhotos().concat([u.trim()])); };
   $('#fichierPhoto').onchange = function () { var f = this.files[0]; if (f) recadrer(f, function (base64) {
     toast('Envoi de la photo…');
