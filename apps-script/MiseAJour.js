@@ -26,6 +26,7 @@ function activerMiseAJour() {
 }
 
 function installerTriggerMiseAJour_() {
+  return;
   var deja = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === MAJ.fonctionTrigger; });
   if (!deja) ScriptApp.newTrigger(MAJ.fonctionTrigger).timeBased().everyHours(1).create();
 }
@@ -39,6 +40,12 @@ function adminMettreAJour(cle) {
 
 /** Compare la version du dépôt à la version en service ; met à jour si besoin. Renvoie un texte. */
 function verifierMiseAJour() {
+  // Désactivée (09.11.2026) : le projet Google Cloud caché du script n'autorise pas l'API Apps Script, et un
+  // redéploiement automatique changerait le compte d'envoi des e-mails. On supprime les déclencheurs restants.
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === MAJ.fonctionTrigger) ScriptApp.deleteTrigger(t); });
+  return 'Mise à jour automatique désactivée : le code se colle dans Apps Script, puis Déployer › Nouvelle version avec le compte du festival.';
+}
+function verifierMiseAJourAncienne_() {
   var verrou = LockService.getScriptLock();
   if (!verrou.tryLock(5000)) return 'Une mise à jour est déjà en cours.';
   try {

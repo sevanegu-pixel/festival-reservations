@@ -15,9 +15,6 @@ function onOpen() {
     .createMenu('Festival')
     .addItem("Lien de l'appli de gestion", 'lienAppli')
     .addItem('Changer la clé du lien', 'changerCleAppli')
-    .addSeparator()
-    .addItem('Activer la mise à jour automatique', 'activerMiseAJour')
-    .addItem('Mettre à jour le script maintenant', 'mettreAJourMaintenant')
     .addToUi();
 }
 
