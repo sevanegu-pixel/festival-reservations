@@ -19,6 +19,7 @@ var RESA = {
   cleReglages: 'RESA_REGLAGES',
   dossierPhotos: 'Petit Festival · photos du site',
   cleDossierPhotos: 'RESA_DOSSIER_PHOTOS',
+  cleComptes: 'RESA_COMPTES',
 };
 
 var COL_EV = ['id', 'Titre', 'Spectacle', 'Compagnie', 'Date', 'Début', 'Fin', 'Durée', 'Âge', 'Lieu', 'Adresse',
@@ -28,8 +29,8 @@ var CHAMPS_EV = ['id', 'titre', 'spectacle', 'compagnie', 'date', 'debut', 'fin'
 
 // Adresse de l'appli de gestion (page GitHub installable comme une icône, ordinateur et téléphone)
 var GESTION_URL = 'https://sevanegu-pixel.github.io/festival-reservations/';
-var COL_RES = ['id', 'Événement (id)', 'Événement', 'Reçue le', 'Nom', 'E-mail', 'Téléphone', 'Places', 'Message', 'Statut'];
-var CHAMPS_RES = ['id', 'evenement', 'titreEvenement', 'recue', 'nom', 'email', 'telephone', 'places', 'message', 'statut'];
+var COL_RES = ['id', 'Événement (id)', 'Événement', 'Reçue le', 'Nom', 'E-mail', 'Téléphone', 'Places', 'Message', 'Statut', 'Arrivée'];
+var CHAMPS_RES = ['id', 'evenement', 'titreEvenement', 'recue', 'nom', 'email', 'telephone', 'places', 'message', 'statut', 'arrivee'];
 
 // Statuts d'un événement : Ouvert (réservable), Fermé (affiché, sans réservation), Brouillon (caché), Annulé (caché)
 var STATUTS_EV = ['Ouvert', 'Fermé', 'Brouillon', 'Annulé'];
@@ -112,19 +113,110 @@ function doPost(e) {
 
 /**
  * Appli de gestion hébergée sur GitHub Pages (sans le bandeau Google) : elle appelle les fonctions admin*
- * par POST {api:'admin', cle, fn, args}. Même clé, mêmes fonctions que l'écran Admin.html.
+ * par POST {api:'admin', cle|pin, fn, args}. On entre soit avec le lien personnel (clé), soit avec le code PIN
+ * d'un compte (Sévane ou un·e bénévole) ; chaque compte a ses droits.
  */
-var ADMIN_FONCTIONS = ['adminCharger', 'adminEnregistrerEvenement', 'adminSupprimerEvenement', 'adminAjouterReservation',
-  'adminAnnulerReservation', 'adminEnregistrerReglages', 'adminEssaiMail', 'adminEnregistrerImage', 'adminListerPhotos', 'adminLireImage', 'adminSupprimerPhoto'];
+var DROITS = [
+  ['reservations', 'Réservations : voir la liste, pointer les arrivées, ajouter ou annuler'],
+  ['evenements', 'Événements : modifier les textes, dates, places et photos'],
+  ['publier', 'Publier : changer ce qui est visible sur le site (statut Ouvert, Fermé, Brouillon)'],
+  ['photos', 'Galerie : ajouter, recadrer ou supprimer des photos'],
+  ['reglages', 'Réglages : e-mails de confirmation, adresse du site'],
+  ['comptes', 'Comptes : créer des codes PIN et choisir leurs droits (administration)']
+];
+var FONCTION_DROIT = {
+  adminCharger: null,
+  adminEnregistrerEvenement: 'evenements', adminSupprimerEvenement: 'evenements',
+  adminAjouterReservation: 'reservations', adminAnnulerReservation: 'reservations', adminPointer: 'reservations',
+  adminEnregistrerReglages: 'reglages', adminEssaiMail: 'reglages',
+  adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminSupprimerPhoto: 'photos',
+  adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes'
+};
 function adminApi_(d) {
   try {
-    if (ADMIN_FONCTIONS.indexOf(d.fn) < 0) throw new Error('Fonction inconnue.');
-    verifierCle_(d.cle);
-    var f = globalThis[d.fn];
-    return { ok: true, resultat: f.apply(null, [d.cle].concat(Array.isArray(d.args) ? d.args : [])) };
+    if (!(d.fn in FONCTION_DROIT)) throw new Error('Fonction inconnue.');
+    var compte = acces_(d), droit = FONCTION_DROIT[d.fn];
+    if (droit && !compte.droits[droit]) throw new Error('Votre compte (' + compte.nom + ') n\'a pas ce droit : ' + droit + '.');
+    var args = Array.isArray(d.args) ? d.args : [];
+    if (d.fn === 'adminEnregistrerEvenement' && !compte.droits.publier) args[0] = sansPublication_(args[0]);
+    var cle = PropertiesService.getScriptProperties().getProperty(RESA.cleAdmin);
+    var res = globalThis[d.fn].apply(null, [cle].concat(args));
+    if (res && res.evenements && res.reglages) { // réponse adminCharger : on y joint le compte, et on cache les contacts à qui n'a pas le droit
+      res.compte = { id: compte.id, nom: compte.nom, droits: compte.droits };
+      res.droits = DROITS;
+      if (!compte.droits.reservations) res.reservations = res.reservations.map(function (r) { return { id: r.id, evenement: r.evenement, places: r.places, statut: r.statut }; });
+      if (!compte.droits.reglages && !compte.droits.comptes) res.reglages = { nomFestival: res.reglages.nomFestival, siteUrl: res.reglages.siteUrl };
+    }
+    return { ok: true, resultat: res };
   } catch (err) {
-    return { ok: false, erreur: err.message || String(err) };
+    return { ok: false, erreur: err.message || String(err), pin: /PIN/.test(err.message || '') };
   }
+}
+/** Sans le droit de publier, le statut reste celui qui est enregistré (Brouillon pour un nouvel événement). */
+function sansPublication_(ev) {
+  ev = ev || {};
+  var ancien = ev.id ? lireEvenements_().filter(function (x) { return x.id === ev.id; })[0] : null;
+  ev.statut = ancien ? ancien.statut : 'Brouillon';
+  return ev;
+}
+function tousDroits_() { var o = {}; DROITS.forEach(function (d) { o[d[0]] = true; }); return o; }
+function acces_(d) {
+  if (d.cle && cleValide_(d.cle)) return { id: 'cle', nom: 'Lien personnel', droits: tousDroits_() };
+  var pin = String(d.pin || '');
+  if (!pin) throw new Error('Code PIN requis.');
+  if (!/^\d{4,8}$/.test(pin)) throw new Error('Code PIN incorrect.');
+  var cache = CacheService.getScriptCache(), echecs = Number(cache.get('pin_echecs') || 0);
+  if (echecs >= 15) throw new Error('Trop d\'essais de code PIN : réessayez dans dix minutes.');
+  var comptes = comptes_(), c = null;
+  for (var i = 0; i < comptes.length; i++) if (comptes[i].hash === hashPin_(pin, comptes[i].id)) { c = comptes[i]; break; }
+  if (!c) { cache.put('pin_echecs', String(echecs + 1), 600); throw new Error('Code PIN incorrect.'); }
+  cache.remove('pin_echecs');
+  return { id: c.id, nom: c.nom, droits: c.droits || {} };
+}
+function hashPin_(pin, id) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, pin + '|' + id + '|petit-festival', Utilities.Charset.UTF_8)
+    .map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
+}
+function comptes_() {
+  try { return JSON.parse(PropertiesService.getScriptProperties().getProperty(RESA.cleComptes) || '[]') || []; } catch (e) { return []; }
+}
+function ecrireComptes_(l) { PropertiesService.getScriptProperties().setProperty(RESA.cleComptes, JSON.stringify(l)); }
+function adminListerComptes(cle) {
+  verifierCle_(cle);
+  return { comptes: comptes_().map(function (c) { return { id: c.id, nom: c.nom, droits: c.droits, cree: c.cree }; }), droits: DROITS, lien: GESTION_URL };
+}
+/** Crée ou modifie un compte : { id?, nom, pin?, droits:{...} }. Le PIN n'est gardé que haché. */
+function adminEnregistrerCompte(cle, c) {
+  verifierCle_(cle);
+  var l = comptes_(), nom = String((c && c.nom) || '').trim(), pin = String((c && c.pin) || '').trim();
+  if (!nom) throw new Error('Le nom manque.');
+  var droits = {}; DROITS.forEach(function (d) { droits[d[0]] = !!(c.droits && c.droits[d[0]]); });
+  var existant = c.id ? l.filter(function (x) { return x.id === c.id; })[0] : null;
+  if (!existant && !pin) throw new Error('Choisissez un code PIN (4 à 8 chiffres).');
+  if (pin && !/^\d{4,8}$/.test(pin)) throw new Error('Le code PIN doit faire 4 à 8 chiffres.');
+  if (pin) l.forEach(function (x) { if (x.id !== (existant && existant.id) && x.hash === hashPin_(pin, x.id)) throw new Error('Ce code PIN est déjà pris par ' + x.nom + ' : choisissez-en un autre.'); });
+  if (existant) {
+    existant.nom = nom; existant.droits = droits; if (pin) existant.hash = hashPin_(pin, existant.id);
+  } else {
+    var id = nouvelId_('C');
+    l.push({ id: id, nom: nom, droits: droits, hash: hashPin_(pin, id), cree: maintenant_() });
+  }
+  ecrireComptes_(l);
+  return adminListerComptes(cle);
+}
+function adminSupprimerCompte(cle, id) {
+  verifierCle_(cle);
+  ecrireComptes_(comptes_().filter(function (x) { return x.id !== id; }));
+  return adminListerComptes(cle);
+}
+/** Pointage à l'entrée : la personne est arrivée (ou pas). */
+function adminPointer(cle, id, arrive) {
+  verifierCle_(cle);
+  var feuille = onglet_(RESA.ongletReservations, COL_RES);
+  var n = ligneDe_(feuille, id);
+  if (!n) throw new Error('Réservation introuvable.');
+  feuille.getRange(n, CHAMPS_RES.indexOf('arrivee') + 1).setValue(arrive ? 'Oui' : '');
+  return adminCharger(cle);
 }
 
 function json_(objet) {
@@ -513,6 +605,8 @@ function onglet_(nom, colonnes) {
     f.getRange(1, 1, 1, colonnes.length).setValues([colonnes]).setFontWeight('bold');
     f.setFrozenRows(1);
     f.getRange('A:Z').setNumberFormat('@'); // tout en texte : pas de date ou d'heure transformée par la feuille
+  } else if (colonnes && f.getLastColumn() < colonnes.length) { // nouvelle colonne (ex. « Arrivée ») : on complète l'en-tête
+    f.getRange(1, 1, 1, colonnes.length).setValues([colonnes]).setFontWeight('bold');
   }
   return f;
 }

@@ -40,9 +40,9 @@ iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border
 <main id="accueil">
   <img class="logo" src="icone_192.png" alt="">
   <h1>Réservations</h1>
-  <p>La gestion des réservations du festival.</p>
+  <p>La gestion des réservations du festival. Il faut un code PIN.</p>
   <a class="btn grand" id="ouvrir" hidden>Ouvrir l'appli</a>
-  <div class="carte" id="sansLien" hidden>Ouvre ton <b>lien personnel</b> (celui donné par la page « C'est installé ! » ou par le menu Festival de la feuille Google) : il ouvre l'appli directement, sans mot de passe. Ensuite, l'icône s'en souvient.</div>
+  <div class="carte" id="sansLien" hidden>L'appli n'est pas encore prête : l'adresse du script Google manque.</div>
 </main>
 <div id="barre" role="dialog" aria-label="Installer l'appli">
   <img src="icone_192.png" alt="">
@@ -69,7 +69,8 @@ iframe#app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border
   exec = EXEC_DEFAUT || lire("exec"); // l'adresse intégrée à l'icône fait foi (une ancienne adresse mémorisée ne doit pas la remplacer)
 
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
-  if (!cle || !execValide.test(exec)) { document.getElementById("sansLien").hidden = false; return; }
+  if (!execValide.test(exec)) { document.getElementById("sansLien").hidden = false; return; }
+  // L'appli demande un code PIN (ou s'ouvre par le lien personnel) : plus besoin d'un lien par personne.
 
   // L'écran de gestion (gestion.html) est hébergé ici même et parle au script Google en arrière-plan :
   // pas de bandeau « application créée par un utilisateur Google Apps Script ». Lancée depuis son icône,

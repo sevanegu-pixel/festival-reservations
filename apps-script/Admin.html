@@ -16,6 +16,7 @@ h2{font:700 20px "Bricolage Grotesque",sans-serif;margin:24px 0 10px}
 nav button,.btn{font:600 15px Barlow,sans-serif;border:1px solid var(--lav);background:transparent;color:var(--lav2);border-radius:999px;padding:8px 14px;cursor:pointer}
 nav button.on,.btn.plein{background:var(--lav);color:#0b0a10;border-color:var(--lav)}
 .btn.petit{padding:4px 10px;font-size:13px}
+a.btn{text-decoration:none;display:inline-block}
 .btn.danger{border-color:var(--rouge);color:var(--rouge)}
 .btn:disabled{opacity:.5;cursor:default}
 main{max-width:980px;margin:0 auto;padding:8px 16px 80px}
@@ -44,6 +45,23 @@ main{max-width:980px;margin:0 auto;padding:8px 16px 80px}
 .photo.portrait img{object-fit:contain;background:#000}
 .groupe{margin-top:18px}
 .groupe h3{margin:0 0 6px;font:700 17px "Bricolage Grotesque",sans-serif}
+.pin{max-width:360px;margin:40px auto;text-align:center}
+.pin img{width:96px;height:96px;border-radius:22px}
+.pin input{font:700 34px/1 "Bricolage Grotesque",sans-serif;text-align:center;letter-spacing:.3em;padding:14px 10px;margin:16px 0 12px}
+.pin .btn{width:100%;padding:12px}
+.compte{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--ligne)}
+.compte:last-child{border:0}
+.compte .qui{flex:1;min-width:200px}
+.compte .qui b{font-size:16px}
+.compte .qui p{margin:3px 0 0;color:var(--doux);font-size:13px}
+.compte .actions{margin:0}
+.coches label{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--texte);margin:6px 0;cursor:pointer}
+.coches input{width:auto;margin-top:3px}
+.bandeau{background:var(--carte);border:1px solid var(--lav);border-radius:10px;padding:10px 14px;margin:10px 0;font-size:14px}
+.bandeau a{color:var(--lav2)}
+nav button.discret{border-color:var(--ligne);color:var(--doux)}
+.arrivee{width:auto;transform:scale(1.3);margin:4px}
+tr.arrivee td{color:var(--vert)}
 .vide{color:var(--doux);font-style:italic}
 form .grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 label{display:block;font-size:13px;color:var(--doux);margin-bottom:4px}
@@ -93,7 +111,7 @@ tr.annulee td:last-child{text-decoration:none}
 <div id="charge"></div>
 <header>
   <h1><small id="nomFestival">Festival</small>Réservations</h1>
-  <nav><button data-vue="evenements" class="on">Événements</button> <button data-vue="photos">Photos</button> <button data-vue="reglages">Réglages</button></nav>
+  <nav><button data-vue="evenements" class="on">Événements</button> <button data-vue="photos" data-droit="photos">Photos</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
 </header>
 <main id="vue"><p class="vide">Chargement…</p></main>
 <input type="file" id="fichierPhoto" accept="image/*" hidden>
@@ -105,7 +123,20 @@ tr.annulee td:last-child{text-decoration:none}
 
 <script>
 var CLE = <?!= JSON.stringify(cle) ?>;
-var D = null, vue = 'evenements', ouvert = null;
+var PIN = '', COMPTE = null, D = null, vue = 'evenements', ouvert = null;
+function droit(k) { return !COMPTE || !!COMPTE.droits[k]; }
+function deconnexion() { try { localStorage.removeItem('festival_resa_pin'); localStorage.removeItem('festival_resa_cle'); } catch (e) {} PIN = ''; COMPTE = null; D = null; location.reload(); }
+// Écran d'entrée par code PIN (appli GitHub Pages ; l'écran Apps Script, lui, s'ouvre par le lien personnel).
+function ecranPin(message) {
+  $('#vue').innerHTML = '<form class="pin" id="formPin"><img src="icone_192.png" alt=""><h2>Code PIN</h2>' +
+    (message ? '<p class="aide" style="color:var(--rouge)">' + esc(message) + '</p>' : '<p class="aide">Le code que le festival vous a donné.</p>') +
+    '<input id="pinSaisie" type="password" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="8" placeholder="••••" autofocus required>' +
+    '<button class="btn plein" type="submit">Entrer</button></form>';
+  $('#formPin').onsubmit = function (ev) {
+    ev.preventDefault(); PIN = $('#pinSaisie').value.replace(/\D/g, '');
+    appel('adminCharger', [], function (res) { try { localStorage.setItem('festival_resa_pin', PIN); } catch (e) {} recharger(res); });
+  };
+}
 var MOIS = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
 
 function $(s, r) { return (r || document).querySelector(s); }
@@ -119,9 +150,16 @@ function appel(fn, args, ok) {
     .withFailureHandler(function (e) { $('#charge').style.display = 'none'; toast(e.message || String(e), true); });
   r[fn].apply(r, [CLE].concat(args || []));
 }
-function recharger(res) { D = res; $('#nomFestival').textContent = D.reglages.nomFestival || 'Festival'; afficher(); }
+function recharger(res) {
+  D = res; COMPTE = res.compte || null; $('#nomFestival').textContent = D.reglages.nomFestival || 'Festival';
+  document.querySelectorAll('nav [data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
+  $('#quitter').hidden = !COMPTE || COMPTE.id === 'cle' && !PIN;
+  if ((vue === 'photos' && !droit('photos')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); }); }
+  afficher();
+}
 
-document.querySelectorAll('nav button').forEach(function (b) {
+$('#quitter').onclick = function () { if (confirm('Quitter ce compte ? Il faudra redonner le code PIN.')) deconnexion(); };
+document.querySelectorAll('nav button[data-vue]').forEach(function (b) {
   b.onclick = function () { vue = b.dataset.vue; ouvert = null; document.querySelectorAll('nav button').forEach(function (x) { x.classList.toggle('on', x === b); }); afficher(); };
 });
 
@@ -134,10 +172,12 @@ function afficher() {
   var evs = D.evenements.slice().sort(function (a, b) { return (a.date + a.debut) < (b.date + b.debut) ? -1 : 1; });
   var avenir = evs.filter(function (e) { return e.date >= today; });
   var passes = evs.filter(function (e) { return e.date < today; }).reverse();
-  var h = '<div class="actions"><button class="btn plein" id="nouveau">+ Nouvel événement</button></div>';
+  var h = droit('evenements') ? '<div class="actions"><button class="btn plein" id="nouveau">+ Nouvel événement</button></div>' : '';
+  if (COMPTE && COMPTE.id === 'cle' && droit('comptes') && !PIN) h += '<div class="bandeau" id="bandeauPin">Vous êtes entrée avec le lien personnel. Créez votre code PIN et ceux des bénévoles dans <a href="#" id="versComptes">Réglages → Comptes</a> : ensuite l\'appli s\'ouvre avec le code, sur n\'importe quel appareil.</div>';
   h += '<h2>À venir</h2>' + liste(avenir) + '<h2>Passés</h2>' + liste(passes);
   $('#vue').innerHTML = h;
-  $('#nouveau').onclick = function () { ouvert = 'nouveau'; afficher(); };
+  if ($('#nouveau')) $('#nouveau').onclick = function () { ouvert = 'nouveau'; afficher(); };
+  if ($('#versComptes')) $('#versComptes').onclick = function (ev) { ev.preventDefault(); $('nav [data-vue=reglages]').click(); setTimeout(function () { var c = $('#comptes'); if (c) c.scrollIntoView({ behavior: 'smooth' }); }, 300); };
   document.querySelectorAll('.ev').forEach(function (b) { b.onclick = function () { ouvert = b.dataset.id; afficher(); scrollTo(0, 0); }; });
   document.querySelectorAll('.statutRapide').forEach(function (s) {
     s.onclick = function (ev) { ev.stopPropagation(); };
@@ -160,7 +200,7 @@ function liste(evs) {
       '<p>' + esc([e.debut && (e.debut + (e.fin ? '–' + e.fin : '')), e.lieu].filter(Boolean).join(' · ')) + '</p></div>' +
       '<div class="jauge">' + e.prises + (places ? ' / ' + places : '') + ' place' + (e.prises > 1 || places > 1 ? 's' : '') +
       (places ? '<div class="barre"><i style="width:' + pc + '%"></i></div>' : '') +
-      '<select class="statutRapide" data-id="' + esc(e.id) + '" aria-label="Statut">' + D.statuts.map(function (s) { return '<option' + (s === e.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></div></button>';
+      (droit('publier') ? '<select class="statutRapide" data-id="' + esc(e.id) + '" aria-label="Statut">' + D.statuts.map(function (s) { return '<option' + (s === e.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' : '<div><span class="badge ' + esc(e.statut) + '">' + esc(e.statut) + '</span></div>') + '</div></button>';
   }).join('') + '</div>';
 }
 
@@ -174,6 +214,8 @@ function afficherEvenement(id) {
   var nouveau = id === 'nouveau' || id === 'copie';
   var e = id === 'nouveau' ? { statut: 'Ouvert', places: '45', lieu: 'Théâtricul', adresse: 'Chêne-Bourg' } : (id === 'copie' ? afficherEvenement.copie : D.evenements.filter(function (x) { return x.id === id; })[0]);
   if (!e) { ouvert = null; return afficher(); }
+  if (nouveau && !droit('evenements')) { ouvert = null; return afficher(); }
+  var peutModifier = droit('evenements'), peutResa = droit('reservations');
   var h = '<div class="actions"><button class="btn" id="retour">← Tous les événements</button></div>';
   h += '<h2>' + (nouveau ? 'Nouvel événement' : esc(e.titre)) + '</h2>';
   h += '<form id="form" class="panneau"><div class="grille">' +
@@ -190,34 +232,37 @@ function afficherEvenement(id) {
     champ('adresse', 'Adresse', e.adresse) +
     champ('tarif', 'Tarif (texte)', e.tarif, 'text', 'placeholder="Prix libre, paiement sur place"') +
     champ('places', 'Nombre de places (vide = illimité)', e.places, 'number', 'min="0"') +
-    '<div><label for="f-statut">Statut</label><select id="f-statut" name="statut">' +
+    (droit('publier') ? '<div><label for="f-statut">Statut</label><select id="f-statut" name="statut">' +
       D.statuts.map(function (s) { return '<option' + (s === e.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
-      '<p class="aide">Ouvert : réservable. Fermé : affiché sans réservation. Brouillon et Annulé : cachés du site.</p></div>' +
+      '<p class="aide">Ouvert : réservable. Fermé : affiché sans réservation. Brouillon et Annulé : cachés du site.</p></div>'
+      : '<div><label>Statut</label><p><span class="badge ' + esc(e.statut) + '">' + esc(e.statut || 'Brouillon') + '</span></p><p class="aide">Seul un compte avec le droit « Publier » peut le changer.</p></div>') +
     '<div class="large"><label>Photos affichées sur le site (la 1re est celle du programme ; sur la fiche, toutes défilent dans l\'ordre)</label>' +
     '<div class="photos" id="photos"></div><textarea id="f-image" name="image" hidden>' + esc(e.image) + '</textarea>' +
     '<p class="aide">← → changent l\'ordre, « Recadrer » refait le cadrage 3:2. « Ajouter » prend une photo de l\'ordinateur ou du téléphone ; vous pouvez aussi <button type="button" class="btn petit" id="urlPhoto">coller une adresse</button>. Pensez à enregistrer l\'événement ensuite.</p>' +
     '<div class="galerie" id="galerie"></div></div>' +
     champ('description', 'Description', e.description, 'textarea') +
-    '</div><div class="actions"><button class="btn plein" type="submit">Enregistrer</button>' +
+    '</div>' + (peutModifier ? '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button>' +
     (nouveau ? '' : '<button class="btn" type="button" id="dupliquer">Dupliquer (autre date)</button><button class="btn danger" type="button" id="supprimer">Supprimer</button>') +
-    '</div></form>';
+    '</div>' : '<p class="aide">Votre compte peut consulter cet événement, pas le modifier.</p>') + '</form>';
 
   if (!nouveau) h += apercuSite(e);
   if (!nouveau) {
     var resas = D.reservations.filter(function (r) { return r.evenement === e.id; });
     var actives = resas.filter(function (r) { return r.statut !== 'Annulée'; });
     var total = actives.reduce(function (s, r) { return s + r.places; }, 0);
-    h += '<h2>Réservations · ' + total + (Number(e.places) ? ' / ' + e.places : '') + ' places</h2><div class="panneau">';
-    if (!resas.length) h += '<p class="vide">Pas encore de réservation.</p>';
-    else h += '<div class="tableau"><table><tr><th>Nom</th><th>Places</th><th>Contact</th><th>Message</th><th>Reçue</th><th></th></tr>' +
+    var arrivees = actives.filter(function (r) { return r.arrivee; }).reduce(function (s, r) { return s + r.places; }, 0);
+    h += '<h2>Réservations · ' + total + (Number(e.places) ? ' / ' + e.places : '') + ' places' + (arrivees ? ' · ' + arrivees + ' arrivée' + (arrivees > 1 ? 's' : '') : '') + '</h2><div class="panneau">';
+    if (!peutResa) h += '<p class="aide">' + total + ' place' + (total > 1 ? 's' : '') + ' réservée' + (total > 1 ? 's' : '') + '. Votre compte ne voit pas le détail des réservations.</p></div>';
+    else if (!resas.length) h += '<p class="vide">Pas encore de réservation.</p>';
+    else h += '<div class="tableau"><table><tr><th>Arrivé·e</th><th>Nom</th><th>Places</th><th>Contact</th><th>Message</th><th>Reçue</th><th></th></tr>' +
       resas.map(function (r) {
-        return '<tr class="' + (r.statut === 'Annulée' ? 'annulee' : '') + '"><td>' + esc(r.nom) + '</td><td>' + r.places + '</td><td>' +
+        return '<tr class="' + (r.statut === 'Annulée' ? 'annulee' : (r.arrivee ? 'arrivee' : '')) + '"><td>' + (r.statut === 'Annulée' ? '' : '<input type="checkbox" class="arrivee" data-pointer="' + esc(r.id) + '"' + (r.arrivee ? ' checked' : '') + ' aria-label="Arrivé·e">') + '</td><td>' + esc(r.nom) + '</td><td>' + r.places + '</td><td>' +
           (r.email ? '<a style="color:var(--lav2)" href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>' : '') + (r.telephone ? '<br>' + esc(r.telephone) : '') +
           '</td><td>' + esc(r.message) + '</td><td>' + esc(r.recue) + '</td><td>' +
           (r.statut === 'Annulée' ? 'Annulée' : '<button class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler</button>') + '</td></tr>';
       }).join('') + '</table></div>';
-    h += '<div class="actions">' + (actives.length ? '<button class="btn" id="copier">Copier les e-mails</button>' : '') + '</div>';
-    h += '<h2>Ajouter une réservation à la main</h2><form id="ajout"><div class="grille">' +
+    if (peutResa) h += '<div class="actions">' + (actives.length ? '<button class="btn" id="copier">Copier les e-mails</button>' : '') + '</div>';
+    if (peutResa) h += '<h2>Ajouter une réservation à la main</h2><form id="ajout"><div class="grille">' +
       (champ('nom', 'Nom', '', 'text', 'required') + champ('email', 'E-mail', '', 'email') + champ('telephone', 'Téléphone', '') +
       champ('places', 'Places', '1', 'number', 'min="1"')).replace(/(id|for)="f-/g, '$1="a-') +
       '<div><label><input type="checkbox" name="envoyerMail" style="width:auto"> envoyer l\'e-mail de confirmation</label></div>' +
@@ -225,8 +270,11 @@ function afficherEvenement(id) {
   }
   $('#vue').innerHTML = h;
   $('#retour').onclick = function () { ouvert = null; afficher(); };
-  photosInit();
+  if (peutModifier) photosInit();
+  else { $('#form').querySelectorAll('input,select,textarea').forEach(function (x) { x.disabled = true; }); $('#photos').innerHTML = listePhotos().map(function (u) { return '<div class="photo"><img src="' + esc(u) + '" alt=""></div>'; }).join('') || '<p class="aide">Pas de photo.</p>'; $('#galerie').remove(); }
   if (!nouveau) apercuInit(e);
+  document.querySelectorAll('[data-pointer]').forEach(function (c) { c.onchange = function () { appel('adminPointer', [c.dataset.pointer, c.checked], function (res) { recharger(res); }); }; });
+  if (!peutModifier) return;
   $('#form').onsubmit = function (ev) {
     ev.preventDefault();
     var o = { id: nouveau ? '' : e.id };
@@ -234,6 +282,7 @@ function afficherEvenement(id) {
     appel('adminEnregistrerEvenement', [o], function (res) { recharger(res); ouvert = null; afficher(); toast('Enregistré'); });
   };
   if (nouveau) return;
+  if (!peutResa && $('#ajout')) $('#ajout').remove();
   $('#dupliquer').onclick = function () {
     var c = {}; Object.keys(e).forEach(function (k) { c[k] = e[k]; }); c.id = ''; c.date = '';
     afficherEvenement.copie = c; ouvert = 'copie'; afficher(); toast('Copie : choisissez la nouvelle date');
@@ -264,8 +313,8 @@ function afficherEvenement(id) {
 }
 
 function afficherReglages() {
-  var r = D.reglages;
-  var h = '<h2>Réglages</h2><form id="regl" class="panneau"><div class="grille">' +
+  var r = D.reglages, h = '';
+  if (droit('reglages')) h += '<h2>Réglages</h2><form id="regl" class="panneau"><div class="grille">' +
     champ('nomFestival', 'Nom du festival (signature des e-mails)', r.nomFestival) +
     champ('siteUrl', 'Adresse du site (pour les aperçus)', r.siteUrl, 'url') +
     champ('copieA', 'Adresse qui reçoit une copie de chaque réservation', r.copieA, 'email') +
@@ -275,13 +324,79 @@ function afficherReglages() {
     champ('messageAnnulation', 'Message d\'annulation', r.messageAnnulation, 'textarea') +
     '</div><p class="aide">Remplacés automatiquement : {nom} {places} {titre} {date} {heure} {lieu} {tarif} {festival}</p>' +
     '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="essai">M\'envoyer un essai</button></div></form>';
+  if (droit('comptes')) h += '<h2 id="comptes">Comptes et codes PIN</h2><div class="panneau" id="zoneComptes"><p class="vide">Chargement…</p></div>';
   $('#vue').innerHTML = h;
-  $('#regl').onsubmit = function (ev) {
-    ev.preventDefault();
-    var o = {}; new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
-    appel('adminEnregistrerReglages', [o], function (res) { recharger(res); toast('Enregistré'); });
-  };
-  $('#essai').onclick = function () { appel('adminEssaiMail', [], function (t) { toast(t); }); };
+  if ($('#regl')) {
+    $('#regl').onsubmit = function (ev) {
+      ev.preventDefault();
+      var o = {}; new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
+      appel('adminEnregistrerReglages', [o], function (res) { recharger(res); toast('Enregistré'); });
+    };
+    $('#essai').onclick = function () { appel('adminEssaiMail', [], function (t) { toast(t); }); };
+  }
+  if ($('#zoneComptes')) appel('adminListerComptes', [], comptesAfficher);
+}
+
+// ---------- Comptes : un code PIN par personne, avec ses droits ----------
+function comptesAfficher(res) {
+  var z = $('#zoneComptes'); if (!z) return;
+  var lien = res.lien || location.href.split('?')[0].replace(/gestion\.html$/, '');
+  var h = '<p class="aide">Chaque personne reçoit le lien de l\'appli et son code PIN ; l\'appli s\'ouvre avec le code, puis se met sur l\'écran d\'accueil du téléphone. Commencez par votre propre compte, avec tous les droits.</p>';
+  if (!res.comptes.length) h += '<p class="vide">Aucun compte pour l\'instant.</p>';
+  res.comptes.forEach(function (c) {
+    var dr = res.droits.filter(function (d) { return c.droits && c.droits[d[0]]; }).map(function (d) { return d[1].split(' :')[0]; });
+    h += '<div class="compte"><div class="qui"><b>' + esc(c.nom) + '</b><p>' + (dr.length === res.droits.length ? 'Tous les droits' : (dr.join(', ') || 'Aucun droit')) + '</p></div>' +
+      '<div class="actions"><button type="button" class="btn petit plein" data-partager="' + esc(c.id) + '">Partager l\'appli</button><button type="button" class="btn petit" data-modifier="' + esc(c.id) + '">Modifier</button><button type="button" class="btn petit danger" data-supprimer="' + esc(c.id) + '">Supprimer</button></div></div>';
+  });
+  h += '<div class="actions"><button type="button" class="btn plein" id="nouveauCompte">+ Nouveau compte</button></div><div id="formCompte"></div>';
+  z.innerHTML = h;
+  function formulaire(c) {
+    c = c || { nom: '', droits: {} };
+    $('#formCompte').innerHTML = '<form id="fCompte" class="panneau"><h3 style="margin:0 0 10px">' + (c.id ? 'Modifier « ' + esc(c.nom) + ' »' : 'Nouveau compte') + '</h3><div class="grille">' +
+      champ('c-nom', 'Prénom ou nom', c.nom, 'text', 'required placeholder="Ex. Léa (billetterie)"').replace(/f-c-nom/g, 'c-nom') +
+      '<div><label for="c-pin">Code PIN (4 à 8 chiffres' + (c.id ? ', vide = inchangé' : '') + ')</label><div style="display:flex;gap:6px"><input id="c-pin" name="pin" inputmode="numeric" pattern="[0-9]{4,8}" maxlength="8" autocomplete="off"' + (c.id ? '' : ' required') + '><button type="button" class="btn petit" id="proposerPin">Proposer</button></div></div>' +
+      '</div><div class="coches" style="margin-top:10px">' + res.droits.map(function (d) { return '<label><input type="checkbox" name="d-' + d[0] + '"' + (c.droits && c.droits[d[0]] ? ' checked' : '') + '> <span><b>' + esc(d[1].split(' :')[0]) + '</b> :' + esc(d[1].split(' :').slice(1).join(' :')) + '</span></label>'; }).join('') + '</div>' +
+      '<div class="actions"><button class="btn plein" type="submit">' + (c.id ? 'Enregistrer' : 'Créer le compte') + '</button><button class="btn" type="button" id="annulerCompte">Annuler</button></div></form>';
+    $('#proposerPin').onclick = function () { var p = ''; for (var i = 0; i < 6; i++) p += Math.floor(Math.random() * 10); $('#c-pin').value = p; $('#c-pin').type = 'text'; };
+    $('#annulerCompte').onclick = function () { $('#formCompte').innerHTML = ''; };
+    $('#fCompte').onsubmit = function (ev) {
+      ev.preventDefault();
+      var o = { id: c.id || '', nom: $('#c-nom').value, pin: $('#c-pin').value.trim(), droits: {} };
+      res.droits.forEach(function (d) { o.droits[d[0]] = $('#fCompte [name="d-' + d[0] + '"]').checked; });
+      appel('adminEnregistrerCompte', [o], function (r2) {
+        comptesAfficher(r2); toast(c.id ? 'Compte modifié' : 'Compte créé');
+        if (o.pin) { var nc = r2.comptes.filter(function (x) { return x.nom === o.nom; }).pop(); if (nc) partager(nc, o.pin, lien); }
+      });
+    };
+    $('#formCompte').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  $('#nouveauCompte').onclick = function () { formulaire(); };
+  z.querySelectorAll('[data-modifier]').forEach(function (b) { b.onclick = function () { formulaire(res.comptes.filter(function (x) { return x.id === b.dataset.modifier; })[0]); }; });
+  z.querySelectorAll('[data-supprimer]').forEach(function (b) { b.onclick = function () {
+    var c = res.comptes.filter(function (x) { return x.id === b.dataset.supprimer; })[0];
+    if (!confirm('Supprimer le compte de « ' + c.nom + ' » ? Son code PIN ne marchera plus.')) return;
+    appel('adminSupprimerCompte', [c.id], function (r2) { comptesAfficher(r2); toast('Compte supprimé'); });
+  }; });
+  z.querySelectorAll('[data-partager]').forEach(function (b) { b.onclick = function () {
+    var c = res.comptes.filter(function (x) { return x.id === b.dataset.partager; })[0];
+    var pin = prompt('Le code PIN de ' + c.nom + ' n\'est pas gardé en clair : tapez-le pour l\'inclure dans le message (ou laissez vide pour envoyer seulement le lien).');
+    if (pin === null) return;
+    partager(c, pin.trim(), lien);
+  }; });
+}
+function partager(c, pin, lien) {
+  var texte = 'Bonjour ' + c.nom + ' ! Voici l\'appli « ' + (D.reglages.nomFestival || 'Festival') + ' » : ' + lien + (pin ? '\nTon code PIN : ' + pin : '') +
+    '\nOuvre le lien, entre le code, puis ajoute l\'appli à l\'écran d\'accueil (Safari : Partager → « Sur l\'écran d\'accueil » ; Android : menu ⋮ → « Ajouter à l\'écran d\'accueil »).';
+  var h = '<div class="panneau" id="boitePartage"><h3 style="margin:0 0 8px">Envoyer à ' + esc(c.nom) + '</h3><textarea readonly style="min-height:130px" id="textePartage">' + esc(texte) + '</textarea><div class="actions">' +
+    (navigator.share ? '<button type="button" class="btn plein" id="partagerNatif">Partager…</button>' : '') +
+    '<a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(texte) + '">WhatsApp</a>' +
+    '<a class="btn" href="mailto:?subject=' + encodeURIComponent('Appli « ' + (D.reglages.nomFestival || 'Festival') + ' »') + '&body=' + encodeURIComponent(texte) + '">E-mail</a>' +
+    '<button type="button" class="btn" id="copierPartage">Copier</button><button type="button" class="btn" id="fermerPartage">Fermer</button></div>' +
+    '<p class="aide">Le code PIN ne s\'affiche qu\'ici : notez-le ou envoyez-le tout de suite.</p></div>';
+  $('#formCompte').innerHTML = h; $('#boitePartage').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if ($('#partagerNatif')) $('#partagerNatif').onclick = function () { navigator.share({ text: texte }).catch(function () {}); };
+  $('#copierPartage').onclick = function () { var t = $('#textePartage'); t.select(); try { navigator.clipboard.writeText(texte); } catch (e) { document.execCommand('copy'); } toast('Copié'); };
+  $('#fermerPartage').onclick = function () { $('#formCompte').innerHTML = ''; };
 }
 
 // ---------- Photos d'un événement : liste, ordre, recadrage ----------
