@@ -78,7 +78,8 @@ function appelApi_(methode, url, corps, entete) {
   var r = UrlFetchApp.fetch(url, { method: methode, headers: entete, contentType: 'application/json', payload: corps ? JSON.stringify(corps) : undefined, muteHttpExceptions: true });
   if (r.getResponseCode() >= 300) {
     var t = r.getContentText();
-    if (/has not been used|is disabled|PERMISSION_DENIED/.test(t)) throw new Error('L\'API Apps Script n\'est pas activée pour ce compte Google : ouvrez script.google.com/home/usersettings et activez « API Google Apps Script ».');
+    if (/insufficient|ACCESS_TOKEN_SCOPE|scope/i.test(t)) throw new Error('Le script n\'a pas encore le droit de se modifier lui-même : dans l\'éditeur Apps Script, Paramètres du projet → cochez « Afficher le fichier manifeste appsscript.json », remplacez son contenu par celui du dépôt GitHub (apps-script/appsscript.json), enregistrez, puis menu Festival → « Activer la mise à jour automatique » pour redonner l\'autorisation.');
+    if (/has not been used|is disabled|PERMISSION_DENIED/.test(t)) throw new Error('L\'API Apps Script n\'est pas activée pour ce compte Google (ou vient de l\'être : patientez 2 minutes) : ouvrez script.google.com/home/usersettings et activez « API Google Apps Script ». Détail : ' + t.slice(0, 200));
     throw new Error('API Apps Script : ' + r.getResponseCode() + ' ' + t.slice(0, 300));
   }
   return JSON.parse(r.getContentText() || '{}');
