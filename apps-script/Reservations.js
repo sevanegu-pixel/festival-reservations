@@ -150,7 +150,7 @@ var DROITS = [
 var FONCTION_DROIT = {
   adminCharger: null,
   adminEnregistrerEvenement: 'evenements', adminSupprimerEvenement: 'evenements',
-  adminAjouterReservation: 'reservations', adminAnnulerReservation: 'reservations', adminPointer: 'reservations', adminConfirmerReservation: 'reservations',
+  adminAjouterReservation: 'reservations', adminAnnulerReservation: 'reservations', adminPointer: 'reservations', adminConfirmerReservation: 'reservations', adminEnvoyerGroupe: 'reservations',
   adminEnregistrerReglages: 'reglages', adminEssaiMail: 'reglages',
   adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminSupprimerPhoto: 'photos', adminEnregistrerVisuel: 'photos',
   adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes', adminMettreAJour: 'comptes',
