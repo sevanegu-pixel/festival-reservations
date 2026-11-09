@@ -472,6 +472,7 @@ function adminCharger(cle) {
     reglages: reglages_(),
     spectacles: titresSpectacles_(),
     statuts: STATUTS_EV,
+    nbComptes: comptes_().length,
   };
 }
 
