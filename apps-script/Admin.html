@@ -60,7 +60,7 @@ main{max-width:980px;margin:0 auto;padding:8px 16px 80px}
 .bandeau{background:var(--carte);border:1px solid var(--lav);border-radius:10px;padding:10px 14px;margin:10px 0;font-size:14px}
 .bandeau a{color:var(--lav2)}
 nav button.discret{border-color:var(--ligne);color:var(--doux)}
-.arrivee{width:auto;transform:scale(1.3);margin:4px}
+input.arrivee{width:auto;transform:scale(1.3);margin:4px}
 tr.arrivee td{color:var(--vert)}
 .vide{color:var(--doux);font-style:italic}
 form .grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
@@ -79,7 +79,7 @@ tr.annulee td{opacity:.45;text-decoration:line-through}
 tr.annulee td:last-child{text-decoration:none}
 .tableau{overflow-x:auto}
 .aide{font-size:13px;color:var(--doux);margin:4px 0 0}
-#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--lav);color:#0b0a10;font-weight:600;padding:10px 16px;border-radius:999px;display:none;z-index:20;max-width:92vw}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--lav);color:#0b0a10;font-weight:600;padding:10px 16px;border-radius:18px;display:none;z-index:20;max-width:92vw;text-align:center;line-height:1.35}
 #toast.erreur{background:var(--rouge)}
 #charge{position:fixed;top:0;left:0;height:3px;width:100%;background:var(--lav);display:none;z-index:30;animation:c 1s infinite linear}
 @keyframes c{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
@@ -199,29 +199,41 @@ main.large{max-width:none}
 @media (max-width:1100px){.ongletsAtelier{display:flex}.atelier{grid-template-columns:minmax(0,1fr)}.poignee{display:none}.atelier .voletApercuMail{position:static;max-height:none}
 .atelier[data-panneau="editer"] .voletApercuMail,.atelier[data-panneau="apercu"] .voletEditionMail{display:none}}
 @media (max-width:760px){.apercuMail .rendu{padding:8px 0}.apercuMail .cadreMail.ordi{overflow-x:auto}}
-/* Boîte : réponses du public */
-.pastille{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--lav);color:#0b0a10;font-size:12px;line-height:20px;text-align:center;margin-left:4px}
-nav button.on .pastille{background:#0b0a10;color:var(--lav)}
-.boite{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:16px;align-items:start}
-.filsBoite{display:grid;gap:8px;position:sticky;top:70px;max-height:calc(100vh - 84px);overflow:auto}
-.fil{display:block;width:100%;text-align:left;background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:10px 12px;color:var(--texte);font:inherit;cursor:pointer}
-.fil:hover,.fil.on{border-color:var(--lav)}
-.fil .ligne1{display:flex;gap:8px;justify-content:space-between}.fil .ligne1 span{font-size:13px;color:var(--doux);flex:none}
-.fil .ligne1 b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fil.nonLu .ligne1 b,.fil.nonLu .sujet{font-weight:700}.fil.nonLu{border-left:4px solid var(--lav)}
-.fil .sujet{font-size:14px;margin-top:2px}.fil .extrait{font-size:13px;color:var(--doux);margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.doux{color:var(--doux)}
-.puces2{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.eti{font-size:12px;border:1px solid var(--ligne);border-radius:999px;padding:1px 8px;color:var(--doux)}.eti.ok{color:var(--vert);border-color:var(--vert)}.eti.resa{color:var(--lav2);border-color:var(--lav)}
-.sujetFil{font:700 20px "Bricolage Grotesque",sans-serif;margin:12px 0 8px}
-.etiquettesFil{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.resasFil{display:grid;gap:8px;margin-bottom:12px}.resaFil{background:var(--carte);border:1px dashed var(--lav);border-radius:10px;padding:10px 12px;font-size:14px}.resaFil .actions{margin-top:8px}
-.messagesFil{display:grid;gap:10px;margin-bottom:14px}
-.msg{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:10px 14px;max-width:92%}
-.msg.moi{justify-self:end;border-color:var(--lav);background:#241a26}
-.msg .qui{font-size:12px;color:var(--doux);margin-bottom:4px}.msg .txt{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px}
-.reponseFil textarea{min-height:160px;margin:6px 0 8px}
-.filBoite #retourBoite{display:none}
-@media (max-width:1100px){.boite{grid-template-columns:minmax(0,1fr)}.filsBoite{position:static;max-height:none}.boite.avecFil .filsBoite{display:none}.boite:not(.avecFil) .filBoite{display:none}.filBoite #retourBoite{display:inline-block}}
+
+/* Écrans étroits : cartes d'événement, éditeur, tableaux en fiches */
+td.quand,th.quand{white-space:nowrap}
+.tableau.resas td.msg{min-width:140px;max-width:320px}
+.tableau.resas td.faire{white-space:nowrap}
+@media (max-width:560px){.ev{grid-template-columns:48px minmax(0,1fr);gap:10px 12px;padding:10px}.ev .mini,.ev .vide-mini{display:none}.ev h3{font-size:16px}.jauge{grid-column:2;text-align:left}.jauge .barre{width:min(100%,160px)}.statutRapide{margin-top:8px}}
+@media (max-width:700px){
+.barreEv h2{flex:1 1 100%;order:-1;font-size:18px}
+.zones{grid-template-columns:minmax(0,1fr)}.photo.principale{max-width:100%}
+.tableau.resas table,.tableau.resas tbody{display:block}
+.tableau.resas tr:first-child{display:none}
+.tableau.resas tr{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:2px 8px;align-items:center;border:1px solid var(--ligne);border-radius:10px;padding:8px 10px;margin:0 0 8px}
+.tableau.resas td{display:block;border:0;padding:0;white-space:normal}
+.tableau.resas td:nth-child(1){grid-column:1;grid-row:1}
+.tableau.resas td:nth-child(2){grid-column:2;grid-row:1;font-weight:600}
+.tableau.resas td:nth-child(3){grid-column:3;grid-row:1;white-space:nowrap}
+.tableau.resas td:nth-child(4){grid-column:2/4;grid-row:2;font-size:13px}
+.tableau.resas td.msg{grid-column:2/4;grid-row:3;font-size:13px;color:var(--doux);max-width:none}
+.tableau.resas td.msg:empty{display:none}
+.tableau.resas td.quand{grid-column:2/4;grid-row:4;font-size:12px;color:var(--doux)}
+.tableau.resas td.faire{grid-column:2/4;grid-row:5;margin-top:4px;display:flex;gap:6px;flex-wrap:wrap}
+.tableau.resas tr.attente .badge{margin:0}
+.tableau.dernieres table,.tableau.dernieres tbody{display:block}
+.tableau.dernieres tr:first-child{display:none}
+.tableau.dernieres tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 8px;border-bottom:1px solid var(--ligne);padding:8px 0}
+.tableau.dernieres tr:last-child{border:0}
+.tableau.dernieres td{display:block;border:0;padding:0}
+.tableau.dernieres td.qui{grid-column:1;grid-row:1;font-weight:600}
+.tableau.dernieres td.combien{grid-column:2;grid-row:1;text-align:right}
+.tableau.dernieres td.quoi{grid-column:1;grid-row:2;color:var(--doux);font-size:13px}
+.tableau.dernieres td.etat{grid-column:2;grid-row:2;text-align:right;font-size:13px;color:var(--doux)}
+.tableau.dernieres td.quand{grid-column:1/3;grid-row:3;font-size:12px;color:var(--doux)}
+.tableau.dernieres tr.annulee td{text-decoration:none;opacity:.5}
+}
+/*__MAILS_CSS__*/
 .renvoi #renvoiDetail{margin:8px 0 0 26px;display:grid;gap:6px;max-width:560px}
 .resumeEv .grandeDate{font:700 20px "Bricolage Grotesque",sans-serif}.resumeEv p{margin:6px 0 0;color:var(--doux)}
 #bandeauVoir{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--lav);color:#0b0a10;padding:8px 16px;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
@@ -248,7 +260,7 @@ body.voir main{padding-bottom:120px}
 <div id="bandeauVoir" hidden>👁 Vous voyez l'appli comme <b></b>. C'est un aperçu : vos actions restent réelles. <button type="button" class="btn petit plein" id="finVoir">Revenir à mon compte</button></div>
 <header>
   <h1><small id="nomFestival">Festival</small>Réservations</h1>
-  <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="mails" data-droit="reglages">E-mails</button> <button data-vue="boite" data-droit="boite">Boîte</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
+  <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="mails" data-droit="reglages">E-mails</button> <button data-vue="boite" data-droit="boite">Mails</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
 </header>
 <main id="vue"><p class="vide">Chargement…</p></main>
 <input type="file" id="fichierPhoto" accept="image/*" multiple hidden>
@@ -257,6 +269,7 @@ body.voir main{padding-bottom:120px}
 <p class="aide">Déplacez la photo pour choisir le cadrage. Le cadre correspond aux photos du programme.</p>
 <div class="actions"><button type="button" class="btn plein" id="recadrerOk">Utiliser cette photo</button><button type="button" class="btn" id="recadrerNon">Annuler</button></div></div></div>
 <div id="toast"></div>
+<div id="mx-ecrire" hidden aria-label="Écrire un mail" role="dialog"></div>
 <div id="dialogue" role="dialog" aria-modal="true"><div class="boite"><h3 id="dlgTitre"></h3><p id="dlgTexte"></p><input id="dlgChamp" hidden><div class="actions"><button type="button" class="btn" id="dlgNon">Annuler</button><button type="button" class="btn plein" id="dlgOui">OK</button></div></div></div>
 
 <script>
@@ -303,6 +316,7 @@ var MOIS = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.',
 function $(s, r) { return (r || document).querySelector(s); }
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function toast(t, err) { var b = $('#toast'); b.textContent = t; b.className = err ? 'erreur' : ''; b.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(function () { b.style.display = 'none'; }, err ? 7000 : (t.length > 60 ? 5000 : 2500)); }
+function dateCourteFr(s) { var m = /^(\d{4})-(\d\d)-(\d\d)(?:[ T](\d\d:\d\d))?/.exec(String(s || '')); return m ? m[3] + '.' + m[2] + '.' + m[1] + (m[4] ? ' ' + m[4] : '') : String(s || ''); }
 function aujourdhui() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
 
 // Boîtes de dialogue de l'appli (pas celles du navigateur). confirmer(texte, ok, options) ; demander(texte, ok, options)
@@ -323,10 +337,13 @@ function dialogue(o) {
 function confirmer(texte, ok, o) { o = o || {}; dialogue({ titre: o.titre, texte: texte, oui: o.oui || 'Oui', non: o.non || 'Annuler', danger: o.danger, ok: ok, annuler: o.annuler }); }
 function demander(texte, ok, o) { o = o || {}; dialogue({ titre: o.titre, texte: texte, champ: true, defaut: o.defaut, placeholder: o.placeholder, oui: o.oui || 'OK', ok: function (v) { if (o.vide || v.trim()) ok(v.trim()); } }); }
 
-function appel(fn, args, ok) {
-  $('#charge').style.display = 'block';
-  var r = google.script.run.withSuccessHandler(function (res) { $('#charge').style.display = 'none'; ok(res); })
-    .withFailureHandler(function (e) { $('#charge').style.display = 'none'; toast(e.message || String(e), true); });
+// appel(fn, args, ok, options) ; options.echec(e) : rappel d'erreur (renvoie true pour taire le message) ; options.silencieux : sans barre de chargement.
+function appel(fn, args, ok, options) {
+  options = options || {};
+  if (!options.silencieux) { appel.n = (appel.n || 0) + 1; $('#charge').style.display = 'block'; }
+  var fini = function () { if (!options.silencieux && --appel.n <= 0) { appel.n = 0; $('#charge').style.display = 'none'; } };
+  var r = google.script.run.withSuccessHandler(function (res) { fini(); ok(res); })
+    .withFailureHandler(function (e) { fini(); if (!(options.echec && options.echec(e))) toast(e.message || String(e), true); });
   r[fn].apply(r, [CLE].concat(args || []));
 }
 function recharger(res) {
@@ -335,6 +352,7 @@ function recharger(res) {
   document.querySelectorAll('nav [data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
   $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
   if (typeof res.boiteNonLus === 'number') { BOITE_NL = res.boiteNonLus; badgeBoite(); }
+  if (droit('boite')) setTimeout(prechargerBoiteMx, 3000);
   if ((vue === 'photos' && !droit('photos')) || (vue === 'mails' && !droit('reglages')) || (vue === 'boite' && !droit('boite')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); }); }
   afficher();
 }
@@ -369,8 +387,8 @@ function afficherAccueil() {
   h += '<h2>' + (proches.length ? 'Ces 7 prochains jours' : 'Prochains spectacles') + '</h2>' + liste(proches.length ? proches : avenir.slice(0, 5));
   if (droit('reservations') && resas.length) {
     var dernieres = D.reservations.slice().reverse().slice(0, 8);
-    h += '<h2>Dernières réservations</h2><div class="panneau"><div class="tableau"><table><tr><th>Reçue</th><th>Nom</th><th>Spectacle</th><th>Places</th><th>Statut</th></tr>' +
-      dernieres.map(function (r) { return '<tr class="' + (r.statut === 'Annulée' ? 'annulee' : '') + '"><td>' + esc(r.recue) + '</td><td>' + esc(r.nom) + '</td><td>' + esc(r.titreEvenement) + '</td><td>' + r.places + '</td><td>' + esc(r.statut) + '</td></tr>'; }).join('') + '</table></div></div>';
+    h += '<h2>Dernières réservations</h2><div class="panneau"><div class="tableau dernieres"><table><tr><th>Reçue</th><th>Nom</th><th>Spectacle</th><th>Places</th><th>Statut</th></tr>' +
+      dernieres.map(function (r) { return '<tr class="' + (r.statut === 'Annulée' ? 'annulee' : '') + '"><td class="quand">' + esc(dateCourteFr(r.recue)) + '</td><td class="qui">' + esc(r.nom) + '</td><td class="quoi">' + esc(r.titreEvenement) + '</td><td class="combien">' + r.places + ' pl.</td><td class="etat">' + esc(r.statut) + '</td></tr>'; }).join('') + '</table></div></div>';
   }
   var afaire = [];
   evs.filter(function (e) { return e.date >= today; }).forEach(function (e) {
@@ -418,6 +436,7 @@ var TRI_EV = { statut: '', ordre: 'date', q: '' };
 function afficher() {
   if (!D) return;
   $('#vue').classList.toggle('large', vue === 'mails' || vue === 'boite');
+  if (vue !== 'boite' && typeof majMxFixe === 'function') majMxFixe();
   if (vue === 'reglages') return afficherReglages();
   if (vue === 'mails') return afficherMails();
   if (vue === 'boite') return afficherBoite();
@@ -643,12 +662,12 @@ function afficherEvenement(id) {
     h += '<h2>Réservations · ' + total + (Number(e.places) ? ' / ' + e.places : '') + ' places' + (arrivees ? ' · ' + arrivees + ' arrivée' + (arrivees > 1 ? 's' : '') : '') + (enAttente.length ? ' · ' + enAttente.length + ' en liste d\'attente' : '') + '</h2><div class="panneau">';
     if (!peutResa) h += '<p class="aide">' + total + ' place' + (total > 1 ? 's' : '') + ' réservée' + (total > 1 ? 's' : '') + '. Votre compte ne voit pas le détail des réservations.</p></div>';
     else if (!resas.length) h += '<p class="vide">Pas encore de réservation.</p>';
-    else h += '<div class="tableau"><table><tr><th>Arrivé·e</th><th>Nom</th><th>Places</th><th>Contact</th><th>Message</th><th>Reçue</th><th></th></tr>' +
+    else h += '<div class="tableau resas"><table><tr><th>Arrivé·e</th><th>Nom</th><th>Places</th><th>Contact</th><th>Message</th><th>Reçue</th><th></th></tr>' +
       resas.map(function (r) {
         var att = r.statut === 'Liste d\'attente', ann = r.statut === 'Annulée';
         return '<tr class="' + (ann ? 'annulee' : (r.arrivee ? 'arrivee' : '')) + (att ? ' attente' : '') + '"><td>' + (ann || att ? (att ? '<span class="badge">Liste d\'attente</span>' : '') : '<input type="checkbox" class="arrivee" data-pointer="' + esc(r.id) + '"' + (r.arrivee ? ' checked' : '') + ' aria-label="Arrivé·e">') + '</td><td>' + esc(r.nom) + (r.options ? '<span class="optsResa">' + esc(r.options) + '</span>' : '') + '</td><td>' + r.places + (ann ? '' : ' <button type="button" class="btn petit" data-nbplaces="' + esc(r.id) + '" data-n="' + r.places + '" title="Changer le nombre de places">✎</button>') + '</td><td>' +
           (r.email ? '<a style="color:var(--lav2)" href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>' : '') + (r.telephone ? '<br>' + esc(r.telephone) : '') +
-          '</td><td>' + esc(r.message) + '</td><td>' + esc(r.recue) + '</td><td>' +
+          '</td><td class="msg">' + esc(r.message) + '</td><td class="quand">' + esc(dateCourteFr(r.recue)) + '</td><td class="faire">' +
           (ann ? 'Annulée' : (att ? '<button class="btn petit plein" data-confirmer="' + esc(r.id) + '">Confirmer</button> ' : '') + '<button class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler</button>') + '</td></tr>';
       }).join('') + '</table></div>';
     if (peutResa) h += '<div class="actions">' + (actives.length ? '<button class="btn" id="copier">Copier les e-mails</button>' : '') + (actives.length || enAttente.length ? '<button class="btn" id="ecrire">Écrire aux inscrits…</button>' : '') + '</div>';
@@ -889,7 +908,7 @@ function afficherMails() {
   var themes = Object.keys(MAIL.THEMES).map(function (k) { return [k, MAIL.THEMES[k].nom]; });
   var exp = String(D.expediteur || ''), origami = /compagnieorigami/i.test(exp);
   var formatAp = lireLocal('apercuMail') === 'tel' || (!lireLocal('apercuMail') && innerWidth < 760) ? 'tel' : 'ordi';
-  var h = '<h2>E-mails</h2>' + (exp ? '<div class="' + (origami ? 'bandeau' : 'quandMail') + '">' + (origami ? '⚠️ ' : '') + 'Les e-mails partent de <b>' + esc(exp) + '</b>' + (origami ? ' : ce n\'est pas l\'adresse du festival. Redéployez le script depuis le compte du festival (Apps Script › Déployer › Gérer les déploiements › Nouvelle version).' : ', au nom de « ' + esc(r.nomFestival || '') + ' ».') + '</div>' : '') +
+  var h = '<h2>E-mails</h2>' + (exp ? '<div class="' + (origami ? 'bandeau' : 'quandMail') + '">' + (origami ? '⚠️ ' : '') + '<span>Les e-mails partent de <b>' + esc(exp) + '</b>' + (origami ? ' : ce n\'est pas l\'adresse du festival. Redéployez le script depuis le compte du festival (Apps Script › Déployer › Gérer les déploiements › Nouvelle version).' : ', au nom de « ' + esc(r.nomFestival || '') + ' ».') + '</span></div>' : '') +
     '<div class="ongletsMail" id="ongletsMail">' + Object.keys(MAIL.TYPES).map(function (k) { return '<button type="button" data-type="' + k + '"' + (k === MAIL_VU ? ' class="on"' : '') + '>' + MAIL.TYPES[k].nom + '</button>'; }).join('') + '<button type="button" data-type="pied"' + (MAIL_VU === 'pied' ? ' class="on"' : '') + '>Pied de page</button></div>' +
     '<div class="segment ongletsAtelier" id="ongletsAtelier" role="tablist"><button type="button" data-panneau="editer" class="on">Écrire</button><button type="button" data-panneau="apercu">Aperçu</button></div>' +
     '<form id="formMail"><div class="atelier" id="atelier" data-panneau="editer"><div class="voletEditionMail panneau" id="volMail">' +
@@ -1015,111 +1034,7 @@ function afficherMails() {
   rendreMail();
 }
 
-// ---------- Boîte : réponses du public (fils Gmail du festival liés aux réservations) ----------
-var BOITE_NL = null, BOITE = { dossier: 'inbox', fils: null, fil: null, etiquettes: {} };
-function badgeBoite() {
-  var b = $('nav [data-vue=boite]'); if (!b) return;
-  b.innerHTML = 'Boîte' + (BOITE_NL > 0 ? ' <span class="pastille">' + BOITE_NL + '</span>' : '');
-}
-var REPONSES_RAPIDES = [
-  ['Annulation notée', 'Bonjour {prenom},\n\nC\'est noté : votre réservation pour « {titre} » du {date} est annulée. Merci de nous avoir prévenus !\n\nÀ une prochaine fois,\n{festival}'],
-  ['Places changées', 'Bonjour {prenom},\n\nC\'est fait : votre réservation pour « {titre} » du {date} est maintenant de {places} place(s).\n\nÀ bientôt !\n{festival}'],
-  ['Merci', 'Bonjour {prenom},\n\nMerci pour votre message !\n\n{festival}']
-];
-function afficherBoite() {
-  var h = '<div class="barreEv"><h2>Boîte</h2><div class="segment" id="dossierBoite"><button type="button" data-dossier="inbox"' + (BOITE.dossier === 'inbox' ? ' class="on"' : '') + '>À traiter</button><button type="button" data-dossier="traites"' + (BOITE.dossier === 'traites' ? ' class="on"' : '') + '>Traités</button></div><button type="button" class="btn petit" id="actualiserBoite">Actualiser</button></div>' +
-    '<p class="aide">Les réponses du public aux e-mails du festival, et les messages des personnes qui ont réservé. Le reste de la boîte Gmail du festival n\'apparaît pas ici.</p>' +
-    '<div class="boite' + (BOITE.fil ? ' avecFil' : '') + '"><div class="filsBoite" id="filsBoite"><p class="vide">Chargement…</p></div><div class="filBoite" id="filBoite">' + (BOITE.fil ? '' : '<p class="vide">Choisissez un message à gauche.</p>') + '</div></div>';
-  $('#vue').innerHTML = h;
-  document.querySelectorAll('#dossierBoite button').forEach(function (b) { b.onclick = function () { BOITE.dossier = b.dataset.dossier; BOITE.fils = null; BOITE.fil = null; afficherBoite(); }; });
-  $('#actualiserBoite').onclick = function () { BOITE.fils = null; chargerFils(); };
-  if (BOITE.fils) listeFils(); else chargerFils();
-  if (BOITE.fil) afficherFil(BOITE.fil);
-}
-function chargerFils() {
-  appel('adminBoite', [BOITE.dossier], function (res) {
-    BOITE.fils = res.fils; BOITE.etiquettes = res.etiquettes || {};
-    if (BOITE.dossier === 'inbox') { BOITE_NL = res.fils.filter(function (f) { return f.nonLu; }).length; badgeBoite(); }
-    if (vue === 'boite') listeFils();
-  });
-}
-function resumeResa(r) { return esc(r.titre) + (r.date ? ' · ' + esc(r.date.split('-').reverse().slice(0, 2).join('.')) : '') + ' · ' + r.places + ' pl.' + (r.statut && r.statut !== 'Confirmée' ? ' · ' + esc(r.statut) : ''); }
-function listeFils() {
-  var z = $('#filsBoite'); if (!z) return;
-  var l = BOITE.fils || [];
-  if (!l.length) { z.innerHTML = '<p class="vide">' + (BOITE.dossier === 'inbox' ? 'Rien à traiter pour l\'instant.' : 'Aucun message traité.') + '</p>'; return; }
-  z.innerHTML = l.map(function (f) {
-    return '<button type="button" class="fil' + (f.nonLu ? ' nonLu' : '') + (BOITE.fil === f.id ? ' on' : '') + '" data-fil="' + esc(f.id) + '"><div class="ligne1"><b>' + esc(f.nom) + '</b><span>' + esc(f.date.slice(5).split(' ')[0].split('-').reverse().join('.')) + '</span></div>' +
-      '<div class="sujet">' + esc(f.sujet) + (f.nb > 1 ? ' <span class="doux">(' + f.nb + ')</span>' : '') + '</div><div class="extrait">' + esc(f.extrait) + '</div>' +
-      '<div class="puces2">' + (f.automatique ? '<span class="eti">Réponse automatique</span>' : '') + (f.repondu ? '<span class="eti ok">Répondu</span>' : '') + f.etiquettes.filter(function (e) { return e !== 'Traité'; }).map(function (e) { return '<span class="eti">' + esc(e) + '</span>'; }).join('') +
-      (f.resas[0] ? '<span class="eti resa">' + resumeResa(f.resas[0]) + (f.resas.length > 1 ? ' +' + (f.resas.length - 1) : '') + '</span>' : '') + '</div></button>';
-  }).join('');
-  z.querySelectorAll('[data-fil]').forEach(function (b) { b.onclick = function () { ouvrirFil(b.dataset.fil); }; });
-}
-function ouvrirFil(id) {
-  BOITE.fil = id;
-  appel('adminLireFil', [id], function (f) {
-    var g = (BOITE.fils || []).filter(function (x) { return x.id === id; })[0]; if (g && g.nonLu) { g.nonLu = false; BOITE_NL = Math.max(0, (BOITE_NL || 1) - 1); badgeBoite(); }
-    if (vue !== 'boite') return;
-    $('.boite').classList.add('avecFil'); listeFils(); afficherFil(id, f);
-    if (innerWidth < 1100) scrollTo(0, 0);
-  });
-}
-function afficherFil(id, f) {
-  if (!f) { appel('adminLireFil', [id], function (x) { if (vue === 'boite' && BOITE.fil === id) afficherFil(id, x); }); return; }
-  var z = $('#filBoite'), cleBr = 'boite_' + f.id, brouillon = lireLocal(cleBr);
-  var et = BOITE.etiquettes || {};
-  var h = '<button type="button" class="btn petit" id="retourBoite">← Tous les messages</button><h3 class="sujetFil">' + esc(f.sujet) + '</h3>' +
-    '<div class="etiquettesFil">' + Object.keys(et).map(function (k) { var on = f.etiquettes.indexOf(et[k]) >= 0; return '<button type="button" class="btn petit' + (on ? ' plein' : '') + '" data-etiquette="' + k + '" data-actif="' + (on ? '1' : '') + '">' + esc(et[k]) + '</button>'; }).join('') +
-    '<button type="button" class="btn petit' + (f.traite ? ' plein' : '') + '" id="traiteFil">' + (f.traite ? 'Traité ✓ (remettre à traiter)' : 'Marquer comme traité') + '</button></div>';
-  if (f.resas.length) h += '<div class="resasFil">' + f.resas.map(function (r) {
-    return '<div class="resaFil"><div><b>' + esc(r.nom) + '</b> · ' + resumeResa(r) + '</div>' + (droit('reservations') && r.statut !== 'Annulée' ? '<div class="actions"><button type="button" class="btn petit" data-places="' + esc(r.id) + '" data-n="' + r.places + '">Changer les places</button><button type="button" class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler la réservation</button></div>' : '') + '</div>';
-  }).join('') + '</div>';
-  else h += '<p class="aide">Aucune réservation trouvée avec l\'adresse ' + esc(f.email) + '.</p>';
-  h += '<div class="messagesFil">' + f.messages.map(function (m) { return '<div class="msg' + (m.moi ? ' moi' : '') + '"><div class="qui">' + esc(m.nom) + ' · ' + esc(m.date.split(' ')[0].split('-').reverse().join('.')) + ' ' + esc(m.date.split(' ')[1] || '') + '</div><div class="txt">' + esc(m.texte) + '</div></div>'; }).join('') + '</div>' +
-    '<div class="reponseFil panneau"><label for="txtReponse">Répondre à ' + esc(f.email) + '</label><div class="puces"><span>Réponses toutes prêtes :</span>' + REPONSES_RAPIDES.map(function (x, i) { return '<button type="button" data-rapide="' + i + '">' + esc(x[0]) + '</button>'; }).join('') + '</div>' +
-    '<textarea id="txtReponse" placeholder="Votre réponse…">' + esc(brouillon) + '</textarea>' +
-    '<label class="coche"><input type="checkbox" id="traiterApres"' + (f.traite ? '' : ' checked') + '> Marquer comme traité après l\'envoi</label>' +
-    '<div class="actions"><button type="button" class="btn plein" id="envoyerReponse">Envoyer la réponse</button></div></div>';
-  z.innerHTML = h;
-  $('#retourBoite').onclick = function () { BOITE.fil = null; $('.boite').classList.remove('avecFil'); z.innerHTML = '<p class="vide">Choisissez un message à gauche.</p>'; listeFils(); };
-  var ta = $('#txtReponse');
-  ta.oninput = function () { garderLocal(cleBr, ta.value); };
-  z.querySelectorAll('[data-rapide]').forEach(function (b) { b.onclick = function () {
-    var r = f.resas[0] || {}, v = { prenom: String(r.nom || '').split(/\s+/)[0] || '', titre: r.titre || '', date: r.date ? dateLongueFr(r.date) : '', places: r.places || '', festival: D.reglages.nomFestival || '' };
-    function mettre() { ta.value = MAIL.remplir(REPONSES_RAPIDES[b.dataset.rapide][1], v); garderLocal(cleBr, ta.value); ta.focus(); }
-    if (ta.value.trim()) confirmer('Remplacer le texte déjà écrit ?', mettre, { oui: 'Remplacer' }); else mettre();
-  }; });
-  z.querySelectorAll('[data-etiquette]').forEach(function (b) { b.onclick = function () {
-    appel('adminClasserFil', [f.id, b.dataset.etiquette, !b.dataset.actif], function (x) { majFil(x); });
-  }; });
-  $('#traiteFil').onclick = function () { appel('adminClasserFil', [f.id, 'traite', !f.traite], function (x) { majFil(x); toast(x.traite ? 'Rangé dans « Traités » ✓' : 'Remis dans « À traiter »'); }); };
-  z.querySelectorAll('[data-annuler]').forEach(function (b) { b.onclick = function () {
-    dialogue({ titre: 'Annuler la réservation', html: '<p>La réservation passe en « Annulée » et les places sont libérées.</p><label class="coche"><input type="checkbox" id="prevenirAnn"> Envoyer aussi l\'e-mail automatique « Réservation annulée »</label>', oui: 'Annuler la réservation', non: 'Garder', danger: true,
-      ok: function () { var prev = !!($('#prevenirAnn') && $('#prevenirAnn').checked); appel('adminAnnulerReservation', [b.dataset.annuler, prev], function (res) { recharger(res); toast('Réservation annulée ✓'); }); } });
-  }; });
-  z.querySelectorAll('[data-places]').forEach(function (b) { b.onclick = function () {
-    demander('Nouveau nombre de places :', function (v) {
-      appel('adminModifierPlaces', [b.dataset.places, Number(v)], function (res) { recharger(res); toast('Places changées : ' + v + ' ✓ (aucun e-mail envoyé, répondez ci-dessous)'); });
-    }, { defaut: String(b.dataset.n), oui: 'Changer', titre: 'Changer les places' });
-  }; });
-  $('#envoyerReponse').onclick = function () {
-    var t = ta.value.trim(); if (!t) { toast('La réponse est vide.', true); return; }
-    confirmer('Envoyer cette réponse à ' + f.email + ' ?', function () {
-      var btn = $('#envoyerReponse'); btn.disabled = true; btn.textContent = 'Envoi…';
-      appel('adminRepondreFil', [f.id, t, $('#traiterApres').checked], function (x) {
-        garderLocal(cleBr, ''); toast('Réponse envoyée ✓');
-        var g = (BOITE.fils || []).filter(function (y) { return y.id === f.id; })[0]; if (g) { g.repondu = true; if (x.traite && BOITE.dossier === 'inbox') BOITE.fils = BOITE.fils.filter(function (y) { return y !== g; }); }
-        majFil(x);
-      });
-    }, { oui: 'Envoyer' });
-  };
-  function majFil(x) {
-    var g = (BOITE.fils || []).filter(function (y) { return y.id === x.id; })[0];
-    if (g) { g.etiquettes = x.etiquettes; if ((x.traite && BOITE.dossier === 'inbox') || (!x.traite && BOITE.dossier === 'traites')) BOITE.fils = BOITE.fils.filter(function (y) { return y !== g; }); }
-    if (vue === 'boite') { listeFils(); afficherFil(x.id, x); }
-  }
-}
+/*__MAILS_JS__*/
 
 function afficherReglages() {
   var r = D.reglages, h = '';
@@ -1145,7 +1060,7 @@ function appareilsAfficher(l) {
   var z = $('#zoneAppareils'); if (!z) return;
   if (!l.length) { z.innerHTML = '<p class="vide">Aucun appareil pour l\'instant (le lien personnel n\'en crée pas).</p>'; return; }
   z.innerHTML = '<p class="aide">Chaque appareil qui a donné un code PIN reste connecté (sans redemander le code) jusqu\'à ce qu\'on le déconnecte ici, ou après six mois sans utilisation.</p><div class="tableau"><table><tr><th>Compte</th><th>Appareil</th><th>Première fois</th><th>Dernière fois</th><th></th></tr>' +
-    l.map(function (a) { return '<tr><td>' + esc(a.compte) + '</td><td>' + esc(a.nom) + (COMPTE && a.id === COMPTE.appareil ? ' <span class="badge Ouvert">celui-ci</span>' : '') + '</td><td>' + esc(a.cree) + '</td><td>' + esc(a.dernier) + '</td><td><button type="button" class="btn petit danger" data-deco="' + esc(a.id) + '">Déconnecter</button></td></tr>'; }).join('') + '</table></div>';
+    l.map(function (a) { return '<tr><td>' + esc(a.compte) + '</td><td>' + esc(a.nom) + (COMPTE && a.id === COMPTE.appareil ? ' <span class="badge Ouvert">celui-ci</span>' : '') + '</td><td class="quand">' + esc(dateCourteFr(a.cree)) + '</td><td class="quand">' + esc(dateCourteFr(a.dernier)) + '</td><td><button type="button" class="btn petit danger" data-deco="' + esc(a.id) + '">Déconnecter</button></td></tr>'; }).join('') + '</table></div>';
   z.querySelectorAll('[data-deco]').forEach(function (b) { b.onclick = function () {
     confirmer('Déconnecter cet appareil ? Il devra redonner un code PIN.', function () {
       appel('adminDeconnecterAppareil', [b.dataset.deco], function (r) { appareilsAfficher(r); toast('Appareil déconnecté'); if (COMPTE && b.dataset.deco === COMPTE.appareil) deconnexion(); });
@@ -1278,15 +1193,16 @@ function photosAfficher(lectureSeule) {
 
 // ---------- Visuels : tous (fichiers du site + dossier Drive), classés par spectacle ----------
 var PHOTOS_DRIVE = null, INFOS_VISUELS = {};
-var SITE_ECHEC = 0, SITE_EN_COURS = false;
+var SITE_ECHEC = 0, SITE_EN_COURS = false, SITE_ATTENTE = [];
 // Charge festival.js du site une seule fois ; si le site ne répond pas, on réessaie au plus toutes les minutes (sinon la liste se redessinait en boucle).
-function chargerSite(ok) {
+function chargerSite(ok, siEchec) {
   if (window.SPECTACLES || !siteUrl()) return ok();
-  if (SITE_EN_COURS || Date.now() - SITE_ECHEC < 60000) return;
+  if (Date.now() - SITE_ECHEC < 60000) { if (siEchec) siEchec(); return; }
+  if (SITE_EN_COURS) { if (siEchec) SITE_ATTENTE.push(siEchec); return; }
   SITE_EN_COURS = true;
   var sc = document.createElement('script'); sc.src = siteUrl() + 'festival.js?' + Date.now();
-  sc.onload = function () { SITE_EN_COURS = false; ok(); };
-  sc.onerror = function () { SITE_EN_COURS = false; SITE_ECHEC = Date.now(); sc.remove(); };
+  sc.onload = function () { SITE_EN_COURS = false; SITE_ATTENTE = []; ok(); };
+  sc.onerror = function () { SITE_EN_COURS = false; SITE_ECHEC = Date.now(); sc.remove(); var l = SITE_ATTENTE.concat(siEchec ? [siEchec] : []); SITE_ATTENTE = []; l.forEach(function (f) { f(); }); };
   document.head.appendChild(sc);
 }
 function chargerDrive(ok, force) {
@@ -1328,7 +1244,7 @@ function cartePhoto(p, boutons) {
 }
 function galerieAfficher() {
   var z = $('#galerie'); if (!z) return;
-  chargerSite(function () { chargerDrive(function () {
+  var suiteG = function () { chargerDrive(function () {
     fusionnerPhotosSite();
     var cible = normTitre($('#f-spectacle').value || $('#f-titre').value), prises = listePhotos();
     var toutes = toutesPhotos(), pour = toutes.filter(function (p) { return normTitre(p.titre) === cible; }), autres = toutes.filter(function (p) { return normTitre(p.titre) !== cible; });
@@ -1349,7 +1265,8 @@ function galerieAfficher() {
     z.querySelectorAll('[data-recadrer-g]').forEach(function (b) { b.onclick = function () {
       recadrerUrl(b.dataset.recadrerG, ($('#f-titre').value || 'photo'), function (url) { ecrirePhotos(listePhotos().concat([url])); toast('Visuel recadré et ajouté : pensez à enregistrer'); });
     }; });
-  }); });
+  }); };
+  chargerSite(suiteG, suiteG);
 }
 function photosInit() {
   if (!$('#photos')) return;
@@ -1414,7 +1331,7 @@ function reduire(fichier, ok, max) {
 var FILTRE_VISUELS = '';
 function afficherPhotos() {
   $('#vue').innerHTML = '<p class="vide">Chargement des visuels…</p>';
-  chargerSite(function () { chargerDrive(function () {
+  var suite = function () { chargerDrive(function () {
     var toutes = toutesPhotos(), groupes = {}, titres = titresConnus();
     toutes.forEach(function (p) { (groupes[p.titre || 'À classer'] = groupes[p.titre || 'À classer'] || []).push(p); });
     var options = function (choisi) { return '<option value=""' + (!choisi ? ' selected' : '') + '>— à classer —</option>' + titres.map(function (s) { return '<option' + (s === choisi ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('') + '<option value="__nouveau__">+ Nouveau spectacle…</option>'; };
@@ -1428,6 +1345,7 @@ function afficherPhotos() {
       sel.onfocus = function () { if (sel.value !== '__nouveau__') sel.dataset.avant = sel.value; };
     }
     var h = '<h2>Visuels</h2>';
+    if (!window.SPECTACLES && siteUrl()) h += '<div class="bandeau">Le site (' + esc(siteUrl()) + ') ne répond pas pour l\'instant : seuls les visuels de la bibliothèque sont affichés.</div>';
     if (D.version && VERSION_APPLI !== '__VERSION__' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
     h += '<div class="panneau"><p>Photos, affiches, dessins : tout ce qui peut illustrer un spectacle. <b>1.</b> Choisissez le spectacle, <b>2.</b> ajoutez les fichiers. Ensuite, dans chaque événement, vous choisissez lesquels afficher et dans quel ordre.</p>' +
       '<div class="grille"><div><label for="g-titre">1. Spectacle</label><select id="g-titre">' + options($('#g-titre') ? $('#g-titre').value : '') + '</select></div>' +
@@ -1489,7 +1407,8 @@ function afficherPhotos() {
         });
       };
     }; });
-  }); });
+  }); };
+  chargerSite(suite, suite);
 }
 
 // ---------- Recadrage : cadre 3:2 du site, repères pour les autres emplacements, zoom, rotation ----------

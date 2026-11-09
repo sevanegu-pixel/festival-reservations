@@ -180,5 +180,11 @@ var MAIL = (function () {
     return { sujet: sujet, texte: texte, html: h };
   }
   function exemple() { var v = {}; VARIABLES.forEach(function (x) { v[x[0]] = x[2]; }); v.image = ''; return v; }
-  return { VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
+  // Pied de page seul (mails écrits à la main dans Mails) : thème clair, variables générales remplies.
+  function pied(r) {
+    var v = exemple(); v.festival = r.nomFestival || v.festival; v.site = String(r.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, '') || v.site;
+    var p = palette(options(r, 'confirmation')); p = Object.assign({}, THEMES.clair, { accent: p.accent });
+    return piedHtml(remplir(r.piedDePage || '', v), r, p);
+  }
+  return { pied: pied, VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
 })();

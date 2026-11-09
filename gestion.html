@@ -68,7 +68,7 @@ main{max-width:980px;margin:0 auto;padding:8px 16px 80px}
 .bandeau{background:var(--carte);border:1px solid var(--lav);border-radius:10px;padding:10px 14px;margin:10px 0;font-size:14px}
 .bandeau a{color:var(--lav2)}
 nav button.discret{border-color:var(--ligne);color:var(--doux)}
-.arrivee{width:auto;transform:scale(1.3);margin:4px}
+input.arrivee{width:auto;transform:scale(1.3);margin:4px}
 tr.arrivee td{color:var(--vert)}
 .vide{color:var(--doux);font-style:italic}
 form .grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
@@ -87,7 +87,7 @@ tr.annulee td{opacity:.45;text-decoration:line-through}
 tr.annulee td:last-child{text-decoration:none}
 .tableau{overflow-x:auto}
 .aide{font-size:13px;color:var(--doux);margin:4px 0 0}
-#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--lav);color:#0b0a10;font-weight:600;padding:10px 16px;border-radius:999px;display:none;z-index:20;max-width:92vw}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--lav);color:#0b0a10;font-weight:600;padding:10px 16px;border-radius:18px;display:none;z-index:20;max-width:92vw;text-align:center;line-height:1.35}
 #toast.erreur{background:var(--rouge)}
 #charge{position:fixed;top:0;left:0;height:3px;width:100%;background:var(--lav);display:none;z-index:30;animation:c 1s infinite linear}
 @keyframes c{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
@@ -207,29 +207,225 @@ main.large{max-width:none}
 @media (max-width:1100px){.ongletsAtelier{display:flex}.atelier{grid-template-columns:minmax(0,1fr)}.poignee{display:none}.atelier .voletApercuMail{position:static;max-height:none}
 .atelier[data-panneau="editer"] .voletApercuMail,.atelier[data-panneau="apercu"] .voletEditionMail{display:none}}
 @media (max-width:760px){.apercuMail .rendu{padding:8px 0}.apercuMail .cadreMail.ordi{overflow-x:auto}}
-/* Boîte : réponses du public */
+
+/* Écrans étroits : cartes d'événement, éditeur, tableaux en fiches */
+td.quand,th.quand{white-space:nowrap}
+.tableau.resas td.msg{min-width:140px;max-width:320px}
+.tableau.resas td.faire{white-space:nowrap}
+@media (max-width:560px){.ev{grid-template-columns:48px minmax(0,1fr);gap:10px 12px;padding:10px}.ev .mini,.ev .vide-mini{display:none}.ev h3{font-size:16px}.jauge{grid-column:2;text-align:left}.jauge .barre{width:min(100%,160px)}.statutRapide{margin-top:8px}}
+@media (max-width:700px){
+.barreEv h2{flex:1 1 100%;order:-1;font-size:18px}
+.zones{grid-template-columns:minmax(0,1fr)}.photo.principale{max-width:100%}
+.tableau.resas table,.tableau.resas tbody{display:block}
+.tableau.resas tr:first-child{display:none}
+.tableau.resas tr{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:2px 8px;align-items:center;border:1px solid var(--ligne);border-radius:10px;padding:8px 10px;margin:0 0 8px}
+.tableau.resas td{display:block;border:0;padding:0;white-space:normal}
+.tableau.resas td:nth-child(1){grid-column:1;grid-row:1}
+.tableau.resas td:nth-child(2){grid-column:2;grid-row:1;font-weight:600}
+.tableau.resas td:nth-child(3){grid-column:3;grid-row:1;white-space:nowrap}
+.tableau.resas td:nth-child(4){grid-column:2/4;grid-row:2;font-size:13px}
+.tableau.resas td.msg{grid-column:2/4;grid-row:3;font-size:13px;color:var(--doux);max-width:none}
+.tableau.resas td.msg:empty{display:none}
+.tableau.resas td.quand{grid-column:2/4;grid-row:4;font-size:12px;color:var(--doux)}
+.tableau.resas td.faire{grid-column:2/4;grid-row:5;margin-top:4px;display:flex;gap:6px;flex-wrap:wrap}
+.tableau.resas tr.attente .badge{margin:0}
+.tableau.dernieres table,.tableau.dernieres tbody{display:block}
+.tableau.dernieres tr:first-child{display:none}
+.tableau.dernieres tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 8px;border-bottom:1px solid var(--ligne);padding:8px 0}
+.tableau.dernieres tr:last-child{border:0}
+.tableau.dernieres td{display:block;border:0;padding:0}
+.tableau.dernieres td.qui{grid-column:1;grid-row:1;font-weight:600}
+.tableau.dernieres td.combien{grid-column:2;grid-row:1;text-align:right}
+.tableau.dernieres td.quoi{grid-column:1;grid-row:2;color:var(--doux);font-size:13px}
+.tableau.dernieres td.etat{grid-column:2;grid-row:2;text-align:right;font-size:13px;color:var(--doux)}
+.tableau.dernieres td.quand{grid-column:1/3;grid-row:3;font-size:12px;color:var(--doux)}
+.tableau.dernieres tr.annulee td{text-decoration:none;opacity:.5}
+}
+/* ===== Mails : boîte Gmail du festival (reprise de l'appli Diffusion) ===== */
 .pastille{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--lav);color:#0b0a10;font-size:12px;line-height:20px;text-align:center;margin-left:4px}
 nav button.on .pastille{background:#0b0a10;color:var(--lav)}
-.boite{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:16px;align-items:start}
-.filsBoite{display:grid;gap:8px;position:sticky;top:70px;max-height:calc(100vh - 84px);overflow:auto}
-.fil{display:block;width:100%;text-align:left;background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:10px 12px;color:var(--texte);font:inherit;cursor:pointer}
-.fil:hover,.fil.on{border-color:var(--lav)}
-.fil .ligne1{display:flex;gap:8px;justify-content:space-between}.fil .ligne1 span{font-size:13px;color:var(--doux);flex:none}
-.fil .ligne1 b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fil.nonLu .ligne1 b,.fil.nonLu .sujet{font-weight:700}.fil.nonLu{border-left:4px solid var(--lav)}
-.fil .sujet{font-size:14px;margin-top:2px}.fil .extrait{font-size:13px;color:var(--doux);margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.doux{color:var(--doux)}
-.puces2{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.eti{font-size:12px;border:1px solid var(--ligne);border-radius:999px;padding:1px 8px;color:var(--doux)}.eti.ok{color:var(--vert);border-color:var(--vert)}.eti.resa{color:var(--lav2);border-color:var(--lav)}
-.sujetFil{font:700 20px "Bricolage Grotesque",sans-serif;margin:12px 0 8px}
-.etiquettesFil{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.resasFil{display:grid;gap:8px;margin-bottom:12px}.resaFil{background:var(--carte);border:1px dashed var(--lav);border-radius:10px;padding:10px 12px;font-size:14px}.resaFil .actions{margin-top:8px}
-.messagesFil{display:grid;gap:10px;margin-bottom:14px}
-.msg{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:10px 14px;max-width:92%}
-.msg.moi{justify-self:end;border-color:var(--lav);background:#241a26}
-.msg .qui{font-size:12px;color:var(--doux);margin-bottom:4px}.msg .txt{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px}
-.reponseFil textarea{min-height:160px;margin:6px 0 8px}
-.filBoite #retourBoite{display:none}
-@media (max-width:1100px){.boite{grid-template-columns:minmax(0,1fr)}.filsBoite{position:static;max-height:none}.boite.avecFil .filsBoite{display:none}.boite:not(.avecFil) .filBoite{display:none}.filBoite #retourBoite{display:inline-block}}
+.mx{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
+.mx-tete{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+.mx-tete h2{margin:0;flex:1}
+.mx-dossiers{display:none}
+.mx-dossiers .dossier,.mx-chips .dossier{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:10px;padding:8px 10px;color:var(--texte);font:500 15px Barlow,sans-serif;cursor:pointer}
+.mx-dossiers .dossier:hover{background:var(--carte)}
+.mx-dossiers .dossier.actif,.mx-chips .dossier.actif{background:var(--carte);border-color:var(--lav);color:var(--lav2)}
+.mx-dossiers .dossier span,.mx-chips .dossier span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-dossiers .dossier b,.mx-chips .dossier b{font-size:12px;background:var(--ligne);color:var(--texte);border-radius:999px;padding:1px 7px;font-weight:600}
+.mx-dossiers .dossier.actif b{background:var(--lav);color:#0b0a10}
+.mx-dossiers .titre-libelles{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--doux);margin:14px 10px 4px}
+.mx-dossiers .lien-libelles{background:none;border:0;color:var(--lav2);font:600 13px Barlow,sans-serif;cursor:pointer;padding:6px 10px;text-align:left}
+.mx-ecrire-btn{width:100%;margin-bottom:10px;padding:10px 14px;font-size:15px}
+.mx-chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.mx-chips::-webkit-scrollbar{display:none}
+.mx-chips .dossier{width:auto;flex:none;padding:6px 12px;font-size:14px;border-color:var(--ligne);border-radius:999px;background:var(--carte)}
+.mx-chips select{width:auto;flex:none;padding:6px 10px;font-size:14px;border-radius:999px;background:var(--carte)}
+.mx-col{min-width:0;display:flex;flex-direction:column;gap:8px}
+.mx-barre{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.mx-barre input[type=search]{flex:1;min-width:140px;padding:8px 12px;border-radius:999px;font-size:14px}
+.mx-barre .btn.petit{white-space:nowrap}
+.mx-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-height:30px}
+.mx-actions .coche-tout{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--doux);margin-right:4px}
+.mx-actions input[type=checkbox]{width:18px;height:18px;margin:0;accent-color:var(--lav)}
+.mx-actions select{width:auto;padding:4px 8px;font-size:13px;border-radius:999px}
+.mx-actions .nb{font-size:13px;color:var(--doux);margin-left:auto}
+.mx-liste{display:grid;gap:6px;position:relative;min-height:120px}
+.mx-liste.rafraichit{opacity:.78}
+.mx-liste.rafraichit::after{content:"Mise à jour…";position:absolute;top:-2px;right:6px;font-size:11px;color:var(--doux)}
+.conv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:start;background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:9px 10px 9px 8px;color:var(--texte);cursor:pointer;position:relative}
+.conv:hover{border-color:var(--lav)}
+.conv.actif{border-color:var(--lav);box-shadow:inset 3px 0 0 var(--lav)}
+.conv.nonLu{background:#1c1826}
+.conv.nonLu .conv-de,.conv.nonLu .conv-objet{font-weight:700;color:#fff}
+.conv.cochee{border-color:var(--lav2);background:#241a26}
+.conv.enEnvoi{opacity:.55;pointer-events:none}
+.conv-gauche{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px}
+.conv-gauche input{width:18px;height:18px;margin:0;accent-color:var(--lav);cursor:pointer}
+.etoile{background:none;border:0;color:var(--ligne);font-size:18px;line-height:1;cursor:pointer;padding:0 2px}
+.etoile.on{color:#ffd23f}
+.conv-corps{min-width:0}
+.conv-tete{display:flex;gap:6px;align-items:baseline}
+.conv-de{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.conv-nb{font-size:12px;color:var(--doux)}
+.conv-date{font-size:12px;color:var(--doux);white-space:nowrap}
+.conv-objet{display:block;font-size:14px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conv-extrait{display:block;font-size:13px;color:var(--doux);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conv-puces{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.eti{font-size:11px;border:1px solid var(--ligne);border-radius:999px;padding:1px 7px;color:var(--doux);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eti.ok{color:var(--vert);border-color:var(--vert)}.eti.resa{color:var(--lav2);border-color:var(--lav)}.eti.brouillon{color:#ffd23f;border-color:#ffd23f}.eti.prog{color:#8fd3ff;border-color:#8fd3ff}
+.mx-pages{display:flex;gap:8px;align-items:center;justify-content:center;font-size:13px;color:var(--doux);padding:4px 0}
+.mx-pages .btn.petit{min-width:38px}
+.mx-vide{color:var(--doux);font-style:italic;padding:16px 6px}
+.mx-fil{min-width:0}
+.mx-fil .retour{display:inline-block;margin-bottom:8px}
+.fil-tete{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.fil-tete h2{margin:0;flex:1;min-width:0;font-size:19px;overflow-wrap:anywhere}
+.fil-libelles{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.fil-actions{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 12px}
+.fil-actions .btn{padding:7px 12px;font-size:14px}
+.menu-actions{position:relative}
+.menu-liste{position:absolute;top:calc(100% + 4px);left:0;z-index:12;background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:6px;min-width:220px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none}
+.menu-liste.ouvert{display:block}
+.menu-liste button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--texte);font:500 14px Barlow,sans-serif;padding:8px 10px;border-radius:7px;cursor:pointer}
+.menu-liste button:hover{background:var(--ligne)}
+.menu-liste button.danger{color:var(--rouge)}
+.menu-liste hr{border:0;border-top:1px solid var(--ligne);margin:4px 0}
+.resas-fil{display:grid;gap:8px;margin:0 0 12px}
+.resa-fil{background:var(--carte);border:1px dashed var(--lav);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.resa-fil .texte{flex:1;min-width:180px}
+.resa-fil .actions{margin:0}
+.etiquettes-festival{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.messages-fil{display:grid;gap:10px}
+.fm{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:10px 12px;min-width:0}
+.fm.moi{border-color:#3b2f44;background:#1b1521}
+.fm.nonLu{border-left:3px solid var(--lav)}
+.fm header{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--doux);margin-bottom:6px;cursor:pointer}
+.fm header b{color:var(--texte);font-size:15px;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.fm header .date{margin-left:auto;white-space:nowrap}
+.fm header .dest{width:100%;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm iframe{display:block;width:100%;border:0;background:#fff;border-radius:8px;min-height:60px}
+.fm.plie iframe,.fm.plie .pieces,.fm.plie .fm-actions,.fm.plie .dest:not(.extrait-plie){display:none}
+.fm header .extrait-plie{color:var(--doux);font-style:italic}
+.fm:not(.plie) .extrait-plie{display:none}
+.fm.brouillon{border-style:dashed;border-color:#ffd23f}
+.fm.programme{border-style:dashed;border-color:#8fd3ff}
+.fm .badge-b{display:inline-block;font-size:11px;border-radius:999px;padding:1px 8px;margin-right:4px;font-weight:700}
+.fm.brouillon .badge-b{background:#ffd23f;color:#0b0a10}
+.fm.programme .badge-b{background:#8fd3ff;color:#0b0a10}
+.fm-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.fm-actions .btn.petit{font-size:13px}
+.pieces{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pj{display:flex;gap:6px;align-items:center;background:#100e17;border:1px solid var(--ligne);border-radius:8px;padding:5px 6px 5px 10px;font-size:13px;max-width:100%}
+.pj .nom{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj small{color:var(--doux)}
+.pj .btn.petit{padding:2px 8px;font-size:12px}
+.fil-bas{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 20px}
+.prog-ligne{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--carte);border:1px dashed #8fd3ff;border-radius:10px;padding:8px 12px;font-size:14px;margin-top:8px}
+.prog-ligne.echec{border-color:var(--rouge)}
+.prog-ligne .texte{flex:1;min-width:180px}
+.prog-ligne small{display:block;color:var(--doux)}
+.prog-ligne .btns{display:flex;gap:6px;flex-wrap:wrap}
+/* Fenêtre d'écriture */
+#mx-ecrire{position:fixed;right:16px;bottom:0;width:min(680px,calc(100vw - 32px));max-height:min(86vh,900px);background:var(--carte);border:1px solid var(--ligne);border-bottom:0;border-radius:14px 14px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.6);z-index:42;display:flex;flex-direction:column}
+#mx-ecrire[hidden]{display:none}
+#mx-ecrire.grand{right:50%;transform:translateX(50%);width:min(1100px,calc(100vw - 32px));max-height:calc(100vh - 20px)}
+#mx-ecrire.reduit{max-height:46px;overflow:hidden}
+.ec-tete{display:flex;gap:8px;align-items:center;padding:8px 10px 8px 14px;background:#100e17;border-radius:14px 14px 0 0;cursor:default}
+.ec-tete b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 15px "Bricolage Grotesque",sans-serif}
+.ec-tete button{background:none;border:0;color:var(--doux);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:6px;line-height:1}
+.ec-tete button:hover{color:var(--texte);background:var(--ligne)}
+.ec-tete .etat{font-size:12px;color:var(--doux);white-space:nowrap}
+.ec-tete .etat.ok{color:var(--vert)}
+.ec-corps{overflow:auto;padding:10px 14px 0;flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+.ec-ligne{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--ligne);padding:4px 0}
+.ec-ligne>label{flex:none;width:42px;margin:0;font-size:13px;color:var(--doux)}
+.ec-ligne .liens{flex:none;display:flex;gap:4px}
+.ec-ligne .liens button{background:none;border:0;color:var(--lav2);font:600 13px Barlow,sans-serif;cursor:pointer;padding:2px 6px}
+.ec-ligne input{flex:1;min-width:0;background:none;border:0;padding:6px 0;font-size:15px}
+.ec-ligne input:focus{outline:none}
+.chips{flex:1;display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-width:0}
+.chips .chip{display:inline-flex;align-items:center;gap:4px;background:#100e17;border:1px solid var(--ligne);border-radius:999px;padding:2px 6px 2px 10px;font-size:13px;max-width:100%}
+.chips .chip.resa{border-color:var(--lav)}
+.chips .chip.mauvais{border-color:var(--rouge);color:var(--rouge)}
+.chips .chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips .chip button{background:none;border:0;color:var(--doux);cursor:pointer;font-size:14px;padding:0 4px;line-height:1}
+.chips input{flex:1;min-width:120px}
+.ec-outils{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.ec-outils button{background:#100e17;border:1px solid var(--ligne);color:var(--texte);border-radius:7px;padding:4px 9px;font:600 13px Barlow,sans-serif;cursor:pointer}
+.ec-outils button.on,.ec-outils button:hover{border-color:var(--lav);color:var(--lav2)}
+.ec-outils .espace{flex:1}
+.ec-outils select{width:auto;padding:4px 8px;font-size:13px;border-radius:7px}
+#ec-texte{min-height:160px;flex:1;background:#fff;color:#1b1733;border-radius:8px;padding:12px 14px;font:16px/1.55 Georgia,"Times New Roman",serif;outline:none;overflow-wrap:anywhere}
+#ec-texte:empty:before{content:"Votre message…";color:#999}
+#ec-texte p{margin:0 0 .6em}
+#ec-texte a{color:#c81f74}
+.ec-citation{font-size:13px}
+.ec-citation summary{color:var(--doux);cursor:pointer}
+.ec-citation .cadre{background:#fff;border-radius:8px;margin-top:6px;max-height:260px;overflow:auto;padding:8px 10px;color:#333;font:14px/1.5 Arial,sans-serif}
+.ec-pieces{display:flex;flex-wrap:wrap;gap:6px}
+.ec-pieces .pj{padding-right:6px}
+.ec-pieces .pj.envoi{border-style:dashed;color:var(--doux)}
+.ec-bas{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:10px 14px 12px;border-top:1px solid var(--ligne)}
+.ec-bas .btn{padding:8px 14px}
+.ec-bas .lien{background:none;border:0;color:var(--doux);font:500 13px Barlow,sans-serif;cursor:pointer;text-decoration:underline;padding:4px}
+.ec-bas .lien.danger{color:var(--rouge)}
+.ec-bas .coche{font-size:13px;color:var(--doux);margin-left:auto}
+.prog-choix{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.prog-choix .btn.petit.on{background:var(--lav);color:#0b0a10}
+.prog-champs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prog-champs label{margin:0}
+#dialogue .prog-phrase{margin:10px 0 0;font-size:13px;color:var(--vert)}
+#dialogue .prog-phrase.avert{color:var(--rouge)}
+/* Écrans étroits : liste puis conversation ; fenêtre d'écriture plein écran */
+@media (max-width:999px){
+  .mx.detail .mx-col,.mx.detail .mx-chips{display:none}
+  .mx:not(.detail) .mx-fil{display:none}
+  #mx-ecrire{right:0;left:0;bottom:0;top:0;width:auto;max-height:none;border-radius:0;border:0;transform:none}
+  #mx-ecrire.grand{right:0;width:auto;transform:none}
+  #mx-ecrire.reduit{top:auto;max-height:46px}
+  .ec-tete{border-radius:0;padding-top:max(8px,env(safe-area-inset-top))}
+  .fm header .date{margin-left:0}
+}
+@media (min-width:1000px){
+  .mx-fil .retour{display:none}
+  .mx-chips{display:none}
+}
+/* Colonnes fixes (ordinateur, ≥ 1000 px) : rien ne défile sauf les colonnes ; séparateurs glissables */
+.mx-sep{display:none}
+html.mx-fixe,html.mx-fixe body{overflow:hidden;height:100%}
+html.mx-fixe main{max-width:none;padding-bottom:0}
+html.mx-fixe .mx{grid-template-columns:var(--mc1,210px) 14px var(--mc2,420px) 14px minmax(0,1fr);gap:0;height:var(--mx-haut,calc(100vh - 120px));align-items:stretch}
+html.mx-fixe .mx-dossiers{display:flex;flex-direction:column;gap:2px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;min-height:0}
+html.mx-fixe .mx-col{overflow:hidden;min-height:0}
+html.mx-fixe .mx-liste{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;align-content:start;padding-right:2px}
+html.mx-fixe .mx-fil{overflow-y:auto;overscroll-behavior:contain;min-height:0;padding:0 2px 0 4px}
+html.mx-fixe .mx-sep{display:block;position:relative;cursor:col-resize;touch-action:none;outline:none}
+html.mx-fixe .mx-sep::after{content:"";position:absolute;top:16px;bottom:16px;left:6px;width:2px;border-radius:2px;background:var(--ligne);transition:background .15s,left .15s,width .15s}
+html.mx-fixe .mx-sep:hover::after,html.mx-fixe .mx-sep:focus-visible::after,html.mx-fixe .mx-sep.actif::after{background:var(--lav);left:5px;width:4px}
+html.glisse-col,html.glisse-col *{cursor:col-resize!important;user-select:none!important}
+html.glisse-col iframe{pointer-events:none}
+
 .renvoi #renvoiDetail{margin:8px 0 0 26px;display:grid;gap:6px;max-width:560px}
 .resumeEv .grandeDate{font:700 20px "Bricolage Grotesque",sans-serif}.resumeEv p{margin:6px 0 0;color:var(--doux)}
 #bandeauVoir{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--lav);color:#0b0a10;padding:8px 16px;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
@@ -256,7 +452,7 @@ body.voir main{padding-bottom:120px}
 <div id="bandeauVoir" hidden>👁 Vous voyez l'appli comme <b></b>. C'est un aperçu : vos actions restent réelles. <button type="button" class="btn petit plein" id="finVoir">Revenir à mon compte</button></div>
 <header>
   <h1><small id="nomFestival">Festival</small>Réservations</h1>
-  <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="mails" data-droit="reglages">E-mails</button> <button data-vue="boite" data-droit="boite">Boîte</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
+  <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="mails" data-droit="reglages">E-mails</button> <button data-vue="boite" data-droit="boite">Mails</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
 </header>
 <main id="vue"><p class="vide">Chargement…</p></main>
 <input type="file" id="fichierPhoto" accept="image/*" multiple hidden>
@@ -265,6 +461,7 @@ body.voir main{padding-bottom:120px}
 <p class="aide">Déplacez la photo pour choisir le cadrage. Le cadre correspond aux photos du programme.</p>
 <div class="actions"><button type="button" class="btn plein" id="recadrerOk">Utiliser cette photo</button><button type="button" class="btn" id="recadrerNon">Annuler</button></div></div></div>
 <div id="toast"></div>
+<div id="mx-ecrire" hidden aria-label="Écrire un mail" role="dialog"></div>
 <div id="dialogue" role="dialog" aria-modal="true"><div class="boite"><h3 id="dlgTitre"></h3><p id="dlgTexte"></p><input id="dlgChamp" hidden><div class="actions"><button type="button" class="btn" id="dlgNon">Annuler</button><button type="button" class="btn plein" id="dlgOui">OK</button></div></div></div>
 
 <script>
@@ -453,10 +650,16 @@ var MAIL = (function () {
     return { sujet: sujet, texte: texte, html: h };
   }
   function exemple() { var v = {}; VARIABLES.forEach(function (x) { v[x[0]] = x[2]; }); v.image = ''; return v; }
-  return { VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
+  // Pied de page seul (mails écrits à la main dans Mails) : thème clair, variables générales remplies.
+  function pied(r) {
+    var v = exemple(); v.festival = r.nomFestival || v.festival; v.site = String(r.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, '') || v.site;
+    var p = palette(options(r, 'confirmation')); p = Object.assign({}, THEMES.clair, { accent: p.accent });
+    return piedHtml(remplir(r.piedDePage || '', v), r, p);
+  }
+  return { pied: pied, VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
 })();
 
-var VERSION_APPLI = '0aa45fdc3954', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
+var VERSION_APPLI = 'b764a243a43f', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
 function lireLocal(k) { try { return localStorage.getItem('festival_resa_' + k) || ''; } catch (e) { return ''; } }
 function garderLocal(k, v) { try { if (v) localStorage.setItem('festival_resa_' + k, v); else localStorage.removeItem('festival_resa_' + k); } catch (e) {} }
 // Cet appareil : un identifiant gardé dans le navigateur + un nom lisible (pour la liste des appareils connectés).
@@ -497,6 +700,7 @@ var MOIS = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.',
 function $(s, r) { return (r || document).querySelector(s); }
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function toast(t, err) { var b = $('#toast'); b.textContent = t; b.className = err ? 'erreur' : ''; b.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(function () { b.style.display = 'none'; }, err ? 7000 : (t.length > 60 ? 5000 : 2500)); }
+function dateCourteFr(s) { var m = /^(\d{4})-(\d\d)-(\d\d)(?:[ T](\d\d:\d\d))?/.exec(String(s || '')); return m ? m[3] + '.' + m[2] + '.' + m[1] + (m[4] ? ' ' + m[4] : '') : String(s || ''); }
 function aujourdhui() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
 
 // Boîtes de dialogue de l'appli (pas celles du navigateur). confirmer(texte, ok, options) ; demander(texte, ok, options)
@@ -517,16 +721,20 @@ function dialogue(o) {
 function confirmer(texte, ok, o) { o = o || {}; dialogue({ titre: o.titre, texte: texte, oui: o.oui || 'Oui', non: o.non || 'Annuler', danger: o.danger, ok: ok, annuler: o.annuler }); }
 function demander(texte, ok, o) { o = o || {}; dialogue({ titre: o.titre, texte: texte, champ: true, defaut: o.defaut, placeholder: o.placeholder, oui: o.oui || 'OK', ok: function (v) { if (o.vide || v.trim()) ok(v.trim()); } }); }
 
-function appel(fn, args, ok) {
-  $('#charge').style.display = 'block';
+// appel(fn, args, ok, options) ; options.echec(e) : rappel d'erreur (renvoie true pour taire le message) ; options.silencieux : sans barre de chargement.
+function appel(fn, args, ok, options) {
+  options = options || {};
+  if (!options.silencieux) { appel.n = (appel.n || 0) + 1; $('#charge').style.display = 'block'; }
+  var fini = function () { if (!options.silencieux && --appel.n <= 0) { appel.n = 0; $('#charge').style.display = 'none'; } };
+  var erreur = function (m) { var e = new Error(m); if (!(options.echec && options.echec(e))) toast(m, true); };
   fetch(EXEC, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ api: 'admin', cle: CLE, pin: PIN, jeton: JETON, appareil: APPAREIL, fn: fn, args: args || [] }) })
     .then(function (r) { return r.json(); })
-    .then(function (r) { $('#charge').style.display = 'none'; if (r.ok) return ok(r.resultat);
+    .then(function (r) { fini(); if (r.ok) return ok(r.resultat);
       var m = r.erreur || 'Erreur';
       if (r.pin) { garderLocal('pin', ''); garderLocal('jeton', ''); PIN = ''; JETON = ''; if (!D) return ecranPin(m); }
-      if (/Demande inconnue|Fonction inconnue/.test(m)) { m = 'Le script Google n\'est pas à jour : dans Apps Script, collez le nouveau code (a-coller.gs) et déployez une nouvelle version.'; if (!D) $('#vue').innerHTML = '<p class="vide">' + m + '</p>'; }
-      toast(m, true); })
-    .catch(function () { $('#charge').style.display = 'none'; toast('Problème de connexion. Réessayez dans un instant.', true); });
+      if (/Demande inconnue|Fonction inconnue/.test(m)) { m = 'Le script Google n\'est pas à jour : demandez sa mise en ligne (nouvelle version du script).'; if (!D) $('#vue').innerHTML = '<p class="vide">' + m + '</p>'; }
+      erreur(m); })
+    .catch(function () { fini(); erreur('Problème de connexion. Réessayez dans un instant.'); });
 }
 function recharger(res) {
   D = res; COMPTE = res.compte || null; $('#nomFestival').textContent = D.reglages.nomFestival || 'Festival';
@@ -534,6 +742,7 @@ function recharger(res) {
   document.querySelectorAll('nav [data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
   $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
   if (typeof res.boiteNonLus === 'number') { BOITE_NL = res.boiteNonLus; badgeBoite(); }
+  if (droit('boite')) setTimeout(prechargerBoiteMx, 3000);
   if ((vue === 'photos' && !droit('photos')) || (vue === 'mails' && !droit('reglages')) || (vue === 'boite' && !droit('boite')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); }); }
   afficher();
 }
@@ -568,8 +777,8 @@ function afficherAccueil() {
   h += '<h2>' + (proches.length ? 'Ces 7 prochains jours' : 'Prochains spectacles') + '</h2>' + liste(proches.length ? proches : avenir.slice(0, 5));
   if (droit('reservations') && resas.length) {
     var dernieres = D.reservations.slice().reverse().slice(0, 8);
-    h += '<h2>Dernières réservations</h2><div class="panneau"><div class="tableau"><table><tr><th>Reçue</th><th>Nom</th><th>Spectacle</th><th>Places</th><th>Statut</th></tr>' +
-      dernieres.map(function (r) { return '<tr class="' + (r.statut === 'Annulée' ? 'annulee' : '') + '"><td>' + esc(r.recue) + '</td><td>' + esc(r.nom) + '</td><td>' + esc(r.titreEvenement) + '</td><td>' + r.places + '</td><td>' + esc(r.statut) + '</td></tr>'; }).join('') + '</table></div></div>';
+    h += '<h2>Dernières réservations</h2><div class="panneau"><div class="tableau dernieres"><table><tr><th>Reçue</th><th>Nom</th><th>Spectacle</th><th>Places</th><th>Statut</th></tr>' +
+      dernieres.map(function (r) { return '<tr class="' + (r.statut === 'Annulée' ? 'annulee' : '') + '"><td class="quand">' + esc(dateCourteFr(r.recue)) + '</td><td class="qui">' + esc(r.nom) + '</td><td class="quoi">' + esc(r.titreEvenement) + '</td><td class="combien">' + r.places + ' pl.</td><td class="etat">' + esc(r.statut) + '</td></tr>'; }).join('') + '</table></div></div>';
   }
   var afaire = [];
   evs.filter(function (e) { return e.date >= today; }).forEach(function (e) {
@@ -617,6 +826,7 @@ var TRI_EV = { statut: '', ordre: 'date', q: '' };
 function afficher() {
   if (!D) return;
   $('#vue').classList.toggle('large', vue === 'mails' || vue === 'boite');
+  if (vue !== 'boite' && typeof majMxFixe === 'function') majMxFixe();
   if (vue === 'reglages') return afficherReglages();
   if (vue === 'mails') return afficherMails();
   if (vue === 'boite') return afficherBoite();
@@ -642,7 +852,7 @@ function afficher() {
   h += '<div class="barreTri"><select id="triStatut" aria-label="Filtrer par statut"><option value="">Tous les statuts</option>' + D.statuts.map(function (s) { return '<option' + (s === TRI_EV.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '<option value="Complet"' + (TRI_EV.statut === 'Complet' ? ' selected' : '') + '>Complets</option></select>' +
     '<select id="triOrdre" aria-label="Trier"><option value="date">Par date</option><option value="titre"' + (TRI_EV.ordre === 'titre' ? ' selected' : '') + '>Par titre</option><option value="remplissage"' + (TRI_EV.ordre === 'remplissage' ? ' selected' : '') + '>Par remplissage</option><option value="recent"' + (TRI_EV.ordre === 'recent' ? ' selected' : '') + '>Derniers créés</option></select>' +
     '<input id="triQ" type="search" placeholder="Chercher un titre, une compagnie…" value="' + esc(TRI_EV.q) + '"><span class="compte">' + evs.length + ' / ' + D.evenements.length + '</span></div>';
-  if (D.version && VERSION_APPLI !== '0aa45fdc3954' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
+  if (D.version && VERSION_APPLI !== 'b764a243a43f' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
   if (COMPTE && COMPTE.id === 'cle' && droit('comptes') && !PIN && !D.nbComptes) h += '<div class="bandeau" id="bandeauPin">Vous êtes entrée avec le lien personnel. Créez votre code PIN et ceux des bénévoles dans <a href="#" id="versComptes">Réglages → Comptes</a> : ensuite l\'appli s\'ouvre avec le code, sur n\'importe quel appareil.</div>';
   h += parDate ? '<h2>À venir</h2>' + liste(avenir) + '<h2>Passés</h2>' + liste(passes) : liste(avenir);
   $('#vue').innerHTML = h;
@@ -842,12 +1052,12 @@ function afficherEvenement(id) {
     h += '<h2>Réservations · ' + total + (Number(e.places) ? ' / ' + e.places : '') + ' places' + (arrivees ? ' · ' + arrivees + ' arrivée' + (arrivees > 1 ? 's' : '') : '') + (enAttente.length ? ' · ' + enAttente.length + ' en liste d\'attente' : '') + '</h2><div class="panneau">';
     if (!peutResa) h += '<p class="aide">' + total + ' place' + (total > 1 ? 's' : '') + ' réservée' + (total > 1 ? 's' : '') + '. Votre compte ne voit pas le détail des réservations.</p></div>';
     else if (!resas.length) h += '<p class="vide">Pas encore de réservation.</p>';
-    else h += '<div class="tableau"><table><tr><th>Arrivé·e</th><th>Nom</th><th>Places</th><th>Contact</th><th>Message</th><th>Reçue</th><th></th></tr>' +
+    else h += '<div class="tableau resas"><table><tr><th>Arrivé·e</th><th>Nom</th><th>Places</th><th>Contact</th><th>Message</th><th>Reçue</th><th></th></tr>' +
       resas.map(function (r) {
         var att = r.statut === 'Liste d\'attente', ann = r.statut === 'Annulée';
         return '<tr class="' + (ann ? 'annulee' : (r.arrivee ? 'arrivee' : '')) + (att ? ' attente' : '') + '"><td>' + (ann || att ? (att ? '<span class="badge">Liste d\'attente</span>' : '') : '<input type="checkbox" class="arrivee" data-pointer="' + esc(r.id) + '"' + (r.arrivee ? ' checked' : '') + ' aria-label="Arrivé·e">') + '</td><td>' + esc(r.nom) + (r.options ? '<span class="optsResa">' + esc(r.options) + '</span>' : '') + '</td><td>' + r.places + (ann ? '' : ' <button type="button" class="btn petit" data-nbplaces="' + esc(r.id) + '" data-n="' + r.places + '" title="Changer le nombre de places">✎</button>') + '</td><td>' +
           (r.email ? '<a style="color:var(--lav2)" href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>' : '') + (r.telephone ? '<br>' + esc(r.telephone) : '') +
-          '</td><td>' + esc(r.message) + '</td><td>' + esc(r.recue) + '</td><td>' +
+          '</td><td class="msg">' + esc(r.message) + '</td><td class="quand">' + esc(dateCourteFr(r.recue)) + '</td><td class="faire">' +
           (ann ? 'Annulée' : (att ? '<button class="btn petit plein" data-confirmer="' + esc(r.id) + '">Confirmer</button> ' : '') + '<button class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler</button>') + '</td></tr>';
       }).join('') + '</table></div>';
     if (peutResa) h += '<div class="actions">' + (actives.length ? '<button class="btn" id="copier">Copier les e-mails</button>' : '') + (actives.length || enAttente.length ? '<button class="btn" id="ecrire">Écrire aux inscrits…</button>' : '') + '</div>';
@@ -1088,7 +1298,7 @@ function afficherMails() {
   var themes = Object.keys(MAIL.THEMES).map(function (k) { return [k, MAIL.THEMES[k].nom]; });
   var exp = String(D.expediteur || ''), origami = /compagnieorigami/i.test(exp);
   var formatAp = lireLocal('apercuMail') === 'tel' || (!lireLocal('apercuMail') && innerWidth < 760) ? 'tel' : 'ordi';
-  var h = '<h2>E-mails</h2>' + (exp ? '<div class="' + (origami ? 'bandeau' : 'quandMail') + '">' + (origami ? '⚠️ ' : '') + 'Les e-mails partent de <b>' + esc(exp) + '</b>' + (origami ? ' : ce n\'est pas l\'adresse du festival. Redéployez le script depuis le compte du festival (Apps Script › Déployer › Gérer les déploiements › Nouvelle version).' : ', au nom de « ' + esc(r.nomFestival || '') + ' ».') + '</div>' : '') +
+  var h = '<h2>E-mails</h2>' + (exp ? '<div class="' + (origami ? 'bandeau' : 'quandMail') + '">' + (origami ? '⚠️ ' : '') + '<span>Les e-mails partent de <b>' + esc(exp) + '</b>' + (origami ? ' : ce n\'est pas l\'adresse du festival. Redéployez le script depuis le compte du festival (Apps Script › Déployer › Gérer les déploiements › Nouvelle version).' : ', au nom de « ' + esc(r.nomFestival || '') + ' ».') + '</span></div>' : '') +
     '<div class="ongletsMail" id="ongletsMail">' + Object.keys(MAIL.TYPES).map(function (k) { return '<button type="button" data-type="' + k + '"' + (k === MAIL_VU ? ' class="on"' : '') + '>' + MAIL.TYPES[k].nom + '</button>'; }).join('') + '<button type="button" data-type="pied"' + (MAIL_VU === 'pied' ? ' class="on"' : '') + '>Pied de page</button></div>' +
     '<div class="segment ongletsAtelier" id="ongletsAtelier" role="tablist"><button type="button" data-panneau="editer" class="on">Écrire</button><button type="button" data-panneau="apercu">Aperçu</button></div>' +
     '<form id="formMail"><div class="atelier" id="atelier" data-panneau="editer"><div class="voletEditionMail panneau" id="volMail">' +
@@ -1214,111 +1424,840 @@ function afficherMails() {
   rendreMail();
 }
 
-// ---------- Boîte : réponses du public (fils Gmail du festival liés aux réservations) ----------
-var BOITE_NL = null, BOITE = { dossier: 'inbox', fils: null, fil: null, etiquettes: {} };
-function badgeBoite() {
-  var b = $('nav [data-vue=boite]'); if (!b) return;
-  b.innerHTML = 'Boîte' + (BOITE_NL > 0 ? ' <span class="pastille">' + BOITE_NL + '</span>' : '');
-}
+// ===== Mails : la boîte Gmail du festival dans l'appli (reprise de l'appli Diffusion) =====
+// Liste gardée sur l'appareil (affichée tout de suite, puis mise à jour), conversations préparées en arrière-plan,
+// trois colonnes fixes sur ordinateur (séparateurs glissables), liste puis conversation sur téléphone,
+// brouillons enregistrés dans Gmail toutes les 5 s + copie de secours sur l'appareil, envois programmés.
+var BOITE_NL = null;
+var MX = { dossier: 'reception', libelle: '', recherche: '', jeton: '', pile: [], fils: null, jetonSuite: '', cache: {}, dossiers: null, coches: {}, fil: null,
+  filsGardes: {}, ordre: [], enCours: {}, programmes: null, public: false, ouverture: 0, charge: false, enRoute: null, libellesVus: [] };
+var DOSSIERS_MX = [['reception', 'Boîte de réception', '📥'], ['suivis', 'Suivis', '★'], ['traites', 'Traités', '✓'], ['brouillons', 'Brouillons', '✎'], ['programmes', 'Programmés', '⏱'], ['envoyes', 'Envoyés', '➤'], ['tous', 'Tous les mails', '▤'], ['spam', 'Spam', '⚠'], ['corbeille', 'Corbeille', '🗑']];
 var REPONSES_RAPIDES = [
   ['Annulation notée', 'Bonjour {prenom},\n\nC\'est noté : votre réservation pour « {titre} » du {date} est annulée. Merci de nous avoir prévenus !\n\nÀ une prochaine fois,\n{festival}'],
   ['Places changées', 'Bonjour {prenom},\n\nC\'est fait : votre réservation pour « {titre} » du {date} est maintenant de {places} place(s).\n\nÀ bientôt !\n{festival}'],
+  ['Complet, liste d\'attente', 'Bonjour {prenom},\n\nMerci pour votre message. La représentation de « {titre} » du {date} est complète ; nous vous inscrivons sur la liste d\'attente et vous prévenons dès qu\'une place se libère.\n\n{festival}'],
   ['Merci', 'Bonjour {prenom},\n\nMerci pour votre message !\n\n{festival}']
 ];
-function afficherBoite() {
-  var h = '<div class="barreEv"><h2>Boîte</h2><div class="segment" id="dossierBoite"><button type="button" data-dossier="inbox"' + (BOITE.dossier === 'inbox' ? ' class="on"' : '') + '>À traiter</button><button type="button" data-dossier="traites"' + (BOITE.dossier === 'traites' ? ' class="on"' : '') + '>Traités</button></div><button type="button" class="btn petit" id="actualiserBoite">Actualiser</button></div>' +
-    '<p class="aide">Les réponses du public aux e-mails du festival, et les messages des personnes qui ont réservé. Le reste de la boîte Gmail du festival n\'apparaît pas ici.</p>' +
-    '<div class="boite' + (BOITE.fil ? ' avecFil' : '') + '"><div class="filsBoite" id="filsBoite"><p class="vide">Chargement…</p></div><div class="filBoite" id="filBoite">' + (BOITE.fil ? '' : '<p class="vide">Choisissez un message à gauche.</p>') + '</div></div>';
-  $('#vue').innerHTML = h;
-  document.querySelectorAll('#dossierBoite button').forEach(function (b) { b.onclick = function () { BOITE.dossier = b.dataset.dossier; BOITE.fils = null; BOITE.fil = null; afficherBoite(); }; });
-  $('#actualiserBoite').onclick = function () { BOITE.fils = null; chargerFils(); };
-  if (BOITE.fils) listeFils(); else chargerFils();
-  if (BOITE.fil) afficherFil(BOITE.fil);
+function badgeBoite() {
+  var b = $('nav [data-vue=boite]'); if (!b) return;
+  b.innerHTML = 'Mails' + (BOITE_NL > 0 ? ' <span class="pastille">' + BOITE_NL + '</span>' : '');
 }
-function chargerFils() {
-  appel('adminBoite', [BOITE.dossier], function (res) {
-    BOITE.fils = res.fils; BOITE.etiquettes = res.etiquettes || {};
-    if (BOITE.dossier === 'inbox') { BOITE_NL = res.fils.filter(function (f) { return f.nonLu; }).length; badgeBoite(); }
-    if (vue === 'boite') listeFils();
-  });
+function surTelephone() { return innerWidth < 1000; }
+function mxFixe() { return document.documentElement.classList.contains('mx-fixe'); }
+function appelMx(fn, args, ok, echec, silencieux) { appel(fn, args, ok, { echec: echec, silencieux: silencieux }); }
+function quandCourt(iso) {
+  if (!iso) return '';
+  var d = new Date(iso), auj = new Date();
+  if (isNaN(d)) return iso;
+  if (d.toDateString() === auj.toDateString()) return iso.slice(11, 16).replace(':', 'h');
+  return ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2) + (d.getFullYear() !== auj.getFullYear() ? '.' + d.getFullYear() : '');
 }
+function dateHeureFr(iso) { if (!iso) return ''; var p = iso.split('T'); return p[0].split('-').reverse().join('.') + (p[1] ? ' à ' + p[1].replace(':', 'h') : ''); }
+function adresseDe(texte) { var m = String(texte || '').match(/[^\s<>,;"']+@[^\s<>,;"']+\.[a-z]{2,}/i); return m ? m[0].toLowerCase() : ''; }
+function adressesDe(texte) { return (String(texte || '').match(/[^\s<>,;"']+@[^\s<>,;"']+\.[a-z]{2,}/ig) || []).map(function (x) { return x.toLowerCase(); }); }
+function nomCourt(texte) { var t = String(texte || '').split(',')[0].trim(), m = t.match(/^"?([^"<]+?)"?\s*</); return m ? m[1].trim() : t.replace(/[<>]/g, ''); }
+function moiMail() { return String((MX.dossiers && MX.dossiers.moi) || D.expediteur || '').toLowerCase(); }
+function texteDeHtml(h) { var d = document.createElement('div'); d.innerHTML = String(h || '').replace(/<style[\s\S]*?<\/style>/gi, ''); return (d.textContent || '').replace(/\s+/g, ' ').trim(); }
+function tailleLisible(n) { n = Number(n || 0); return n >= 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' Mo' : Math.max(1, Math.round(n / 1e3)) + ' ko'; }
 function resumeResa(r) { return esc(r.titre) + (r.date ? ' · ' + esc(r.date.split('-').reverse().slice(0, 2).join('.')) : '') + ' · ' + r.places + ' pl.' + (r.statut && r.statut !== 'Confirmée' ? ' · ' + esc(r.statut) : ''); }
-function listeFils() {
-  var z = $('#filsBoite'); if (!z) return;
-  var l = BOITE.fils || [];
-  if (!l.length) { z.innerHTML = '<p class="vide">' + (BOITE.dossier === 'inbox' ? 'Rien à traiter pour l\'instant.' : 'Aucun message traité.') + '</p>'; return; }
-  z.innerHTML = l.map(function (f) {
-    return '<button type="button" class="fil' + (f.nonLu ? ' nonLu' : '') + (BOITE.fil === f.id ? ' on' : '') + '" data-fil="' + esc(f.id) + '"><div class="ligne1"><b>' + esc(f.nom) + '</b><span>' + esc(f.date.slice(5).split(' ')[0].split('-').reverse().join('.')) + '</span></div>' +
-      '<div class="sujet">' + esc(f.sujet) + (f.nb > 1 ? ' <span class="doux">(' + f.nb + ')</span>' : '') + '</div><div class="extrait">' + esc(f.extrait) + '</div>' +
-      '<div class="puces2">' + (f.automatique ? '<span class="eti">Réponse automatique</span>' : '') + (f.repondu ? '<span class="eti ok">Répondu</span>' : '') + f.etiquettes.filter(function (e) { return e !== 'Traité'; }).map(function (e) { return '<span class="eti">' + esc(e) + '</span>'; }).join('') +
-      (f.resas[0] ? '<span class="eti resa">' + resumeResa(f.resas[0]) + (f.resas.length > 1 ? ' +' + (f.resas.length - 1) : '') + '</span>' : '') + '</div></button>';
+
+// ---------- Copie sur l'appareil + préparation en arrière-plan ----------
+var CLE_COPIE_MX = 'mails_copie';
+function cleListeMx(jeton) { return [MX.dossier, MX.libelle, MX.recherche, MX.public ? 1 : 0, jeton === undefined ? MX.jeton : jeton].join('|'); }
+function cleBoiteDefautMx() { return ['reception', '', '', MX.public ? 1 : 0, ''].join('|'); }
+function requeteListeMx(jeton) { return { dossier: MX.dossier, libelle: MX.libelle, recherche: MX.recherche, jeton: jeton, public: MX.public }; }
+function noterCopieMx(cle, r) {
+  if (!r || !r.fils || cle !== cleBoiteDefautMx()) return;
+  try { garderLocal(CLE_COPIE_MX, JSON.stringify({ cle: cle, le: Date.now(), r: { fils: r.fils, jetonSuite: r.jetonSuite }, dossiers: MX.dossiers, programmes: MX.programmes })); }
+  catch (e) { /* mémoire pleine : pas de copie */ }
+}
+function semerCopieMx() {
+  if (semerCopieMx.fait) return; semerCopieMx.fait = true;
+  var m = null; try { m = JSON.parse(lireLocal(CLE_COPIE_MX) || 'null'); } catch (e) { m = null; }
+  if (!m || !m.r || !Array.isArray(m.r.fils) || Date.now() - m.le > 7 * 864e5) return;
+  if (!MX.cache[m.cle]) MX.cache[m.cle] = Object.assign({}, m.r, { copie: m.le });
+  if (!MX.dossiers && m.dossiers) MX.dossiers = m.dossiers;
+  if (!MX.programmes && m.programmes) MX.programmes = m.programmes;
+}
+function chargerDossiersMx(apres) {
+  appelMx('adminMailsDossiers', [], function (r) {
+    MX.dossiers = r; if (typeof r.comptes.reception === 'number') { BOITE_NL = r.comptes.reception; badgeBoite(); }
+    if (vue === 'boite') dessinerDossiersMx();
+    noterCopieMx(cleBoiteDefautMx(), MX.cache[cleBoiteDefautMx()]);
+    if (apres) apres(r);
+  }, function () { return true; }, true);
+}
+function chargerProgrammesMx(apres) {
+  appelMx('adminMailsProgrammes', [], function (l) { MX.programmes = l || []; if (vue === 'boite') { dessinerDossiersMx(); if (MX.dossier === 'programmes' && !MX.libelle) dessinerFilsMx(); majProgrammesFilMx(); } if (apres) apres(l); }, function () { return true; }, true);
+}
+function prechargerBoiteMx() {
+  if (prechargerBoiteMx.fait || !D || !droit('boite') || document.hidden) return;
+  prechargerBoiteMx.fait = true;
+  semerCopieMx();
+  if (vue === 'boite' || MX.charge) return;
+  chargerDossiersMx(); chargerProgrammesMx();
+  var cle = cleBoiteDefautMx(), route = MX.enRoute = { cle: cle, suites: [] };
+  var finir = function () { if (MX.enRoute === route) MX.enRoute = null; };
+  appelMx('adminMailsListe', [{ dossier: 'reception', libelle: '', recherche: '', jeton: '', public: MX.public }], function (r) {
+    finir(); if (route.suites.length) return route.suites.forEach(function (x) { x[0](r); });
+    MX.cache[cle] = r; noterCopieMx(cle, r); preparerRecentsMx();
+  }, function (e) { finir(); route.suites.forEach(function (x) { x[1](e); }); return true; }, true);
+}
+/* Conversations récentes préparées en arrière-plan (15 sur ordinateur, 6 sur téléphone), toutes les 3 minutes. */
+function preparerRecentsMx() {
+  if (document.hidden || !D || !droit('boite')) return;
+  var l = (MX.cache[cleBoiteDefautMx()] || {}).fils || [], n = surTelephone() ? 6 : 15, k = 0;
+  l.slice(0, n).forEach(function (f, i) { if (MX.filsGardes[f.id] || MX.enCours[f.id] || f.brouillon) return; setTimeout(function () { prechargerFilMx(f.id); }, 400 * k++); });
+}
+function prechargerFilMx(id) {
+  if (!id || MX.filsGardes[id] || MX.enCours[id]) return;
+  MX.enCours[id] = true;
+  appelMx('adminMailsOuvrir', [id, true], function (f) { delete MX.enCours[id]; garderFilMx(f); }, function () { delete MX.enCours[id]; return true; }, true);
+}
+function garderFilMx(f) {
+  if (!f || !f.id) return;
+  if (!MX.filsGardes[f.id]) MX.ordre.push(f.id);
+  f._lu = Date.now(); MX.filsGardes[f.id] = f;
+  while (MX.ordre.length > 40) delete MX.filsGardes[MX.ordre.shift()];
+}
+function oublierListesMx() { var garde = MX.cache[cleListeMx()]; MX.cache = {}; if (garde && !garde.attente) MX.cache[cleListeMx()] = garde; }
+setInterval(function () { if (D && droit('boite')) { if (!prechargerBoiteMx.fait) prechargerBoiteMx(); else if (!document.hidden) { if (vue !== 'boite') rafraichirListeDefautMx(); preparerRecentsMx(); } } }, 180000);
+setInterval(function () { if (vue === 'boite' && D && !document.hidden && !MX.charge && !MX.fil) chargerFilsMx(true); }, 90000);
+function rafraichirListeDefautMx() {
+  var cle = cleBoiteDefautMx();
+  appelMx('adminMailsListe', [{ dossier: 'reception', libelle: '', recherche: '', jeton: '', public: MX.public }], function (r) { if (r.fils.length || !(MX.cache[cle] || {}).fils) { MX.cache[cle] = r; noterCopieMx(cle, r); } }, function () { return true; }, true);
+  chargerDossiersMx();
+}
+
+// ---------- Écran ----------
+function afficherBoite() {
+  semerCopieMx();
+  var h = '<div class="mx-tete"><h2>Mails</h2><span class="aide" id="mx-moi">' + (moiMail() ? esc(moiMail()) : '') + '</span><button type="button" class="btn petit" id="mx-actualiser">Actualiser</button><button type="button" class="btn petit plein" id="mx-ecrire-haut">+ Écrire</button></div>' +
+    '<div class="mx' + (MX.fil ? ' detail' : '') + '" id="mx">' +
+    '<aside class="mx-dossiers" id="mx-dossiers"></aside><div class="mx-sep" data-sep="1" role="separator" aria-orientation="vertical" tabindex="0" title="Glisser pour régler la largeur (double-clic : largeur d\'origine)"></div>' +
+    '<section class="mx-col"><div class="mx-chips" id="mx-chips"></div>' +
+    '<div class="mx-barre"><input type="search" id="mx-recherche" placeholder="Rechercher dans Gmail…" value="' + esc(MX.recherche) + '" aria-label="Rechercher"><label class="coche" style="font-size:13px"><input type="checkbox" id="mx-public"' + (MX.public ? ' checked' : '') + '> Public seulement</label></div>' +
+    '<div class="mx-actions" id="mx-actions"></div><div class="mx-liste" id="mx-liste"></div><div class="mx-pages" id="mx-pages"></div></section>' +
+    '<div class="mx-sep" data-sep="2" role="separator" aria-orientation="vertical" tabindex="0" title="Glisser pour régler la largeur (double-clic : largeur d\'origine)"></div>' +
+    '<section class="mx-fil" id="mx-fil"></section></div>';
+  $('#vue').innerHTML = h;
+  $('#mx-actualiser').onclick = function () { MX.cache = {}; MX.filsGardes = {}; MX.ordre = []; chargerDossiersMx(); chargerProgrammesMx(); chargerFilsMx(); if (MX.fil) ouvrirConversationMx(MX.fil.id, true); toast('Mise à jour depuis Gmail…'); };
+  $('#mx-ecrire-haut').onclick = function () { composerMx('nouveau', {}); };
+  var rech = $('#mx-recherche'), minuterie;
+  rech.oninput = function () { clearTimeout(minuterie); minuterie = setTimeout(function () { if (rech.value.trim() !== MX.recherche) { MX.recherche = rech.value.trim(); MX.jeton = ''; MX.pile = []; chargerFilsMx(); } }, 500); };
+  rech.onkeydown = function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); clearTimeout(minuterie); MX.recherche = rech.value.trim(); MX.jeton = ''; MX.pile = []; chargerFilsMx(); } };
+  $('#mx-public').onchange = function () { MX.public = this.checked; garderLocal('mails_public', MX.public ? '1' : ''); MX.jeton = ''; MX.pile = []; chargerFilsMx(); };
+  dessinerDossiersMx(); dessinerActionsMx();
+  if (!MX.dossiers || MX.dossiers === (semerCopieMx.dossiers || null)) chargerDossiersMx();
+  if (!MX.programmes) chargerProgrammesMx();
+  chargerFilsMx();
+  if (MX.fil) afficherFilMx(MX.fil); else $('#mx-fil').innerHTML = '<p class="mx-vide">Choisissez une conversation.</p>';
+  majMxFixe();
+}
+MX.public = !!lireLocal('mails_public');
+function htmlDossiersMx(chips) {
+  var c = (MX.dossiers && MX.dossiers.comptes) || {}, libs = (MX.dossiers && MX.dossiers.libelles) || [], traite = MX.dossiers ? MX.dossiers.traite : 'Festival/Traité';
+  var actif = function (id) { return !MX.libelle && id === MX.dossier; };
+  var h = DOSSIERS_MX.map(function (d) {
+    var n = d[0] === 'reception' ? (c.reception || 0) : d[0] === 'brouillons' ? (c.brouillons || 0) : d[0] === 'programmes' ? programmesActifsMx().length : d[0] === 'suivis' ? (c.suivis || 0) : d[0] === 'spam' ? (c.spam || 0) : 0;
+    if (d[0] === 'traites') { var lt = libs.filter(function (l) { return l.nom === traite; })[0]; n = lt ? lt.nonLus : 0; }
+    return '<button type="button" class="dossier' + (actif(d[0]) ? ' actif' : '') + '" data-dossier="' + d[0] + '">' + (chips ? '' : '<i aria-hidden="true">' + d[2] + '</i>') + '<span>' + d[1] + '</span>' + (n ? '<b>' + n + '</b>' : '') + '</button>';
   }).join('');
-  z.querySelectorAll('[data-fil]').forEach(function (b) { b.onclick = function () { ouvrirFil(b.dataset.fil); }; });
+  var autres = libs.filter(function (l) { return l.nom !== traite; });
+  if (chips) {
+    if (autres.length) h += '<select id="mx-chip-libelle" aria-label="Libellé"><option value="">Libellé…</option>' + autres.map(function (l) { return '<option' + (MX.libelle === l.nom ? ' selected' : '') + '>' + esc(l.nom) + '</option>'; }).join('') + '</select>';
+    return h;
+  }
+  if (autres.length) {
+    // Les 3 derniers libellés ouverts (+ celui affiché) ; « Tous les libellés » pour la liste entière.
+    var vus = MX.libellesVus.slice(); if (MX.libelle && vus.indexOf(MX.libelle) < 0) vus.unshift(MX.libelle);
+    var montres = MX.tousLibelles ? autres : autres.filter(function (l) { return vus.indexOf(l.nom) >= 0; }).slice(0, 4);
+    if (!montres.length && !MX.tousLibelles) montres = autres.slice(0, 3);
+    h += '<div class="titre-libelles">Libellés</div>' + montres.map(function (l) {
+      return '<button type="button" class="dossier' + (MX.libelle === l.nom ? ' actif' : '') + '" data-libelle="' + esc(l.nom) + '"><i aria-hidden="true">🏷</i><span>' + esc(l.nom.replace(/^Festival\//, 'Festival · ')) + '</span>' + (l.nonLus ? '<b>' + l.nonLus + '</b>' : '') + '</button>';
+    }).join('');
+    if (autres.length > montres.length || MX.tousLibelles) h += '<button type="button" class="lien-libelles" id="mx-tous-libelles">' + (MX.tousLibelles ? 'Moins de libellés' : 'Tous les libellés (' + autres.length + ')') + '</button>';
+  }
+  h += '<button type="button" class="lien-libelles" id="mx-nouveau-libelle">+ Nouveau libellé</button>';
+  return h;
 }
-function ouvrirFil(id) {
-  BOITE.fil = id;
-  appel('adminLireFil', [id], function (f) {
-    var g = (BOITE.fils || []).filter(function (x) { return x.id === id; })[0]; if (g && g.nonLu) { g.nonLu = false; BOITE_NL = Math.max(0, (BOITE_NL || 1) - 1); badgeBoite(); }
-    if (vue !== 'boite') return;
-    $('.boite').classList.add('avecFil'); listeFils(); afficherFil(id, f);
-    if (innerWidth < 1100) scrollTo(0, 0);
-  });
+function dessinerDossiersMx() {
+  var z = $('#mx-dossiers'), ch = $('#mx-chips'); if (!z) return;
+  z.innerHTML = '<button type="button" class="btn plein mx-ecrire-btn" id="mx-ecrire-btn">+ Écrire</button>' + htmlDossiersMx(false);
+  ch.innerHTML = htmlDossiersMx(true);
+  $('#mx-ecrire-btn').onclick = function () { composerMx('nouveau', {}); };
+  document.querySelectorAll('#mx-dossiers [data-dossier], #mx-chips [data-dossier]').forEach(function (b) { b.onclick = function () { choisirDossierMx(b.dataset.dossier, ''); }; });
+  document.querySelectorAll('#mx-dossiers [data-libelle]').forEach(function (b) { b.onclick = function () { choisirDossierMx('', b.dataset.libelle); }; });
+  var sel = $('#mx-chip-libelle'); if (sel) sel.onchange = function () { if (sel.value) choisirDossierMx('', sel.value); };
+  if ($('#mx-tous-libelles')) $('#mx-tous-libelles').onclick = function () { MX.tousLibelles = !MX.tousLibelles; dessinerDossiersMx(); };
+  $('#mx-nouveau-libelle').onclick = function () {
+    demander('Nom du nouveau libellé :', function (nom) {
+      appelMx('adminMailsAction', [[], 'creerLibelle', nom], function () { toast('Libellé « ' + nom + ' » créé ✓'); chargerDossiersMx(); });
+    }, { titre: 'Nouveau libellé', oui: 'Créer', placeholder: 'Ex. Presse' });
+  };
 }
-function afficherFil(id, f) {
-  if (!f) { appel('adminLireFil', [id], function (x) { if (vue === 'boite' && BOITE.fil === id) afficherFil(id, x); }); return; }
-  var z = $('#filBoite'), cleBr = 'boite_' + f.id, brouillon = lireLocal(cleBr);
-  var et = BOITE.etiquettes || {};
-  var h = '<button type="button" class="btn petit" id="retourBoite">← Tous les messages</button><h3 class="sujetFil">' + esc(f.sujet) + '</h3>' +
-    '<div class="etiquettesFil">' + Object.keys(et).map(function (k) { var on = f.etiquettes.indexOf(et[k]) >= 0; return '<button type="button" class="btn petit' + (on ? ' plein' : '') + '" data-etiquette="' + k + '" data-actif="' + (on ? '1' : '') + '">' + esc(et[k]) + '</button>'; }).join('') +
-    '<button type="button" class="btn petit' + (f.traite ? ' plein' : '') + '" id="traiteFil">' + (f.traite ? 'Traité ✓ (remettre à traiter)' : 'Marquer comme traité') + '</button></div>';
-  if (f.resas.length) h += '<div class="resasFil">' + f.resas.map(function (r) {
-    return '<div class="resaFil"><div><b>' + esc(r.nom) + '</b> · ' + resumeResa(r) + '</div>' + (droit('reservations') && r.statut !== 'Annulée' ? '<div class="actions"><button type="button" class="btn petit" data-places="' + esc(r.id) + '" data-n="' + r.places + '">Changer les places</button><button type="button" class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler la réservation</button></div>' : '') + '</div>';
-  }).join('') + '</div>';
-  else h += '<p class="aide">Aucune réservation trouvée avec l\'adresse ' + esc(f.email) + '.</p>';
-  h += '<div class="messagesFil">' + f.messages.map(function (m) { return '<div class="msg' + (m.moi ? ' moi' : '') + '"><div class="qui">' + esc(m.nom) + ' · ' + esc(m.date.split(' ')[0].split('-').reverse().join('.')) + ' ' + esc(m.date.split(' ')[1] || '') + '</div><div class="txt">' + esc(m.texte) + '</div></div>'; }).join('') + '</div>' +
-    '<div class="reponseFil panneau"><label for="txtReponse">Répondre à ' + esc(f.email) + '</label><div class="puces"><span>Réponses toutes prêtes :</span>' + REPONSES_RAPIDES.map(function (x, i) { return '<button type="button" data-rapide="' + i + '">' + esc(x[0]) + '</button>'; }).join('') + '</div>' +
-    '<textarea id="txtReponse" placeholder="Votre réponse…">' + esc(brouillon) + '</textarea>' +
-    '<label class="coche"><input type="checkbox" id="traiterApres"' + (f.traite ? '' : ' checked') + '> Marquer comme traité après l\'envoi</label>' +
-    '<div class="actions"><button type="button" class="btn plein" id="envoyerReponse">Envoyer la réponse</button></div></div>';
+function choisirDossierMx(dossier, libelle) {
+  if (dossier === 'traites') { dossier = ''; libelle = (MX.dossiers && MX.dossiers.traite) || 'Festival/Traité'; MX.traitesVue = true; } else MX.traitesVue = false;
+  MX.dossier = dossier || (libelle ? MX.dossier : 'reception'); MX.libelle = libelle || ''; MX.jeton = ''; MX.pile = []; MX.coches = {};
+  if (libelle && !MX.traitesVue) { MX.libellesVus = [libelle].concat(MX.libellesVus.filter(function (x) { return x !== libelle; })).slice(0, 3); }
+  if (dossier) { MX.recherche = ''; if ($('#mx-recherche')) $('#mx-recherche').value = ''; }
+  if (MX.fil && surTelephone()) { MX.fil = null; $('#mx').classList.remove('detail'); }
+  dessinerDossiersMx(); chargerFilsMx();
+}
+function chargerFilsMx(silencieux) {
+  var cle = cleListeMx(), connu = MX.cache[cle] && !MX.cache[cle].attente ? MX.cache[cle] : null, z = $('#mx-liste');
+  if (!z) return;
+  MX.charge = true;
+  if (connu) { MX.fils = connu.fils; MX.jetonSuite = connu.jetonSuite; dessinerFilsMx(); z.classList.add('rafraichit'); }
+  else if (!silencieux) { MX.fils = null; z.innerHTML = '<p class="mx-vide">Lecture de Gmail…</p>'; $('#mx-pages').innerHTML = ''; }
+  if (MX.dossier === 'programmes' && !MX.libelle) { MX.charge = false; z.classList.remove('rafraichit'); MX.fils = []; MX.jetonSuite = ''; dessinerFilsMx(); chargerProgrammesMx(); return; }
+  var echec = function (e) { MX.charge = false; if ($('#mx-liste')) { $('#mx-liste').classList.remove('rafraichit'); if (!connu) $('#mx-liste').innerHTML = '<p class="mx-vide" style="color:var(--rouge)">' + esc(e && e.message ? e.message : e) + '</p>'; } return true; };
+  var recu = function (r) {
+    MX.cache[cle] = r; noterCopieMx(cle, r);
+    if (connu && connu.fils.length && !r.fils.length) { MX.cache[cle] = connu; if (cle === cleListeMx()) MX.charge = false; if ($('#mx-liste')) $('#mx-liste').classList.remove('rafraichit'); return; } // vide d'un coup : liste connue gardée
+    if (cle !== cleListeMx() || vue !== 'boite') return;
+    MX.charge = false; $('#mx-liste').classList.remove('rafraichit');
+    MX.fils = r.fils; MX.jetonSuite = r.jetonSuite; dessinerFilsMx();
+    if (cle === cleBoiteDefautMx()) preparerRecentsMx();
+  };
+  if (MX.enRoute && MX.enRoute.cle === cle) { MX.enRoute.suites.push([recu, echec]); return; }
+  appelMx('adminMailsListe', [requeteListeMx(MX.jeton)], recu, echec, true);
+}
+function signatureListeMx(l) { return (l || []).map(function (f) { return f.id + f.date + (f.nonLu ? 1 : 0) + (f.suivi ? 1 : 0) + (f.libelles || []).join('') + (f.brouillon ? 'b' : ''); }).join(','); }
+function envoiEnCoursMx(f) { return MX.dossier === 'brouillons' && !MX.libelle && (MX.envoisEnCours || []).some(function (x) { return x.fil ? x.fil === f.id : (x.objet && x.objet === String(f.objet || '').trim().toLowerCase()); }); }
+function dessinerFilsMx() {
+  var z = $('#mx-liste'); if (!z) return;
+  var l = MX.fils || [], h = '';
+  if (MX.dossier === 'programmes' && !MX.libelle) h += htmlProgrammesMx();
+  if (!l.length && !(MX.dossier === 'programmes' && !MX.libelle)) h += '<p class="mx-vide">' + (MX.recherche ? 'Aucun mail ne correspond à cette recherche.' : MX.public ? 'Aucun mail du public ici (décochez « Public seulement » pour tout voir).' : 'Aucun message ici.') + '</p>';
+  h += l.map(function (f) {
+    var part = envoiEnCoursMx(f), actif = MX.fil && MX.fil.id === f.id;
+    return '<div class="conv' + (f.nonLu ? ' nonLu' : '') + (actif ? ' actif' : '') + (MX.coches[f.id] ? ' cochee' : '') + (part ? ' enEnvoi' : '') + '" data-conv="' + esc(f.id) + '" role="button" tabindex="0">' +
+      '<span class="conv-gauche"><input type="checkbox" data-coche="' + esc(f.id) + '"' + (MX.coches[f.id] ? ' checked' : '') + ' aria-label="Sélectionner"><button type="button" class="etoile' + (f.suivi ? ' on' : '') + '" data-etoile="' + esc(f.id) + '" aria-label="' + (f.suivi ? 'Ne plus suivre' : 'Suivre') + '">★</button></span>' +
+      '<span class="conv-corps"><span class="conv-tete"><span class="conv-de" title="' + esc(f.email) + '">' + esc(f.de) + '</span>' + (f.nb > 1 ? '<span class="conv-nb">' + f.nb + '</span>' : '') + '<span class="conv-date">' + esc(quandCourt(f.date)) + '</span></span>' +
+      '<span class="conv-objet">' + esc(f.objet) + (f.pieces ? ' <small title="Pièce jointe">📎</small>' : '') + '</span><span class="conv-extrait">' + esc(f.extrait) + '</span>' +
+      '<span class="conv-puces">' + (part ? '<span class="eti prog">Envoi en cours…</span>' : '') + (f.brouillon && MX.dossier !== 'brouillons' ? '<span class="eti brouillon">Brouillon</span>' : '') + (f.auto ? '<span class="eti">Réponse automatique</span>' : '') + (f.repondu ? '<span class="eti ok">Répondu</span>' : '') +
+      (f.libelles || []).filter(function (e) { return e !== 'Traité' || MX.libelle !== ((MX.dossiers && MX.dossiers.traite) || 'Festival/Traité'); }).map(function (e) { return '<span class="eti' + (e === 'Traité' ? ' ok' : '') + '">' + esc(e) + '</span>'; }).join('') +
+      (f.resas && f.resas[0] ? '<span class="eti resa">' + resumeResa(f.resas[0]) + (f.nbResas > 1 ? ' +' + (f.nbResas - 1) : '') + '</span>' : '') + '</span></span></div>';
+  }).join('');
   z.innerHTML = h;
-  $('#retourBoite').onclick = function () { BOITE.fil = null; $('.boite').classList.remove('avecFil'); z.innerHTML = '<p class="vide">Choisissez un message à gauche.</p>'; listeFils(); };
-  var ta = $('#txtReponse');
-  ta.oninput = function () { garderLocal(cleBr, ta.value); };
-  z.querySelectorAll('[data-rapide]').forEach(function (b) { b.onclick = function () {
-    var r = f.resas[0] || {}, v = { prenom: String(r.nom || '').split(/\s+/)[0] || '', titre: r.titre || '', date: r.date ? dateLongueFr(r.date) : '', places: r.places || '', festival: D.reglages.nomFestival || '' };
-    function mettre() { ta.value = MAIL.remplir(REPONSES_RAPIDES[b.dataset.rapide][1], v); garderLocal(cleBr, ta.value); ta.focus(); }
-    if (ta.value.trim()) confirmer('Remplacer le texte déjà écrit ?', mettre, { oui: 'Remplacer' }); else mettre();
+  z.querySelectorAll('[data-conv]').forEach(function (el) {
+    el.onclick = function (ev) { if (ev.target.closest('[data-coche], [data-etoile]')) return; ouvrirConversationMx(el.dataset.conv); };
+    el.onkeydown = function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ouvrirConversationMx(el.dataset.conv); } };
+  });
+  z.querySelectorAll('[data-coche]').forEach(function (c) { c.onchange = function () { if (c.checked) MX.coches[c.dataset.coche] = true; else delete MX.coches[c.dataset.coche]; c.closest('.conv').classList.toggle('cochee', c.checked); dessinerActionsMx(); }; });
+  z.querySelectorAll('[data-etoile]').forEach(function (b) { b.onclick = function (ev) { ev.stopPropagation(); var f = l.filter(function (x) { return x.id === b.dataset.etoile; })[0]; if (f) actionMx(f.suivi ? 'nePlusSuivre' : 'suivre', '', [f.id]); }; });
+  var p = $('#mx-pages');
+  if (p) p.innerHTML = l.length ? '<button type="button" class="btn petit" id="mx-prec"' + (MX.pile.length ? '' : ' disabled') + '>‹</button><span>' + (MX.pile.length * 30 + 1) + '–' + (MX.pile.length * 30 + l.length) + (MX.jetonSuite ? ' · suite' : '') + '</span><button type="button" class="btn petit" id="mx-suiv"' + (MX.jetonSuite ? '' : ' disabled') + '>›</button>' : '';
+  if ($('#mx-prec')) { $('#mx-prec').onclick = function () { MX.jeton = MX.pile.pop() || ''; MX.coches = {}; chargerFilsMx(); if ($('#mx-liste')) $('#mx-liste').scrollTop = 0; }; $('#mx-suiv').onclick = function () { MX.pile.push(MX.jeton); MX.jeton = MX.jetonSuite; MX.coches = {}; chargerFilsMx(); if ($('#mx-liste')) $('#mx-liste').scrollTop = 0; }; }
+  dessinerActionsMx();
+}
+function idsCochesMx() { return Object.keys(MX.coches); }
+function dessinerActionsMx() {
+  var z = $('#mx-actions'); if (!z) return;
+  var n = idsCochesMx().length, l = MX.fils || [], corb = MX.dossier === 'corbeille' && !MX.libelle, br = MX.dossier === 'brouillons' && !MX.libelle, spam = MX.dossier === 'spam' && !MX.libelle;
+  var libs = ((MX.dossiers && MX.dossiers.libelles) || []).map(function (x) { return x.nom; });
+  z.innerHTML = '<label class="coche-tout"><input type="checkbox" id="mx-tout"' + (n && l.every(function (f) { return MX.coches[f.id]; }) ? ' checked' : '') + (l.length ? '' : ' disabled') + ' aria-label="Tout sélectionner"></label>' +
+    (n ? (corb ? '<button type="button" class="btn petit" data-act="restaurer">Restaurer</button>' : spam ? '<button type="button" class="btn petit" data-act="nonSpam">Pas du spam</button>' : '<button type="button" class="btn petit" data-act="archiver">Archiver</button>') +
+      '<button type="button" class="btn petit danger" data-act="corbeille">' + (br ? 'Supprimer' : 'Corbeille') + '</button>' +
+      (!br ? '<button type="button" class="btn petit" data-act="lu">Lu</button><button type="button" class="btn petit" data-act="nonLu">Non lu</button><button type="button" class="btn petit" data-act="traite">Traité ✓</button>' : '') +
+      '<select id="mx-libeller" aria-label="Libeller"><option value="">Libeller…</option>' + libs.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('') + '<option value="__nouveau__">+ Nouveau libellé…</option></select>' +
+      '<span class="nb">' + n + ' sélectionné' + (n > 1 ? 's' : '') + '</span>' : '<span class="nb"></span>');
+  $('#mx-tout').onchange = function () { MX.coches = {}; if (this.checked) l.forEach(function (f) { MX.coches[f.id] = true; }); dessinerFilsMx(); };
+  z.querySelectorAll('[data-act]').forEach(function (b) { b.onclick = function () { if (b.dataset.act === 'corbeille' && br) confirmer('Supprimer ' + n + ' brouillon' + (n > 1 ? 's' : '') + ' ?', function () { actionMx('corbeille'); }, { oui: 'Supprimer', danger: true }); else actionMx(b.dataset.act); }; });
+  var sel = $('#mx-libeller'); if (sel) sel.onchange = function () {
+    var v = sel.value; sel.value = ''; if (!v) return;
+    if (v === '__nouveau__') return demander('Nom du nouveau libellé :', function (nom) { actionMx('libeller', nom); }, { titre: 'Nouveau libellé', oui: 'Créer et appliquer' });
+    actionMx('libeller', v);
+  };
+}
+/* Affichage immédiat, puis Gmail en arrière-plan. */
+function actionMx(action, param, ids) {
+  ids = ids || idsCochesMx();
+  if (!ids.length) return;
+  var libelles = { archiver: 'Archivé', corbeille: 'Mis à la corbeille', lu: 'Marqué lu', nonLu: 'Marqué non lu', suivre: 'Suivi', nePlusSuivre: 'Plus suivi', libeller: 'Libellé « ' + param + ' »', deplacer: 'Déplacé vers « ' + param + ' »', boiteReception: 'Remis dans la boîte de réception', restaurer: 'Restauré', traite: 'Rangé dans « Traités »', nonTraite: 'Remis dans la boîte de réception', spam: 'Signalé comme spam', nonSpam: 'Remis dans la boîte de réception' };
+  var dansReception = MX.dossier === 'reception' && !MX.libelle;
+  var retire = ['corbeille', 'restaurer', 'spam', 'nonSpam'].indexOf(action) >= 0 || (['archiver', 'deplacer', 'traite'].indexOf(action) >= 0 && dansReception) || (['boiteReception', 'nonTraite'].indexOf(action) >= 0 && !dansReception && MX.dossier !== 'tous');
+  MX.fils = (MX.fils || []).filter(function (f) {
+    if (ids.indexOf(f.id) < 0) return true;
+    if (action === 'lu') f.nonLu = false; if (action === 'nonLu') f.nonLu = true;
+    if (action === 'suivre') f.suivi = true; if (action === 'nePlusSuivre') f.suivi = false;
+    if (action === 'libeller' && f.libelles.indexOf(param) < 0) f.libelles.push(param);
+    if (action === 'traite' && f.libelles.indexOf('Traité') < 0) f.libelles.push('Traité');
+    if (action === 'nonTraite') f.libelles = f.libelles.filter(function (x) { return x !== 'Traité'; });
+    return !retire;
+  });
+  ids.forEach(function (id) { delete MX.filsGardes[id]; }); oublierListesMx(); if (MX.cache[cleListeMx()]) MX.cache[cleListeMx()].fils = MX.fils;
+  MX.coches = {}; dessinerFilsMx();
+  if (MX.fil && ids.indexOf(MX.fil.id) >= 0) {
+    if (action === 'suivre' || action === 'nePlusSuivre') MX.fil.suivi = action === 'suivre';
+    if (action === 'traite' || action === 'nonTraite') MX.fil.traite = action === 'traite';
+    if (retire && action !== 'nonSpam' && action !== 'restaurer') { MX.fil = null; $('#mx').classList.remove('detail'); $('#mx-fil').innerHTML = '<p class="mx-vide">' + esc(libelles[action] || 'Fait') + '.</p>'; }
+    else if (MX.fil) afficherFilMx(MX.fil);
+  }
+  appelMx('adminMailsAction', [ids, action, param || ''], function (r) { toast((libelles[action] || 'Fait') + ' ✓'); chargerDossiersMx(); if (!retire) chargerFilsMx(true); }, function (e) { toast(e.message || String(e), true); MX.cache = {}; chargerFilsMx(); return true; }, true);
+}
+
+// ---------- Conversation ----------
+function ouvrirConversationMx(id, force) {
+  var gardee = MX.filsGardes[id];
+  if (gardee && (force || (gardee.messages || []).some(function (m) { return m.brouillon || m.programme; }))) { delete MX.filsGardes[id]; gardee = null; }
+  $('#mx').classList.add('detail');
+  var x = (MX.fils || []).filter(function (y) { return y.id === id; })[0];
+  if (gardee) {
+    afficherFilMx(gardee);
+    if (x && x.nonLu) { x.nonLu = false; dessinerFilsMx(); appelMx('adminMailsAction', [[id], 'lu', ''], function () { oublierListesMx(); chargerDossiersMx(); }, function () { return true; }, true); }
+    setTimeout(function () { rafraichirFilOuvertMx(); }, 50);
+    return;
+  }
+  $('#mx-fil').innerHTML = '<button type="button" class="btn petit retour" id="mx-retour">← Mails</button><p class="mx-vide">Ouverture…</p>';
+  $('#mx-retour').onclick = retourListeMx;
+  if (surTelephone()) scrollTo(0, 0);
+  var jeton = MX.ouverture = (MX.ouverture || 0) + 1;
+  appelMx('adminMailsOuvrir', [id, false], function (f) {
+    if (jeton !== MX.ouverture || vue !== 'boite') return;
+    if (!f || !(f.messages || []).length) { retourListeMx(); toast('Cette conversation n\'existe plus dans Gmail.', true); return; }
+    f.nonLu = false; garderFilMx(f);
+    if (x && x.nonLu) { x.nonLu = false; oublierListesMx(); chargerDossiersMx(); }
+    afficherFilMx(f);
+  }, function (e) {
+    if (jeton !== MX.ouverture) return true;
+    retourListeMx(); toast(/introuvable|not found|404|n'existe/i.test(String(e.message)) ? 'Cette conversation n\'existe plus dans Gmail.' : 'La conversation n\'a pas pu s\'ouvrir : ' + (e.message || e), true); return true;
+  }, true);
+}
+function retourListeMx() { MX.fil = null; var g = $('#mx'); if (g) g.classList.remove('detail'); if ($('#mx-fil')) $('#mx-fil').innerHTML = '<p class="mx-vide">Choisissez une conversation.</p>'; dessinerFilsMx(); }
+function signatureFilMx(f) { return ((f && f.messages) || []).map(function (m) { return m.id + (m.brouillon ? 'b' : '') + (m.programme ? 'p' : '') + ':' + String(m.html || '').length; }).join(',') + '|' + (f.libelles || []).join(',') + (f.suivi ? '*' : ''); }
+function rafraichirFilOuvertMx() {
+  if (!MX.fil || !MX.fil.id || vue !== 'boite') return;
+  var id = MX.fil.id, jeton = MX.ouverture;
+  appelMx('adminMailsOuvrir', [id, true], function (g) {
+    if (!MX.fil || MX.fil.id !== id || jeton !== MX.ouverture) return;
+    if (!g || !(g.messages || []).length) { delete MX.filsGardes[id]; retourListeMx(); toast('Cette conversation n\'existe plus dans Gmail.'); return; }
+    g.nonLu = false; var avant = signatureFilMx(MX.fil); garderFilMx(g);
+    if (signatureFilMx(g) === avant) { MX.fil = g; return; }
+    var y = $('#mx-fil').scrollTop; afficherFilMx(g); $('#mx-fil').scrollTop = y;
+  }, function () { return true; }, true);
+}
+function afficherFilMx(f) {
+  MX.fil = f; dessinerFilsMx();
+  var z = $('#mx-fil'); if (!z) return;
+  var et = (MX.dossiers && MX.dossiers.etiquettes) || { annulation: 'Annulation', places: 'Changement de places', question: 'Question', autre: 'Autre' };
+  var peutResa = droit('reservations'), derniers = f.messages.filter(function (m) { return !m.brouillon && !m.programme; }), dernier = derniers[derniers.length - 1];
+  var h = '<button type="button" class="btn petit retour" id="mx-retour">← Mails</button>' +
+    '<div class="fil-tete"><h2>' + esc(f.objet) + '</h2><button type="button" class="etoile' + (f.suivi ? ' on' : '') + '" id="mx-fil-etoile" aria-label="Suivre" title="Suivre">★</button></div>' +
+    (f.libelles.length ? '<div class="fil-libelles">' + f.libelles.map(function (l) { return '<span class="eti' + (l === 'Traité' ? ' ok' : '') + '">' + esc(l) + '</span>'; }).join('') + '</div>' : '') +
+    '<div class="fil-actions"><button type="button" class="btn plein" data-composer="repondre">Répondre</button>' +
+    '<button type="button" class="btn' + (f.traite ? ' ok' : '') + '" id="mx-traite">' + (f.traite ? 'Traité ✓' : 'Marquer traité') + '</button>' +
+    '<div class="menu-actions"><button type="button" class="btn" id="mx-menu-btn" aria-haspopup="menu">⋯ Actions</button><div class="menu-liste" id="mx-menu" role="menu">' +
+    '<button type="button" data-act="repondreTous">Répondre à tous</button><button type="button" data-act="transferer">Transférer</button><hr>' +
+    (f.dansReception ? '<button type="button" data-act="archiver">Archiver</button>' : '<button type="button" data-act="boiteReception">Remettre dans la boîte de réception</button>') +
+    '<button type="button" data-act="nonLu">Marquer non lu</button><button type="button" data-act="libeller">Libeller…</button><button type="button" data-act="spam">Signaler comme spam</button>' +
+    '<button type="button" class="danger" data-act="corbeille">Mettre à la corbeille</button><hr><button type="button" data-act="gmail">Ouvrir dans Gmail</button></div></div></div>';
+  if (f.resas.length) h += '<div class="resas-fil">' + f.resas.map(function (r) {
+    var att = r.statut === 'Liste d\'attente', ann = r.statut === 'Annulée';
+    return '<div class="resa-fil"><div class="texte"><b>' + esc(r.nom) + '</b> · ' + resumeResa(r) + (r.options ? '<br><small class="doux">' + esc(r.options) + '</small>' : '') + '</div>' +
+      (peutResa && !ann ? '<div class="actions">' + (att ? '<button type="button" class="btn petit plein" data-confirmer="' + esc(r.id) + '">Confirmer</button>' : '<button type="button" class="btn petit" data-places="' + esc(r.id) + '" data-n="' + r.places + '">Changer les places</button>') + '<button type="button" class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler</button></div>' : '') + '</div>';
+  }).join('') + '</div>';
+  else if (f.email && f.email !== moiMail()) h += '<p class="aide" style="margin:0 0 10px">Aucune réservation trouvée avec l\'adresse ' + esc(f.email) + '.</p>';
+  h += '<div class="etiquettes-festival">' + Object.keys(et).map(function (k) { var on = f.libelles.indexOf(et[k]) >= 0; return '<button type="button" class="btn petit' + (on ? ' plein' : '') + '" data-etiquette="' + k + '" data-actif="' + (on ? '1' : '') + '">' + esc(et[k]) + '</button>'; }).join('') + '</div>';
+  h += '<div class="messages-fil">' + f.messages.map(function (m, i) {
+    var plie = !m.brouillon && !m.programme && derniers.length > 2 && m !== dernier && !m.nonLu && i < f.messages.length - 1;
+    var extrait = texteDeHtml(m.html).slice(0, 140);
+    return '<article class="fm' + (m.moi ? ' moi' : '') + (m.nonLu ? ' nonLu' : '') + (m.brouillon ? ' brouillon' : '') + (m.programme ? ' programme' : '') + (plie || m.brouillon ? ' plie' : '') + '" data-i="' + i + '">' +
+      '<header><b>' + (m.brouillon ? '<span class="badge-b">Brouillon · pas envoyé</span>' : '') + (m.programme ? '<span class="badge-b">⏱ Programmé · part ' + esc(texteHeureGeneve(m.programme.prevu)) + '</span>' : '') + esc(m.nom) + '</b>' + (m.auto ? '<span class="eti">Réponse automatique</span>' : '') + (m.pieces.length ? '<span title="Pièces jointes">📎 ' + m.pieces.length + '</span>' : '') + '<span class="date">' + esc(dateHeureFr(m.date)) + '</span>' +
+      '<span class="dest">' + esc(m.email) + ' → ' + esc(m.a) + (m.cc ? ' · Cc : ' + esc(m.cc) : '') + '</span>' +
+      ((plie || m.brouillon) ? '<span class="dest extrait-plie">' + esc(extrait || '(vide)') + '</span>' : '') + '</header>' +
+      '<iframe sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" data-msg="' + i + '" title="Contenu du message"></iframe>' +
+      (m.pieces.length ? '<div class="pieces">' + m.pieces.map(function (p, k) { return '<div class="pj"><span class="nom" title="' + esc(p.nom) + '">' + esc(p.nom) + '</span><small>' + tailleLisible(p.taille) + '</small>' + (/^(application\/pdf|image\/)/i.test(p.type) ? '<button type="button" class="btn petit" data-pj="voir" data-i="' + i + '" data-k="' + k + '">Voir</button>' : '') + '<button type="button" class="btn petit" data-pj="dl" data-i="' + i + '" data-k="' + k + '">Télécharger</button></div>'; }).join('') + '</div>' : '') +
+      '<div class="fm-actions">' + (m.brouillon ? '<button type="button" class="btn petit plein" data-fm="reprendre" data-i="' + i + '">Reprendre ce brouillon</button><button type="button" class="btn petit danger" data-fm="supprimerBrouillon" data-i="' + i + '">Supprimer le brouillon</button>'
+        : m.programme ? '<button type="button" class="btn petit" data-prog-modifier="' + esc(m.programme.id) + '">Modifier</button><button type="button" class="btn petit" data-prog-envoyer="' + esc(m.programme.id) + '">Envoyer maintenant</button><button type="button" class="btn petit danger" data-prog-annuler="' + esc(m.programme.id) + '">Annuler l\'envoi</button>'
+        : '<button type="button" class="btn petit" data-fm="repondre" data-i="' + i + '">Répondre</button><button type="button" class="btn petit" data-fm="repondreTous" data-i="' + i + '">Répondre à tous</button><button type="button" class="btn petit" data-fm="transferer" data-i="' + i + '">Transférer</button>') + '</div></article>';
+  }).join('') + '</div><div id="mx-fil-programmes">' + htmlProgrammesFilMx(f.id) + '</div>' +
+    '<div class="fil-bas"><button type="button" class="btn plein" data-composer="repondre">Répondre</button><button type="button" class="btn" data-composer="repondreTous">Répondre à tous</button><button type="button" class="btn" data-composer="transferer">Transférer</button></div>';
+  z.innerHTML = h;
+  z.querySelectorAll('iframe[data-msg]').forEach(function (fr) {
+    var m = f.messages[Number(fr.dataset.msg)];
+    fr.addEventListener('load', function () { try { var d = fr.contentDocument; d.querySelectorAll('a').forEach(function (a) { a.target = '_blank'; a.rel = 'noopener'; }); fr.style.height = Math.min(4000, d.documentElement.scrollHeight + 8) + 'px'; d.querySelectorAll('img').forEach(function (im) { im.addEventListener('load', function () { fr.style.height = Math.min(4000, d.documentElement.scrollHeight + 8) + 'px'; }); }); } catch (e) { fr.style.height = '400px'; } });
+    fr.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>body{margin:0;font:14px/1.5 Arial,Helvetica,sans-serif;color:#222;background:#fff;padding:6px 4px;word-wrap:break-word;overflow-wrap:anywhere}img{max-width:100%;height:auto}blockquote{margin:6px 0;padding-left:10px;border-left:2px solid #ccc;color:#555}</style></head><body>' + m.html + '</body></html>';
+  });
+  $('#mx-retour').onclick = retourListeMx;
+  $('#mx-fil-etoile').onclick = function () { actionMx(f.suivi ? 'nePlusSuivre' : 'suivre', '', [f.id]); };
+  $('#mx-traite').onclick = function () { actionMx(f.traite ? 'nonTraite' : 'traite', '', [f.id]); };
+  var menu = $('#mx-menu');
+  $('#mx-menu-btn').onclick = function (ev) { ev.stopPropagation(); menu.classList.toggle('ouvert'); };
+  document.addEventListener('click', function fermer() { menu.classList.remove('ouvert'); document.removeEventListener('click', fermer); });
+  menu.querySelectorAll('[data-act]').forEach(function (b) { b.onclick = function () {
+    menu.classList.remove('ouvert');
+    var a = b.dataset.act;
+    if (a === 'repondreTous' || a === 'transferer') return composerMx(a, { fil: f });
+    if (a === 'gmail') return window.open('https://mail.google.com/mail/u/0/#all/' + encodeURIComponent(f.id), '_blank');
+    if (a === 'libeller') {
+      var libs = ((MX.dossiers && MX.dossiers.libelles) || []).map(function (x) { return x.nom; });
+      return dialogue({ titre: 'Libeller la conversation', html: '<select id="dlgLib">' + libs.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('') + '<option value="__nouveau__">+ Nouveau libellé…</option></select>', oui: 'Appliquer', ok: function () {
+        var v = $('#dlgLib').value; if (v === '__nouveau__') return demander('Nom du nouveau libellé :', function (nom) { actionMx('libeller', nom, [f.id]); }, { titre: 'Nouveau libellé', oui: 'Créer et appliquer' });
+        actionMx('libeller', v, [f.id]);
+      } });
+    }
+    if (a === 'corbeille') return confirmer('Mettre cette conversation à la corbeille ?', function () { actionMx('corbeille', '', [f.id]); }, { oui: 'Corbeille', danger: true });
+    actionMx(a, '', [f.id]);
+  }; });
+  z.querySelectorAll('[data-composer]').forEach(function (b) { b.onclick = function () { composerMx(b.dataset.composer, { fil: f }); }; });
+  z.querySelectorAll('[data-fm]').forEach(function (b) { b.onclick = function (ev) {
+    ev.stopPropagation();
+    var m = f.messages[Number(b.dataset.i)], a = b.dataset.fm;
+    if (a === 'reprendre') return reprendreBrouillonMx(f, m);
+    if (a === 'supprimerBrouillon') return confirmer('Supprimer ce brouillon ? La conversation et les vrais messages restent.', function () { supprimerBrouillonMx(m.brouillonId, f); }, { oui: 'Supprimer', danger: true });
+    composerMx(a, { fil: f, message: m });
+  }; });
+  z.querySelectorAll('.fm header').forEach(function (hd) { hd.onclick = function (ev) { if (ev.target.closest('button')) return; hd.parentNode.classList.toggle('plie'); }; });
+  z.querySelectorAll('[data-pj]').forEach(function (b) { b.onclick = function () {
+    var m = f.messages[Number(b.dataset.i)], p = m.pieces[Number(b.dataset.k)];
+    b.disabled = true; b.textContent = '…';
+    appelMx('adminMailsPiece', [p.message, p.id], function (r) {
+      b.disabled = false; b.textContent = b.dataset.pj === 'dl' ? 'Télécharger' : 'Voir';
+      var bin = atob(r.data), octets = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) octets[i] = bin.charCodeAt(i);
+      var url = URL.createObjectURL(new Blob([octets], { type: p.type || 'application/octet-stream' }));
+      if (b.dataset.pj === 'voir') { var w = window.open(url, '_blank'); if (!w) toast('Autorisez les fenêtres surgissantes pour voir la pièce jointe.', true); }
+      else { var a = document.createElement('a'); a.href = url; a.download = p.nom; document.body.appendChild(a); a.click(); a.remove(); }
+      setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+    }, function (e) { b.disabled = false; b.textContent = b.dataset.pj === 'dl' ? 'Télécharger' : 'Voir'; toast(e.message || String(e), true); return true; });
   }; });
   z.querySelectorAll('[data-etiquette]').forEach(function (b) { b.onclick = function () {
-    appel('adminClasserFil', [f.id, b.dataset.etiquette, !b.dataset.actif], function (x) { majFil(x); });
+    var actif = !b.dataset.actif, nom = et[b.dataset.etiquette];
+    b.classList.toggle('plein', actif); b.dataset.actif = actif ? '1' : '';
+    if (actif) f.libelles.push(nom); else f.libelles = f.libelles.filter(function (x) { return x !== nom; });
+    appelMx('adminMailsAction', [[f.id], 'etiquette', b.dataset.etiquette, actif], function () { oublierListesMx(); chargerFilsMx(true); }, function (e) { toast(e.message || e, true); return true; }, true);
   }; });
-  $('#traiteFil').onclick = function () { appel('adminClasserFil', [f.id, 'traite', !f.traite], function (x) { majFil(x); toast(x.traite ? 'Rangé dans « Traités » ✓' : 'Remis dans « À traiter »'); }); };
   z.querySelectorAll('[data-annuler]').forEach(function (b) { b.onclick = function () {
     dialogue({ titre: 'Annuler la réservation', html: '<p>La réservation passe en « Annulée » et les places sont libérées.</p><label class="coche"><input type="checkbox" id="prevenirAnn"> Envoyer aussi l\'e-mail automatique « Réservation annulée »</label>', oui: 'Annuler la réservation', non: 'Garder', danger: true,
-      ok: function () { var prev = !!($('#prevenirAnn') && $('#prevenirAnn').checked); appel('adminAnnulerReservation', [b.dataset.annuler, prev], function (res) { recharger(res); toast('Réservation annulée ✓'); }); } });
+      ok: function () { var prev = !!($('#prevenirAnn') && $('#prevenirAnn').checked); appel('adminAnnulerReservation', [b.dataset.annuler, prev], function (res) { recharger(res); toast('Réservation annulée ✓'); ouvrirConversationMx(f.id, true); }); } });
   }; });
   z.querySelectorAll('[data-places]').forEach(function (b) { b.onclick = function () {
     demander('Nouveau nombre de places :', function (v) {
-      appel('adminModifierPlaces', [b.dataset.places, Number(v)], function (res) { recharger(res); toast('Places changées : ' + v + ' ✓ (aucun e-mail envoyé, répondez ci-dessous)'); });
+      if (!(Number(v) >= 1)) return toast('Indiquez un nombre de places (1 ou plus).', true);
+      appel('adminModifierPlaces', [b.dataset.places, Number(v)], function (res) { recharger(res); toast('Places changées : ' + v + ' ✓ (aucun e-mail envoyé : répondez ci-dessous)'); ouvrirConversationMx(f.id, true); });
     }, { defaut: String(b.dataset.n), oui: 'Changer', titre: 'Changer les places' });
   }; });
-  $('#envoyerReponse').onclick = function () {
-    var t = ta.value.trim(); if (!t) { toast('La réponse est vide.', true); return; }
-    confirmer('Envoyer cette réponse à ' + f.email + ' ?', function () {
-      var btn = $('#envoyerReponse'); btn.disabled = true; btn.textContent = 'Envoi…';
-      appel('adminRepondreFil', [f.id, t, $('#traiterApres').checked], function (x) {
-        garderLocal(cleBr, ''); toast('Réponse envoyée ✓');
-        var g = (BOITE.fils || []).filter(function (y) { return y.id === f.id; })[0]; if (g) { g.repondu = true; if (x.traite && BOITE.dossier === 'inbox') BOITE.fils = BOITE.fils.filter(function (y) { return y !== g; }); }
-        majFil(x);
-      });
-    }, { oui: 'Envoyer' });
-  };
-  function majFil(x) {
-    var g = (BOITE.fils || []).filter(function (y) { return y.id === x.id; })[0];
-    if (g) { g.etiquettes = x.etiquettes; if ((x.traite && BOITE.dossier === 'inbox') || (!x.traite && BOITE.dossier === 'traites')) BOITE.fils = BOITE.fils.filter(function (y) { return y !== g; }); }
-    if (vue === 'boite') { listeFils(); afficherFil(x.id, x); }
-  }
+  z.querySelectorAll('[data-confirmer]').forEach(function (b) { b.onclick = function () {
+    confirmer('Passer cette inscription de la liste d\'attente à « Confirmée » et envoyer l\'e-mail de confirmation ?', function () {
+      appel('adminConfirmerReservation', [b.dataset.confirmer, true], function (res) { recharger(res); toast('Réservation confirmée ✓'); ouvrirConversationMx(f.id, true); });
+    }, { titre: 'Confirmer la réservation', oui: 'Confirmer et envoyer' });
+  }; });
+  activerProgrammesMx(z);
+  if (mxFixe()) z.scrollTop = 0;
 }
+function reprendreBrouillonMx(f, m) {
+  var b = m || f.messages.filter(function (x) { return x.brouillon; }).pop(); if (!b) return;
+  if ((MX.envoisEnCours || []).some(function (x) { return x.fil === f.id; })) return toast('Ce mail est en cours d\'envoi : il quitte les brouillons dans un instant.');
+  var h = String(b.html || ''), corps = h, citation = '';
+  var sep = h.match(/^([\s\S]*?)<br><div class="gmail_quote"[^>]*>([\s\S]*)<\/div>\s*$/i);
+  if (sep) { corps = sep[1]; citation = sep[2]; }
+  corps = corps.replace(/<div style="margin-top:28px[^"]*">[\s\S]*$/i, '').replace(/^<div style="font-family:Georgia[^"]*">([\s\S]*)<\/div>\s*$/i, '$1');
+  composerMx(f.messages.length > 1 ? 'repondre' : 'nouveau', { fil: f.messages.length > 1 ? f : null, a: b.a, cc: b.cc, objet: b.objet, corps: corps, citation: citation, brouillonId: b.brouillonId, garderChamps: true });
+}
+function supprimerBrouillonMx(id, f) {
+  appelMx('adminMailsSupprimerBrouillon', [id], function () {
+    toast('Brouillon supprimé ✓');
+    if (f) { f.messages = f.messages.filter(function (x) { return x.brouillonId !== id; }); delete MX.filsGardes[f.id]; }
+    MX.cache = {};
+    if (f && f.messages.some(function (x) { return !x.brouillon; })) { garderFilMx(f); afficherFilMx(f); } else retourListeMx();
+    chargerFilsMx(true); chargerDossiersMx();
+  });
+}
+
+// ---------- Mails programmés ----------
+function programmesActifsMx() { return (MX.programmes || []).filter(function (x) { return x.statut === 'Programmé' || x.statut === 'Échec' || x.statut === 'Envoi en cours'; }); }
+function partiesGeneve(ms) {
+  var p = {}; new Intl.DateTimeFormat('fr-CH', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date(ms)).forEach(function (x) { p[x.type] = x.value; });
+  return { y: +p.year, mo: +p.month, d: +p.day, h: +p.hour % 24, mi: +p.minute };
+}
+function heureGeneve(y, mo, d, h, mi) { var voulu = Date.UTC(y, mo - 1, d, h, mi), t = voulu; for (var i = 0; i < 3; i++) { var p = partiesGeneve(t); t += voulu - Date.UTC(p.y, p.mo - 1, p.d, p.h, p.mi); } return t; }
+function d2(n) { return ('0' + n).slice(-2); }
+function texteHeureGeneve(ms) { if (!ms) return ''; var p = partiesGeneve(ms); return ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][new Date(Date.UTC(p.y, p.mo - 1, p.d)).getUTCDay()] + ' ' + d2(p.d) + '.' + d2(p.mo) + ' à ' + p.h + 'h' + d2(p.mi); }
+function choisirHeureEnvoi(initial, intro, siOk) {
+  var p = partiesGeneve(Date.now());
+  var jour = function (n) { var x = new Date(Date.UTC(p.y, p.mo - 1, p.d + n)); return { y: x.getUTCFullYear(), mo: x.getUTCMonth() + 1, d: x.getUTCDate(), wd: x.getUTCDay() }; };
+  var iso = function (j) { return j.y + '-' + d2(j.mo) + '-' + d2(j.d); };
+  var auj = jour(0), demain = jour(1), lundi = jour(((8 - auj.wd) % 7) || 7), nomsJours = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'], quel = function (j) { return ' (' + nomsJours[j.wd] + ' ' + d2(j.d) + '.' + d2(j.mo) + ')'; };
+  var choix = (p.h < 8 ? [['Ce matin 8h' + quel(auj), iso(auj), '08:00'], ['Ce matin 9h' + quel(auj), iso(auj), '09:00'], ['Demain 8h' + quel(demain), iso(demain), '08:00']] : [['Demain 8h' + quel(demain), iso(demain), '08:00'], ['Demain 9h' + quel(demain), iso(demain), '09:00']]).concat([['Lundi 8h' + quel(lundi), iso(lundi), '08:00']]);
+  choix = choix.filter(function (c, i) { return choix.findIndex(function (y) { return y[1] === c[1] && y[2] === c[2]; }) === i; });
+  var depart = initial ? partiesGeneve(initial) : null, d0 = depart ? iso(depart) : choix[0][1], h0 = depart ? d2(depart.h) + ':' + d2(depart.mi) : choix[0][2];
+  function lire() {
+    var dv = String($('#prog-date').value || '').split('-').map(Number), hv = String($('#prog-heure').value || '').split(':').map(Number);
+    if (dv.length < 3 || !dv[0] || !dv[1] || !dv[2] || hv.length < 2 || isNaN(hv[0]) || isNaN(hv[1])) return { ok: false, texte: 'Choisissez un jour et une heure.' };
+    var ms = heureGeneve(dv[0], dv[1], dv[2], hv[0], hv[1]);
+    if (ms < Date.now() + 60000) return { ok: false, texte: 'Cette heure est déjà passée : choisissez plus tard.' };
+    if (ms > Date.now() + 365 * 86400000) return { ok: false, texte: 'Choisissez une date dans l\'année qui vient.' };
+    return { ok: true, ms: ms, texte: 'Sera envoyé ' + texteHeureGeneve(ms) + ' (heure de Genève). L\'appli n\'a pas besoin d\'être ouverte.' };
+  }
+  dialogue({ titre: 'Programmer l\'envoi', html: '<p style="margin-top:0">' + esc(intro) + '</p><div class="prog-choix">' + choix.map(function (c, i) { return '<button type="button" class="btn petit" data-prog-choix="' + i + '">' + c[0] + '</button>'; }).join('') + '</div>' +
+    '<div class="prog-champs"><label>Jour<input type="date" id="prog-date" value="' + d0 + '" min="' + iso(auj) + '"></label><label>Heure (Genève)<input type="time" id="prog-heure" value="' + h0 + '" step="300"></label></div><p class="prog-phrase" id="prog-phrase"></p>',
+    oui: 'Programmer', ok: function () { var t = lire(); if (!t.ok) { toast(t.texte, true); return; } siOk(t.ms); } });
+  function maj() { var t = lire(); $('#prog-phrase').textContent = t.texte; $('#prog-phrase').classList.toggle('avert', !t.ok); document.querySelectorAll('[data-prog-choix]').forEach(function (b) { var c = choix[b.dataset.progChoix]; b.classList.toggle('on', c[1] === $('#prog-date').value && c[2] === $('#prog-heure').value); }); }
+  document.querySelectorAll('[data-prog-choix]').forEach(function (b) { b.onclick = function () { var c = choix[b.dataset.progChoix]; $('#prog-date').value = c[1]; $('#prog-heure').value = c[2]; maj(); }; });
+  $('#prog-date').oninput = maj; $('#prog-heure').oninput = maj; maj();
+}
+function htmlProgrammesMx() {
+  var l = MX.programmes;
+  if (!l) return '<p class="mx-vide">Lecture…</p>';
+  if (!l.length) return '<p class="mx-vide">Aucun mail programmé. Dans la fenêtre d\'écriture, « Programmer » choisit le jour et l\'heure d\'envoi.</p>';
+  return l.map(function (x) {
+    var actif = x.statut === 'Programmé' || x.statut === 'Échec';
+    var txt = x.statut === 'Programmé' ? 'Part ' + texteHeureGeneve(x.prevu) : x.statut === 'Échec' ? 'Échec : ' + x.raison + (x.essais < 2 ? ' · nouvel essai automatique' : ' · plus d\'essai automatique') : x.statut === 'Envoyé' ? 'Parti le ' + String(x.envoyeLe).split(' ')[0].split('-').reverse().join('.') + ' à ' + (String(x.envoyeLe).split(' ')[1] || '') : x.statut;
+    return '<div class="prog-ligne' + (x.statut === 'Échec' ? ' echec' : '') + '"><div class="texte"><b>' + esc(x.a) + '</b> · ' + esc(x.objet) + '<small>' + esc(txt) + '</small></div><div class="btns">' +
+      (actif ? '<button type="button" class="btn petit" data-prog-modifier="' + esc(x.id) + '">Modifier</button><button type="button" class="btn petit" data-prog-envoyer="' + esc(x.id) + '">Envoyer maintenant</button><button type="button" class="btn petit danger" data-prog-annuler="' + esc(x.id) + '">Annuler</button>' : '') +
+      (x.statut === 'Envoyé' && x.fil ? '<button type="button" class="btn petit" data-prog-voir="' + esc(x.fil) + '">Voir</button>' : '') + '</div></div>';
+  }).join('');
+}
+function htmlProgrammesFilMx(filId) {
+  var l = programmesActifsMx().filter(function (x) { return filId && x.fil === filId && !(MX.fil && MX.fil.id === filId && MX.fil.messages.some(function (m) { return m.programme && m.programme.id === x.id; })); });
+  return l.map(function (x) {
+    var txt = x.statut === 'Programmé' ? 'Programmé · part ' + texteHeureGeneve(x.prevu) : x.statut === 'Échec' ? 'Programmé · échec : ' + x.raison : x.statut;
+    return '<div class="prog-ligne' + (x.statut === 'Échec' ? ' echec' : '') + '"><div class="texte"><b>⏱ ' + esc(txt) + '</b><small>À : ' + esc(x.a) + ' · ' + esc(x.objet) + '</small></div><div class="btns">' + (x.statut !== 'Envoi en cours' ? '<button type="button" class="btn petit" data-prog-modifier="' + esc(x.id) + '">Modifier</button><button type="button" class="btn petit" data-prog-envoyer="' + esc(x.id) + '">Envoyer maintenant</button><button type="button" class="btn petit danger" data-prog-annuler="' + esc(x.id) + '">Annuler</button>' : '') + '</div></div>';
+  }).join('');
+}
+function majProgrammesFilMx() { var z = $('#mx-fil-programmes'); if (z && MX.fil) { z.innerHTML = htmlProgrammesFilMx(MX.fil.id); activerProgrammesMx(z); } }
+function activerProgrammesMx(racine) {
+  (racine || document).querySelectorAll('[data-prog-modifier]').forEach(function (b) { b.onclick = function () {
+    appelMx('adminMailsProgrammeLire', [b.dataset.progModifier], function (r) {
+      var sep = String(r.html || '').match(/^([\s\S]*?)<br><div class="gmail_quote"[^>]*>([\s\S]*)<\/div>\s*$/i), corps = sep ? sep[1] : r.html, citation = sep ? sep[2] : '';
+      corps = corps.replace(/<div style="margin-top:28px[^"]*">[\s\S]*$/i, '').replace(/^<div style="font-family:Georgia[^"]*">([\s\S]*)<\/div>\s*$/i, '$1');
+      composerMx(r.filId ? 'repondre' : 'nouveau', { fil: r.filId ? { id: r.filId, objet: r.objet, messages: [] } : null, a: r.a, cc: r.cc, cci: r.cci, objet: r.objet, corps: corps, citation: citation, brouillonId: r.brouillonId, garderChamps: true, programme: r.resume, piecesGardees: r.pieces });
+    });
+  }; });
+  (racine || document).querySelectorAll('[data-prog-envoyer]').forEach(function (b) { b.onclick = function () {
+    confirmer('Envoyer ce mail maintenant ?', function () { appelMx('adminMailsProgrammeEnvoyer', [b.dataset.progEnvoyer], function (r) { toast('Envoyé ✓'); majProgrammesMx(r.liste); MX.cache = {}; if (MX.fil) ouvrirConversationMx(MX.fil.id, true); else chargerFilsMx(true); }); }, { oui: 'Envoyer' });
+  }; });
+  (racine || document).querySelectorAll('[data-prog-annuler]').forEach(function (b) { b.onclick = function () {
+    dialogue({ titre: 'Annuler l\'envoi programmé', texte: 'Le mail ne partira pas. Garder son texte en brouillon ?', oui: 'Annuler et garder en brouillon', non: 'Annuler et supprimer', ok: function () { annuler(true); }, annuler: function () { annuler(false); } });
+    function annuler(garder) { appelMx('adminMailsProgrammeAnnuler', [b.dataset.progAnnuler, garder], function (r) { toast('Envoi annulé' + (garder ? ' · brouillon gardé' : '') + ' ✓'); majProgrammesMx(r.liste); MX.cache = {}; if (MX.fil) ouvrirConversationMx(MX.fil.id, true); else chargerFilsMx(true); }); }
+  }; });
+  (racine || document).querySelectorAll('[data-prog-voir]').forEach(function (b) { b.onclick = function () { ouvrirConversationMx(b.dataset.progVoir); }; });
+}
+function majProgrammesMx(liste) {
+  if (!liste) return chargerProgrammesMx();
+  MX.programmes = liste; dessinerDossiersMx();
+  if (MX.dossier === 'programmes' && !MX.libelle) dessinerFilsMx();
+  majProgrammesFilMx(); chargerDossiersMx();
+}
+
+// ---------- Fenêtre d'écriture ----------
+var ECRITURE = null; // éditeur ouvert
+var SECOURS_MX = 'mails_en_cours';
+function secoursLireMx() { var l = []; try { l = JSON.parse(lireLocal(SECOURS_MX) || '[]'); } catch (e) { l = []; } var lim = Date.now() - 30 * 864e5; return (Array.isArray(l) ? l : []).filter(function (x) { return x && x.cle && x.m && Number(x.t) > lim; }); }
+function secoursEcrireMx(l) { try { if (!l.length) garderLocal(SECOURS_MX, ''); else garderLocal(SECOURS_MX, JSON.stringify(l.slice(0, 6))); } catch (e) { try { garderLocal(SECOURS_MX, JSON.stringify(l.slice(0, 1))); } catch (x) { /* mémoire indisponible */ } } }
+function secoursGarderMx(e) { var l = secoursLireMx().filter(function (x) { return x.cle !== e.cle; }); l.unshift(e); secoursEcrireMx(l); }
+function secoursEffacerMx(cle) { var l = secoursLireMx(), r = l.filter(function (x) { return x.cle !== cle; }); if (r.length !== l.length) secoursEcrireMx(r); }
+var secoursVusMx = {};
+function proposerSecoursMx() {
+  if (!D || !droit('boite') || ECRITURE || $('#dialogue').classList.contains('ouvert')) return;
+  var l = secoursLireMx().filter(function (x) { return !secoursVusMx[x.cle] && Date.now() - x.t > 8000; });
+  if (!l.length) return;
+  var e = l[0], m = e.m || {}; secoursVusMx[e.cle] = true;
+  var quand = new Date(e.t); var txt = d2(quand.getDate()) + '.' + d2(quand.getMonth() + 1) + ' à ' + d2(quand.getHours()) + 'h' + d2(quand.getMinutes());
+  dialogue({ titre: 'Mail en cours retrouvé', texte: 'Ce mail était en cours d\'écriture sur cet appareil et sa dernière version n\'a peut-être pas atteint Gmail :\n« ' + (m.objet || 'sans objet') + ' »' + (m.a ? ' à ' + m.a : '') + '\nDernière modification : ' + txt + '.\nLe rouvrir ? Rien n\'est envoyé.', oui: 'Rouvrir', non: 'Plus tard',
+    ok: function () { if (vue !== 'boite') { $('nav [data-vue=boite]').click(); } setTimeout(function () { composerMx(e.mode || 'nouveau', { fil: m.filId ? (MX.fil && MX.fil.id === m.filId ? MX.fil : { id: m.filId, objet: m.objetFil || m.objet, messages: [] }) : null, a: m.a, cc: m.cc, cci: m.cci, objet: m.objet, corps: m.html, citation: m.citation || '', brouillonId: e.brouillonId || '', garderChamps: true, modifie: true, cleSecours: e.cle, messageId: m.messageId, pied: m.pied, traite: m.traite }); }, 50); },
+    annuler: function () { toast('La copie reste sur cet appareil : elle sera proposée à la prochaine ouverture.'); } });
+}
+setInterval(proposerSecoursMx, 5000);
+function htmlCollePropre(html) {
+  var t = document.createElement('template'); t.innerHTML = String(html || '');
+  var NOMS = { B: 'b', STRONG: 'b', I: 'i', EM: 'i', U: 'u', A: 'a', UL: 'ul', OL: 'ol', LI: 'li', P: 'p', BR: 'br', DIV: 'p', H1: 'p', H2: 'p', H3: 'p', H4: 'p', H5: 'p', H6: 'p', BLOCKQUOTE: 'p', PRE: 'p', TR: 'p', TABLE: 'div', TBODY: 'div', THEAD: 'div' };
+  var IGNORER = /^(SCRIPT|STYLE|META|LINK|TITLE|HEAD|IMG|PICTURE|SVG|IFRAME|OBJECT|EMBED|VIDEO|AUDIO|CANVAS|BUTTON|INPUT|SELECT|TEXTAREA|NOSCRIPT|TEMPLATE)$/;
+  var sortie = document.createElement('div');
+  (function copier(n, dans) {
+    Array.prototype.forEach.call(n.childNodes, function (c) {
+      if (c.nodeType === 3) { dans.appendChild(document.createTextNode(c.nodeValue)); return; }
+      if (c.nodeType !== 1 || IGNORER.test(c.tagName)) return;
+      var st = String(c.getAttribute('style') || ''), nom = NOMS[c.tagName] || '', cible = dans;
+      if (nom === 'b' && /font-weight\s*:\s*(normal|[1-4]00)/i.test(st)) nom = '';
+      if (nom === 'a') { var h = String(c.getAttribute('href') || '').trim(); if (!/^(https?:|mailto:|tel:)/i.test(h)) nom = ''; }
+      if (nom) { var e = document.createElement(nom); if (nom === 'a') e.setAttribute('href', c.getAttribute('href').trim()); dans.appendChild(e); cible = e; if (nom === 'br') return; }
+      if (nom !== 'b' && /font-weight\s*:\s*(bold|[6-9]00)/i.test(st)) { var g = document.createElement('b'); cible.appendChild(g); cible = g; }
+      if (nom !== 'i' && /font-style\s*:\s*italic/i.test(st)) { var it = document.createElement('i'); cible.appendChild(it); cible = it; }
+      copier(c, cible);
+      if (c.tagName === 'TD' || c.tagName === 'TH') dans.appendChild(document.createTextNode(' '));
+    });
+  })(t.content, sortie);
+  sortie.querySelectorAll('div').forEach(function (d) { while (d.firstChild) d.parentNode.insertBefore(d.firstChild, d); d.remove(); });
+  return sortie.innerHTML;
+}
+function texteVersParagraphes(t) { return String(t || '').split(/\n{2,}/).map(function (p) { return '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>'; }).join(''); }
+/** mode : nouveau, repondre, repondreTous, transferer. options : fil, message, a, cc, cci, objet, corps, citation, brouillonId, garderChamps, cleSecours, programme, pied, traite */
+function composerMx(mode, options) {
+  options = options || {};
+  if (ECRITURE) { if (ECRITURE.cle === options.cleSecours) return; toast('Terminez d\'abord le mail en cours (ou fermez-le avec ×).', true); $('#mx-ecrire').classList.remove('reduit'); return; }
+  var f = options.fil || null, recus = f && f.messages ? f.messages.filter(function (x) { return !x.brouillon && !x.programme; }) : [];
+  var dernier = options.message && !options.message.brouillon ? options.message : (recus.length ? recus[recus.length - 1] : null);
+  var moi = moiMail(), a = options.a || '', cc = options.cc || '', cci = options.cci || '', objet = options.objet || '', citation = options.citation || '';
+  if (dernier && mode !== 'nouveau' && !options.garderChamps) {
+    var autre = dernier.moi ? dernier.a : dernier.de;
+    if (mode === 'repondre') a = adresseDe(autre);
+    if (mode === 'repondreTous') { a = adresseDe(autre); cc = adressesDe(dernier.a + ',' + (dernier.cc || '')).filter(function (x) { return x !== a && x !== moi; }).join(', '); }
+    objet = (mode === 'transferer' ? 'Tr : ' : 'Re : ') + String(f.objet || '').replace(/^(re|tr|fwd?)\s*:\s*/i, '');
+    if (mode !== 'transferer') citation = '<p style="margin:0 0 8px;color:#777;font-size:13px">Le ' + esc(dateHeureFr(dernier.date)) + ', ' + esc(dernier.de) + ' a écrit :</p>' + dernier.html;
+    else citation = '<p style="margin:0 0 8px;color:#777;font-size:13px">---------- Message transféré ----------<br>De : ' + esc(dernier.de) + '<br>Date : ' + esc(dateHeureFr(dernier.date)) + '<br>Objet : ' + esc(dernier.objet || f.objet) + '<br>À : ' + esc(dernier.a) + '</p>' + dernier.html;
+  }
+  var titre = { nouveau: 'Nouveau mail', repondre: 'Répondre', repondreTous: 'Répondre à tous', transferer: 'Transférer' }[mode] || 'Écrire';
+  var cle = options.cleSecours || ('m' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+  var resas = f && f.resas ? f.resas : [];
+  var E = ECRITURE = { cle: cle, mode: mode, fil: f, messageId: options.message ? options.message.id : (options.messageId || (dernier ? dernier.id : '')), brouillonId: options.brouillonId || '', programme: options.programme || null,
+    pieces: [], piecesGardees: options.piecesGardees || [], modifie: !!options.modifie, minuterie: null, premier: 0, enCours: false, attente: [], ferme: false, parti: false, dernierSauve: '' };
+  var z = $('#mx-ecrire'); z.hidden = false; z.classList.remove('reduit'); z.classList.toggle('grand', !!lireLocal('mails_ecrire_grand'));
+  var pied = options.pied !== undefined ? !!options.pied : lireLocal('mails_sans_pied') !== '1';
+  z.innerHTML = '<div class="ec-tete"><b id="ec-titre">' + esc(titre) + '</b><span class="etat" id="ec-etat"></span><button type="button" id="ec-reduire" title="Réduire" aria-label="Réduire">—</button><button type="button" id="ec-grand" title="Agrandir" aria-label="Agrandir">⤢</button><button type="button" id="ec-fermer" title="Fermer (le brouillon est gardé dans Gmail)" aria-label="Fermer">×</button></div>' +
+    '<div class="ec-corps">' +
+    '<div class="ec-ligne"><label>De</label><span class="doux" style="font-size:14px;overflow:hidden;text-overflow:ellipsis">' + esc(D.reglages.nomFestival || 'Festival') + (moi ? ' <' + esc(moi) + '>' : '') + '</span></div>' +
+    '<div class="ec-ligne"><label for="ec-a-in">À</label><div class="chips" id="ec-a" data-champ="a"><input id="ec-a-in" type="email" multiple autocomplete="off" placeholder="adresse@exemple.ch" aria-label="Destinataires"></div><div class="liens"><button type="button" id="ec-voir-cc">Cc</button><button type="button" id="ec-voir-cci">Cci</button></div></div>' +
+    '<div class="ec-ligne" id="ec-ligne-cc" hidden><label for="ec-cc-in">Cc</label><div class="chips" id="ec-cc" data-champ="cc"><input id="ec-cc-in" type="email" multiple autocomplete="off" aria-label="Copie"></div></div>' +
+    '<div class="ec-ligne" id="ec-ligne-cci" hidden><label for="ec-cci-in">Cci</label><div class="chips" id="ec-cci" data-champ="cci"><input id="ec-cci-in" type="email" multiple autocomplete="off" aria-label="Copie cachée"></div></div>' +
+    '<div class="ec-ligne"><label for="ec-objet">Objet</label><input id="ec-objet" type="text" value="' + esc(objet) + '" placeholder="Objet du mail"></div>' +
+    '<div class="ec-outils"><button type="button" data-cmd="bold" title="Gras (Ctrl+B)"><b>G</b></button><button type="button" data-cmd="italic" title="Italique (Ctrl+I)"><i>I</i></button><button type="button" data-cmd="underline" title="Souligné"><u>S</u></button><button type="button" data-cmd="insertUnorderedList" title="Liste">• Liste</button><button type="button" data-cmd="lien" title="Lien">🔗 Lien</button><button type="button" data-cmd="nettoyer" title="Retirer les couleurs et polices collées">⌫ Format</button>' +
+    (resas.length || mode !== 'nouveau' ? '<select id="ec-rapide" aria-label="Réponses toutes prêtes"><option value="">Réponses toutes prêtes…</option>' + REPONSES_RAPIDES.map(function (x, i) { return '<option value="' + i + '">' + esc(x[0]) + '</option>'; }).join('') + '</select>' : '') +
+    '<span class="espace"></span><button type="button" id="ec-joindre" title="Joindre un fichier">📎 Joindre</button><input type="file" id="ec-fichier" multiple hidden></div>' +
+    '<div id="ec-texte" contenteditable="true" spellcheck="true"></div>' +
+    '<div class="ec-pieces" id="ec-pieces"></div>' +
+    (citation ? '<details class="ec-citation" id="ec-citation"><summary>' + (mode === 'transferer' ? 'Message transféré (envoyé avec le mail)' : 'Conversation citée (envoyée avec le mail)') + '</summary><div class="cadre" id="ec-citation-html"></div></details>' : '') +
+    '</div>' +
+    '<div class="ec-bas"><button type="button" class="btn plein" id="ec-envoyer">' + (E.programme ? 'Reprogrammer' : 'Envoyer') + '</button><button type="button" class="btn" id="ec-programmer">' + (E.programme ? 'Envoyer maintenant' : 'Programmer…') + '</button>' +
+    (E.programme ? '' : '<button type="button" class="lien" id="ec-sauver">Enregistrer</button><button type="button" class="lien danger" id="ec-supprimer">Supprimer le brouillon</button>') +
+    '<label class="coche"><input type="checkbox" id="ec-pied"' + (pied ? ' checked' : '') + '> Pied de page du festival</label></div>';
+  var texte = $('#ec-texte');
+  texte.innerHTML = options.corps || '<p><br></p>';
+  if (citation) $('#ec-citation-html').innerHTML = citation;
+  E.citation = citation;
+  // Destinataires sous forme de pastilles
+  function chips(id) { return Array.prototype.map.call($('#' + id).querySelectorAll('.chip'), function (c) { return c.dataset.a; }); }
+  function ajouterChip(id, adr) {
+    adr = String(adr || '').trim().replace(/[,;]$/, ''); if (!adr) return;
+    var zone = $('#' + id), inp = zone.querySelector('input'), a = adresseDe(adr) || adr.toLowerCase();
+    if (chips(id).indexOf(a) >= 0) return;
+    var ok = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(a), c = document.createElement('span'); c.className = 'chip' + (ok ? '' : ' mauvais') + (ok && (D.reservations || []).some(function (r) { return String(r.email || '').toLowerCase() === a; }) ? ' resa' : ''); c.dataset.a = a;
+    c.innerHTML = '<span title="' + esc(adr) + '">' + esc(a) + '</span><button type="button" aria-label="Retirer">×</button>';
+    c.querySelector('button').onclick = function () { c.remove(); changement(); };
+    zone.insertBefore(c, inp); changement();
+  }
+  ['ec-a', 'ec-cc', 'ec-cci'].forEach(function (id) {
+    var inp = $('#' + id + '-in');
+    inp.onkeydown = function (ev) { if (ev.key === 'Enter' || ev.key === ',' || ev.key === ';' || ev.key === 'Tab' && inp.value.trim()) { if (inp.value.trim()) { ev.preventDefault(); ajouterChip(id, inp.value); inp.value = ''; } } else if (ev.key === 'Backspace' && !inp.value) { var l = $('#' + id).querySelectorAll('.chip'); if (l.length) { l[l.length - 1].remove(); changement(); } } };
+    inp.onblur = function () { if (inp.value.trim()) { ajouterChip(id, inp.value); inp.value = ''; } };
+    inp.onpaste = function (ev) { var t = (ev.clipboardData || window.clipboardData).getData('text/plain'); if (/[,;\s]/.test(t.trim())) { ev.preventDefault(); adressesDe(t).forEach(function (x) { ajouterChip(id, x); }); } };
+    $('#' + id).onclick = function (ev) { if (ev.target === this) inp.focus(); };
+  });
+  adressesDe(a).forEach(function (x) { ajouterChip('ec-a', x); });
+  if (cc) { $('#ec-ligne-cc').hidden = false; adressesDe(cc).forEach(function (x) { ajouterChip('ec-cc', x); }); }
+  if (cci) { $('#ec-ligne-cci').hidden = false; adressesDe(cci).forEach(function (x) { ajouterChip('ec-cci', x); }); }
+  $('#ec-voir-cc').onclick = function () { $('#ec-ligne-cc').hidden = false; $('#ec-cc-in').focus(); };
+  $('#ec-voir-cci').onclick = function () { $('#ec-ligne-cci').hidden = false; $('#ec-cci-in').focus(); };
+  E.modifie = !!options.modifie;
+  function lire() {
+    return { mode: mode, filId: f ? f.id : '', messageId: E.messageId || '', a: chips('ec-a').join(', '), cc: chips('ec-cc').join(', '), cci: chips('ec-cci').join(', '), objet: $('#ec-objet').value.trim(), html: texte.innerHTML,
+      citation: E.citation, pied: $('#ec-pied').checked, brouillonId: E.brouillonId, cleSecours: cle, pieces: E.pieces.filter(function (p) { return p.base64; }).map(function (p) { return { nom: p.nom, type: p.type, base64: p.base64 }; }), traite: !!E.traite, objetFil: f ? f.objet : '' };
+  }
+  function etat(txt, ok) { var e = $('#ec-etat'); if (e) { e.textContent = txt; e.classList.toggle('ok', !!ok); } }
+  function copier() { if (!E.modifie || E.parti) return; var m = lire(); if (!m.a && !m.objet && !texteDeHtml(m.html)) return; secoursGarderMx({ cle: cle, t: Date.now(), mode: mode, m: Object.assign({}, m, { pieces: undefined }), brouillonId: E.brouillonId }); }
+  function changement() {
+    E.modifie = true; if (!E.premier) E.premier = Date.now();
+    clearTimeout(E.copie); E.copie = setTimeout(copier, 800);
+    if (E.programme) return etat('Modifié · « Reprogrammer » enregistre');
+    etat('Modifié…');
+    clearTimeout(E.minuterie);
+    var attente = Date.now() - E.premier > 20000 ? 0 : 5000;
+    E.minuterie = setTimeout(function () { sauver(false); }, attente);
+  }
+  function sauver(manuel, apres) {
+    if (E.programme) { if (apres) apres(); return; }
+    var m = lire();
+    if (!m.a && !m.objet && !texteDeHtml(m.html) && !m.pieces.length) { if (apres) apres(); return; }
+    if (E.enCours) { E.attente.push(function () { sauver(manuel, apres); }); return; }
+    var sig = JSON.stringify([m.a, m.cc, m.cci, m.objet, m.html, m.pied, m.pieces.length]);
+    if (!manuel && sig === E.dernierSauve) { if (apres) apres(); return; }
+    E.enCours = true; E.premier = 0; etat('Enregistrement…');
+    appelMx('adminMailsBrouillon', [m], function (r) {
+      E.enCours = false; E.dernierSauve = sig;
+      if (r.dejaParti) { etat('Déjà envoyé'); }
+      else { E.brouillonId = r.brouillonId || E.brouillonId; if (r.filId && !E.filNeuf) E.filNeuf = r.filId; E.modifie = false; var d = new Date(); etat('Enregistré ' + d2(d.getHours()) + 'h' + d2(d.getMinutes()), true); secoursEffacerMx(cle); }
+      var s = E.attente.splice(0); s.forEach(function (x) { x(); });
+      if (apres) apres(r);
+      if (f) { delete MX.filsGardes[f.id]; } MX.cache = {};
+    }, function (e) { E.enCours = false; etat('Pas enregistré : ' + (e.message || e)); copier(); var s = E.attente.splice(0); s.forEach(function (x) { x(); }); return true; }, true);
+  }
+  E.copier = copier; E.sauver = sauver;
+  texte.addEventListener('input', changement);
+  $('#ec-objet').addEventListener('input', changement);
+  $('#ec-pied').addEventListener('change', function () { garderLocal('mails_sans_pied', this.checked ? '' : '1'); changement(); });
+  texte.addEventListener('paste', function (ev) {
+    var dt = ev.clipboardData || window.clipboardData; if (!dt) return;
+    var html = dt.getData('text/html'), txt = dt.getData('text/plain');
+    if (!html && !txt) return;
+    ev.preventDefault();
+    document.execCommand('insertHTML', false, html ? htmlCollePropre(html) : esc(txt).replace(/\n/g, '<br>'));
+  });
+  texte.addEventListener('keydown', function (ev) {
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'b') { ev.preventDefault(); document.execCommand('bold'); }
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'i') { ev.preventDefault(); document.execCommand('italic'); }
+    if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') { ev.preventDefault(); $('#ec-envoyer').click(); }
+  });
+  z.querySelectorAll('[data-cmd]').forEach(function (b) {
+    b.onmousedown = function (ev) { ev.preventDefault(); };
+    b.onclick = function () {
+      var c = b.dataset.cmd; texte.focus();
+      if (c === 'lien') { var sel = String(getSelection()); return demander('Adresse du lien (https://…) :', function (u) { if (!/^https?:\/\//i.test(u)) u = 'https://' + u; texte.focus(); if (sel) document.execCommand('createLink', false, u); else document.execCommand('insertHTML', false, '<a href="' + esc(u) + '">' + esc(u) + '</a>'); changement(); }, { titre: 'Insérer un lien', oui: 'Insérer', placeholder: 'https://' }); }
+      if (c === 'nettoyer') { texte.querySelectorAll('*').forEach(function (el) { ['background', 'background-color', 'color', 'font-family', 'font-size', 'line-height'].forEach(function (p) { if (el.style) el.style.removeProperty(p); }); if (el.getAttribute('style') === '') el.removeAttribute('style'); if (el.tagName === 'FONT' || (el.tagName === 'SPAN' && !el.attributes.length)) { while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el); el.remove(); } }); changement(); return toast('Mise en forme collée retirée'); }
+      document.execCommand(c); changement();
+    };
+  });
+  var rapide = $('#ec-rapide'); if (rapide) rapide.onchange = function () {
+    var i = rapide.value; rapide.value = ''; if (i === '') return;
+    var r = resas[0] || {}, v = { prenom: String(r.nom || '').split(/\s+/)[0] || '', titre: r.titre || '', date: r.date ? dateLongueFr(r.date) : '', places: r.places || '', festival: D.reglages.nomFestival || '' };
+    function mettre() { texte.innerHTML = texteVersParagraphes(MAIL.remplir(REPONSES_RAPIDES[i][1], v)); changement(); texte.focus(); }
+    if (texteDeHtml(texte.innerHTML)) confirmer('Remplacer le texte déjà écrit ?', mettre, { oui: 'Remplacer' }); else mettre();
+  };
+  // Pièces jointes : lues sur l'appareil, envoyées avec le brouillon (15 Mo par fichier, 20 Mo en tout)
+  function dessinerPieces() {
+    var zp = $('#ec-pieces'); if (!zp) return;
+    zp.innerHTML = E.piecesGardees.map(function (p) { return '<div class="pj"><span class="nom">' + esc(p.nom) + '</span><small>' + tailleLisible(p.taille) + ' · déjà jointe</small></div>'; }).join('') +
+      E.pieces.map(function (p, i) { return '<div class="pj' + (p.base64 ? '' : ' envoi') + '"><span class="nom" title="' + esc(p.nom) + '">' + esc(p.nom) + '</span><small>' + tailleLisible(p.taille) + (p.base64 ? '' : ' · lecture…') + '</small><button type="button" class="btn petit" data-retirer-pj="' + i + '" aria-label="Retirer">×</button></div>'; }).join('');
+    zp.querySelectorAll('[data-retirer-pj]').forEach(function (b) { b.onclick = function () { E.pieces.splice(Number(b.dataset.retirerPj), 1); dessinerPieces(); changement(); }; });
+  }
+  $('#ec-joindre').onclick = function () { $('#ec-fichier').click(); };
+  $('#ec-fichier').onchange = function () {
+    Array.prototype.forEach.call(this.files, function (fich) {
+      var total = E.pieces.reduce(function (s, p) { return s + p.taille; }, 0) + fich.size;
+      if (fich.size > 15e6) return toast('« ' + fich.name + ' » : trop lourd (15 Mo au plus). Partagez-le plutôt par un lien.', true);
+      if (total > 20e6) return toast('Pièces jointes trop lourdes (20 Mo au plus en tout).', true);
+      var p = { nom: fich.name, type: fich.type || 'application/octet-stream', taille: fich.size, base64: '' }; E.pieces.push(p); dessinerPieces();
+      var lecteur = new FileReader();
+      lecteur.onload = function () { p.base64 = String(lecteur.result).split(',')[1] || ''; dessinerPieces(); changement(); };
+      lecteur.onerror = function () { E.pieces = E.pieces.filter(function (x) { return x !== p; }); dessinerPieces(); toast('Fichier illisible : ' + fich.name, true); };
+      lecteur.readAsDataURL(fich);
+    });
+    this.value = '';
+  };
+  dessinerPieces();
+  $('#ec-reduire').onclick = function () { z.classList.toggle('reduit'); };
+  $('#ec-grand').onclick = function () { z.classList.toggle('grand'); garderLocal('mails_ecrire_grand', z.classList.contains('grand') ? '1' : ''); };
+  $('.ec-tete').ondblclick = function (ev) { if (!ev.target.closest('button')) z.classList.toggle('reduit'); };
+  function fermer() {
+    if (E.ferme) return; E.ferme = true; clearTimeout(E.minuterie); clearTimeout(E.copie);
+    ECRITURE = null; z.hidden = true; z.innerHTML = '';
+    if (vue === 'boite') { if (MX.fil) ouvrirConversationMx(MX.fil.id, true); chargerFilsMx(true); chargerDossiersMx(); }
+  }
+  $('#ec-fermer').onclick = function () {
+    if (E.programme) { if (!E.modifie) return fermer(); return confirmer('Fermer sans reprogrammer ? Les changements seront perdus (le mail programmé reste tel quel).', fermer, { oui: 'Fermer', non: 'Rester' }); }
+    var m = lire(), vide = !m.a && !m.objet && !texteDeHtml(m.html) && !m.pieces.length;
+    if (vide) { if (E.brouillonId) appelMx('adminMailsSupprimerBrouillon', [E.brouillonId], function () {}, function () { return true; }, true); secoursEffacerMx(cle); E.parti = true; return fermer(); }
+    if (!E.modifie && !E.enCours) return fermer();
+    etat('Enregistrement…');
+    sauver(true, function () { toast('Brouillon gardé dans Gmail ✓'); fermer(); });
+  };
+  if ($('#ec-sauver')) $('#ec-sauver').onclick = function () { sauver(true, function () { toast('Brouillon enregistré ✓'); }); };
+  if ($('#ec-supprimer')) $('#ec-supprimer').onclick = function () {
+    confirmer('Supprimer ce brouillon ? Le texte sera perdu.', function () {
+      E.parti = true; clearTimeout(E.minuterie); secoursEffacerMx(cle);
+      var id = E.brouillonId; if (id) appelMx('adminMailsSupprimerBrouillon', [id], function () { toast('Brouillon supprimé ✓'); }, function (e) { toast(e.message || e, true); return true; }, true);
+      fermer();
+    }, { oui: 'Supprimer', danger: true });
+  };
+  function verifier() {
+    var m = lire();
+    if (!adressesDe(m.a).length) { toast('Indiquez au moins un destinataire.', true); $('#ec-a-in').focus(); return null; }
+    var mauvais = chips('ec-a').concat(chips('ec-cc'), chips('ec-cci')).filter(function (x) { return !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x); });
+    if (mauvais.length) { toast('Adresse incorrecte : ' + mauvais[0], true); return null; }
+    if (E.pieces.some(function (p) { return !p.base64; })) { toast('Une pièce jointe se lit encore : un instant.', true); return null; }
+    return m;
+  }
+  function envoyer(m) {
+    E.parti = true; clearTimeout(E.minuterie); clearTimeout(E.copie);
+    var b = $('#ec-envoyer'); b.disabled = true; b.textContent = 'Envoi…'; $('#ec-programmer').disabled = true;
+    MX.envoisEnCours = (MX.envoisEnCours || []).concat([{ fil: f ? f.id : '', objet: m.objet.trim().toLowerCase() }]);
+    appelMx('adminMailsEnvoyer', [m], function (r) {
+      secoursEffacerMx(cle); toast('Envoyé à ' + r.a + ' ✓');
+      setTimeout(function () { MX.envoisEnCours = []; }, 20000);
+      MX.cache = {}; if (f) delete MX.filsGardes[f.id];
+      fermer();
+      if (vue === 'boite') { if (r.fil && (!surTelephone() || (MX.fil && MX.fil.id === r.fil))) ouvrirConversationMx(r.fil, true); }
+    }, function (e) { E.parti = false; MX.envoisEnCours = []; b.disabled = false; b.textContent = 'Envoyer'; $('#ec-programmer').disabled = false; toast('Pas envoyé : ' + (e.message || e), true); copier(); return true; });
+  }
+  function programmer(m) {
+    choisirHeureEnvoi(E.programme ? E.programme.prevu : 0, 'Le mail « ' + (m.objet || 'sans objet') + ' » à ' + m.a + ' partira tout seul à l\'heure choisie.', function (ms) {
+      E.parti = true; clearTimeout(E.minuterie); clearTimeout(E.copie);
+      var b = $('#ec-programmer'); b.disabled = true; $('#ec-envoyer').disabled = true;
+      appelMx('adminMailsProgrammer', [m, ms, E.programme ? E.programme.id : ''], function (r) {
+        secoursEffacerMx(cle); toast('Programmé : part ' + texteHeureGeneve(r.prevu) + ' ✓'); majProgrammesMx(r.liste); MX.cache = {}; if (f) delete MX.filsGardes[f.id]; fermer();
+      }, function (e) { E.parti = false; b.disabled = false; $('#ec-envoyer').disabled = false; toast(e.message || e, true); return true; });
+    });
+  }
+  $('#ec-envoyer').onclick = function () {
+    var m = verifier(); if (!m) return;
+    if (E.programme) return programmer(m);
+    var n = adressesDe(m.a + ',' + m.cc + ',' + m.cci).length, proposerTraite = f && (f.resas || []).length && !f.traite;
+    dialogue({ titre: 'Envoyer ce mail ?', html: '<p>À ' + esc(m.a) + (n > 1 ? ' (et ' + (n - 1) + ' autre' + (n > 2 ? 's' : '') + ')' : '') + '. Impossible de rappeler un mail parti.</p>' + (f && !f.traite ? '<label class="coche"><input type="checkbox" id="dlgTraite"' + (proposerTraite ? ' checked' : '') + '> Marquer la conversation comme traitée</label>' : ''), oui: 'Envoyer', ok: function () { E.traite = !!($('#dlgTraite') && $('#dlgTraite').checked); envoyer(lire()); } });
+  };
+  $('#ec-programmer').onclick = function () {
+    var m = verifier(); if (!m) return;
+    if (E.programme) return confirmer('Envoyer ce mail maintenant (au lieu de l\'heure programmée) ?', function () { appelMx('adminMailsProgrammer', [m, Date.now() + 90000, E.programme.id], function () { appelMx('adminMailsProgrammeEnvoyer', [E.programme.id], function (r) { E.parti = true; secoursEffacerMx(cle); toast('Envoyé ✓'); majProgrammesMx(r.liste); MX.cache = {}; fermer(); }); }); }, { oui: 'Envoyer maintenant' });
+    programmer(m);
+  };
+  if (E.modifie) changement();
+  setTimeout(function () { (chips('ec-a').length ? texte : $('#ec-a-in')).focus(); }, 60);
+}
+document.addEventListener('visibilitychange', function () { if (document.hidden && ECRITURE && ECRITURE.modifie && !ECRITURE.parti) { try { ECRITURE.copier(); ECRITURE.sauver(false); } catch (e) { /* éditeur fermé */ } } });
+window.addEventListener('pagehide', function () { if (ECRITURE && ECRITURE.modifie && !ECRITURE.parti) { try { ECRITURE.copier(); } catch (e) { /* éditeur fermé */ } } });
+window.addEventListener('beforeunload', function (e) { if (ECRITURE && ECRITURE.modifie && !ECRITURE.parti) { e.preventDefault(); e.returnValue = ''; } });
+
+// ---------- Colonnes fixes (ordinateur) : rien ne défile sauf les colonnes, séparateurs glissables ----------
+(function () {
+  var CLE = 'mails_colonnes', largeurs = null;
+  try { largeurs = JSON.parse(lireLocal(CLE) || 'null'); } catch (e) { largeurs = null; }
+  function borner(W, c1, c2) {
+    c1 = Math.max(150, Math.min(320, Math.round(c1)));
+    var max2 = W - c1 - 28 - 380;
+    c2 = Math.max(280, Math.min(Math.round(c2), max2));
+    if (c2 > max2) { c1 = Math.max(150, W - 28 - 380 - 280); c2 = Math.max(280, W - c1 - 28 - 380); }
+    return { c1: c1, c2: c2 };
+  }
+  function parDefaut(W) { return { c1: W < 1200 ? 190 : 220, c2: Math.max(300, Math.min(460, Math.round(W * 0.34))) }; }
+  function appliquer() {
+    var g = $('#mx'); if (!g) return null;
+    var W = g.clientWidth || 1000, v = largeurs || parDefaut(W), b = borner(W, v.c1, v.c2);
+    g.style.setProperty('--mc1', b.c1 + 'px'); g.style.setProperty('--mc2', b.c2 + 'px');
+    return b;
+  }
+  function majHauteur() {
+    var g = $('#mx'); if (!g || !mxFixe()) return;
+    if (window.scrollY) window.scrollTo(0, 0);
+    var h = Math.max(360, Math.floor(window.innerHeight - g.getBoundingClientRect().top - 10)) + 'px';
+    if (g.style.getPropertyValue('--mx-haut') !== h) g.style.setProperty('--mx-haut', h);
+  }
+  window.majMxFixe = function () {
+    var g = $('#mx');
+    var oui = !!g && vue === 'boite' && innerWidth >= 1000 && innerHeight >= 520;
+    document.documentElement.classList.toggle('mx-fixe', oui);
+    if (oui) { window.scrollTo(0, 0); appliquer(); majHauteur(); }
+  };
+  var gl = null;
+  document.addEventListener('pointerdown', function (e) {
+    var s = e.target.closest && e.target.closest('.mx-sep'); if (!s || !mxFixe()) return;
+    e.preventDefault();
+    var b = appliquer(); gl = { n: s.dataset.sep, x: e.clientX, c1: b.c1, c2: b.c2, W: $('#mx').clientWidth, s: s };
+    try { s.setPointerCapture(e.pointerId); } catch (x) { /* ancien navigateur */ }
+    s.classList.add('actif'); document.documentElement.classList.add('glisse-col');
+  });
+  document.addEventListener('pointermove', function (e) { if (!gl) return; var d = e.clientX - gl.x; largeurs = borner(gl.W, gl.n === '1' ? gl.c1 + d : gl.c1, gl.n === '2' ? gl.c2 + d : gl.c2); appliquer(); });
+  function fin() { if (!gl) return; gl.s.classList.remove('actif'); document.documentElement.classList.remove('glisse-col'); gl = null; if (largeurs) garderLocal(CLE, JSON.stringify(largeurs)); }
+  document.addEventListener('pointerup', fin); document.addEventListener('pointercancel', fin);
+  document.addEventListener('dblclick', function (e) { if (e.target.closest && e.target.closest('.mx-sep')) { largeurs = null; garderLocal(CLE, ''); appliquer(); } });
+  document.addEventListener('keydown', function (e) {
+    var s = e.target.closest && e.target.closest('.mx-sep'); if (!s || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+    e.preventDefault(); var b = appliquer(), d = e.key === 'ArrowLeft' ? -20 : 20;
+    largeurs = borner($('#mx').clientWidth, s.dataset.sep === '1' ? b.c1 + d : b.c1, s.dataset.sep === '2' ? b.c2 + d : b.c2); appliquer(); garderLocal(CLE, JSON.stringify(largeurs));
+  });
+  window.addEventListener('resize', function () { clearTimeout(majMxFixe.t); majMxFixe.t = setTimeout(majMxFixe, 120); });
+  setInterval(function () { if (mxFixe()) { if (vue !== 'boite' || !$('#mx')) majMxFixe(); else majHauteur(); } }, 700);
+  window.addEventListener('scroll', function () { if (mxFixe() && window.scrollY) window.scrollTo(0, 0); }, { passive: true });
+})();
+
 
 function afficherReglages() {
   var r = D.reglages, h = '';
@@ -1344,7 +2283,7 @@ function appareilsAfficher(l) {
   var z = $('#zoneAppareils'); if (!z) return;
   if (!l.length) { z.innerHTML = '<p class="vide">Aucun appareil pour l\'instant (le lien personnel n\'en crée pas).</p>'; return; }
   z.innerHTML = '<p class="aide">Chaque appareil qui a donné un code PIN reste connecté (sans redemander le code) jusqu\'à ce qu\'on le déconnecte ici, ou après six mois sans utilisation.</p><div class="tableau"><table><tr><th>Compte</th><th>Appareil</th><th>Première fois</th><th>Dernière fois</th><th></th></tr>' +
-    l.map(function (a) { return '<tr><td>' + esc(a.compte) + '</td><td>' + esc(a.nom) + (COMPTE && a.id === COMPTE.appareil ? ' <span class="badge Ouvert">celui-ci</span>' : '') + '</td><td>' + esc(a.cree) + '</td><td>' + esc(a.dernier) + '</td><td><button type="button" class="btn petit danger" data-deco="' + esc(a.id) + '">Déconnecter</button></td></tr>'; }).join('') + '</table></div>';
+    l.map(function (a) { return '<tr><td>' + esc(a.compte) + '</td><td>' + esc(a.nom) + (COMPTE && a.id === COMPTE.appareil ? ' <span class="badge Ouvert">celui-ci</span>' : '') + '</td><td class="quand">' + esc(dateCourteFr(a.cree)) + '</td><td class="quand">' + esc(dateCourteFr(a.dernier)) + '</td><td><button type="button" class="btn petit danger" data-deco="' + esc(a.id) + '">Déconnecter</button></td></tr>'; }).join('') + '</table></div>';
   z.querySelectorAll('[data-deco]').forEach(function (b) { b.onclick = function () {
     confirmer('Déconnecter cet appareil ? Il devra redonner un code PIN.', function () {
       appel('adminDeconnecterAppareil', [b.dataset.deco], function (r) { appareilsAfficher(r); toast('Appareil déconnecté'); if (COMPTE && b.dataset.deco === COMPTE.appareil) deconnexion(); });
@@ -1477,15 +2416,16 @@ function photosAfficher(lectureSeule) {
 
 // ---------- Visuels : tous (fichiers du site + dossier Drive), classés par spectacle ----------
 var PHOTOS_DRIVE = null, INFOS_VISUELS = {};
-var SITE_ECHEC = 0, SITE_EN_COURS = false;
+var SITE_ECHEC = 0, SITE_EN_COURS = false, SITE_ATTENTE = [];
 // Charge festival.js du site une seule fois ; si le site ne répond pas, on réessaie au plus toutes les minutes (sinon la liste se redessinait en boucle).
-function chargerSite(ok) {
+function chargerSite(ok, siEchec) {
   if (window.SPECTACLES || !siteUrl()) return ok();
-  if (SITE_EN_COURS || Date.now() - SITE_ECHEC < 60000) return;
+  if (Date.now() - SITE_ECHEC < 60000) { if (siEchec) siEchec(); return; }
+  if (SITE_EN_COURS) { if (siEchec) SITE_ATTENTE.push(siEchec); return; }
   SITE_EN_COURS = true;
   var sc = document.createElement('script'); sc.src = siteUrl() + 'festival.js?' + Date.now();
-  sc.onload = function () { SITE_EN_COURS = false; ok(); };
-  sc.onerror = function () { SITE_EN_COURS = false; SITE_ECHEC = Date.now(); sc.remove(); };
+  sc.onload = function () { SITE_EN_COURS = false; SITE_ATTENTE = []; ok(); };
+  sc.onerror = function () { SITE_EN_COURS = false; SITE_ECHEC = Date.now(); sc.remove(); var l = SITE_ATTENTE.concat(siEchec ? [siEchec] : []); SITE_ATTENTE = []; l.forEach(function (f) { f(); }); };
   document.head.appendChild(sc);
 }
 function chargerDrive(ok, force) {
@@ -1527,7 +2467,7 @@ function cartePhoto(p, boutons) {
 }
 function galerieAfficher() {
   var z = $('#galerie'); if (!z) return;
-  chargerSite(function () { chargerDrive(function () {
+  var suiteG = function () { chargerDrive(function () {
     fusionnerPhotosSite();
     var cible = normTitre($('#f-spectacle').value || $('#f-titre').value), prises = listePhotos();
     var toutes = toutesPhotos(), pour = toutes.filter(function (p) { return normTitre(p.titre) === cible; }), autres = toutes.filter(function (p) { return normTitre(p.titre) !== cible; });
@@ -1548,7 +2488,8 @@ function galerieAfficher() {
     z.querySelectorAll('[data-recadrer-g]').forEach(function (b) { b.onclick = function () {
       recadrerUrl(b.dataset.recadrerG, ($('#f-titre').value || 'photo'), function (url) { ecrirePhotos(listePhotos().concat([url])); toast('Visuel recadré et ajouté : pensez à enregistrer'); });
     }; });
-  }); });
+  }); };
+  chargerSite(suiteG, suiteG);
 }
 function photosInit() {
   if (!$('#photos')) return;
@@ -1613,7 +2554,7 @@ function reduire(fichier, ok, max) {
 var FILTRE_VISUELS = '';
 function afficherPhotos() {
   $('#vue').innerHTML = '<p class="vide">Chargement des visuels…</p>';
-  chargerSite(function () { chargerDrive(function () {
+  var suite = function () { chargerDrive(function () {
     var toutes = toutesPhotos(), groupes = {}, titres = titresConnus();
     toutes.forEach(function (p) { (groupes[p.titre || 'À classer'] = groupes[p.titre || 'À classer'] || []).push(p); });
     var options = function (choisi) { return '<option value=""' + (!choisi ? ' selected' : '') + '>— à classer —</option>' + titres.map(function (s) { return '<option' + (s === choisi ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('') + '<option value="__nouveau__">+ Nouveau spectacle…</option>'; };
@@ -1627,7 +2568,8 @@ function afficherPhotos() {
       sel.onfocus = function () { if (sel.value !== '__nouveau__') sel.dataset.avant = sel.value; };
     }
     var h = '<h2>Visuels</h2>';
-    if (D.version && VERSION_APPLI !== '0aa45fdc3954' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
+    if (!window.SPECTACLES && siteUrl()) h += '<div class="bandeau">Le site (' + esc(siteUrl()) + ') ne répond pas pour l\'instant : seuls les visuels de la bibliothèque sont affichés.</div>';
+    if (D.version && VERSION_APPLI !== 'b764a243a43f' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
     h += '<div class="panneau"><p>Photos, affiches, dessins : tout ce qui peut illustrer un spectacle. <b>1.</b> Choisissez le spectacle, <b>2.</b> ajoutez les fichiers. Ensuite, dans chaque événement, vous choisissez lesquels afficher et dans quel ordre.</p>' +
       '<div class="grille"><div><label for="g-titre">1. Spectacle</label><select id="g-titre">' + options($('#g-titre') ? $('#g-titre').value : '') + '</select></div>' +
       '<div><label>2. Fichiers</label><button type="button" class="btn plein" id="ajoutGalerie" style="width:100%">+ Ajouter des visuels</button></div>' +
@@ -1688,7 +2630,8 @@ function afficherPhotos() {
         });
       };
     }; });
-  }); });
+  }); };
+  chargerSite(suite, suite);
 }
 
 // ---------- Recadrage : cadre 3:2 du site, repères pour les autres emplacements, zoom, rotation ----------

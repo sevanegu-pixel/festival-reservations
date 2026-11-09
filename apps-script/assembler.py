@@ -3,7 +3,7 @@
 
     python3 assembler.py
 
-Code.js + Reservations.js + Mail.js + MiseAJour.js + l'écran Admin.html (mis dans la variable ADMIN_HTML).
+Code.js + Reservations.js + Mail.js + Mails.js + MiseAJour.js + l'écran Admin.html (mis dans la variable ADMIN_HTML).
 appsscript.json (autorisations) est à coller une fois ; ensuite MiseAJour.js met le script à jour depuis GitHub.
 """
 import json, os, hashlib
@@ -15,6 +15,12 @@ def lire(nom):
     return open(os.path.join(ICI, nom), encoding="utf-8").read()
 
 
+def ecran():
+    """Admin.html complet : Mail.js (composition des e-mails), Mails.css et MailsClient.js (boîte mail) insérés à leur place."""
+    return (lire("Admin.html").replace("/*__MAIL_JS__*/", lire("Mail.js"))
+            .replace("/*__MAILS_CSS__*/", lire("Mails.css")).replace("/*__MAILS_JS__*/", lire("MailsClient.js")))
+
+
 morceaux = [
     "// Réservations du festival — fichier unique à coller dans Apps Script.\n"
     "// Fabriqué par assembler.py depuis Code.js, Reservations.js et Admin.html (dépôt GitHub festival-reservations) :\n"
@@ -22,9 +28,9 @@ morceaux = [
     lire("Code.js"),
     lire("Reservations.js"),
     lire("Mail.js"),
-    lire("Boite.js"),
+    lire("Mails.js"),
     lire("MiseAJour.js"),
-    "var ADMIN_HTML = " + json.dumps(lire("Admin.html").replace("/*__MAIL_JS__*/", lire("Mail.js")), ensure_ascii=False) + ";\n",
+    "var ADMIN_HTML = " + json.dumps(ecran(), ensure_ascii=False) + ";\n",
 ]
 # Numéro de version = empreinte des sources (le script en ligne se compare à celui du dépôt grâce à lui)
 VERSION = hashlib.sha1("\n".join(morceaux).encode("utf-8")).hexdigest()[:12]
@@ -37,7 +43,7 @@ print("a-coller.gs :", sum(len(m) for m in morceaux), "caractères")
 import re
 index = open(os.path.join(ICI, "..", "index.html"), encoding="utf-8").read()
 exec_defaut = re.search(r'var EXEC_DEFAUT = "([^"]*)"', index).group(1)
-g = lire("Admin.html").replace("/*__MAIL_JS__*/", lire("Mail.js")).replace("__VERSION__", VERSION)
+g = ecran().replace("__VERSION__", VERSION)
 g = g.replace('<base target="_top">\n<meta charset="utf-8">',
     '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
     '<meta name="robots" content="noindex">\n<title>Réservations</title>\n<link rel="manifest" href="manifest.webmanifest">\n'
@@ -49,18 +55,22 @@ g = g.replace("var CLE = <?!= JSON.stringify(cle) ?>;",
     '  try { if (c && /^[A-Za-z0-9]{16,64}$/.test(c)) localStorage.setItem("festival_resa_cle", c); return localStorage.getItem("festival_resa_cle") || ""; } catch (e) { return c || ""; } })();')
 g = g.replace("PIN = '', JETON = '', COMPTE = null,", "PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null,")
 g = g.replace("appel('adminCharger', [], recharger);", "if (!CLE && !PIN && !JETON) ecranPin(); else appel('adminCharger', [], recharger);")
-debut = g.index("function appel(fn, args, ok) {")
+debut = g.index("// appel(fn, args, ok, options)")
 fin = g.index("function recharger(res)")
-g = g[:debut] + """function appel(fn, args, ok) {
-  $('#charge').style.display = 'block';
+g = g[:debut] + """// appel(fn, args, ok, options) ; options.echec(e) : rappel d'erreur (renvoie true pour taire le message) ; options.silencieux : sans barre de chargement.
+function appel(fn, args, ok, options) {
+  options = options || {};
+  if (!options.silencieux) { appel.n = (appel.n || 0) + 1; $('#charge').style.display = 'block'; }
+  var fini = function () { if (!options.silencieux && --appel.n <= 0) { appel.n = 0; $('#charge').style.display = 'none'; } };
+  var erreur = function (m) { var e = new Error(m); if (!(options.echec && options.echec(e))) toast(m, true); };
   fetch(EXEC, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ api: 'admin', cle: CLE, pin: PIN, jeton: JETON, appareil: APPAREIL, fn: fn, args: args || [] }) })
     .then(function (r) { return r.json(); })
-    .then(function (r) { $('#charge').style.display = 'none'; if (r.ok) return ok(r.resultat);
+    .then(function (r) { fini(); if (r.ok) return ok(r.resultat);
       var m = r.erreur || 'Erreur';
       if (r.pin) { garderLocal('pin', ''); garderLocal('jeton', ''); PIN = ''; JETON = ''; if (!D) return ecranPin(m); }
-      if (/Demande inconnue|Fonction inconnue/.test(m)) { m = 'Le script Google n\\'est pas à jour : dans Apps Script, collez le nouveau code (a-coller.gs) et déployez une nouvelle version.'; if (!D) $('#vue').innerHTML = '<p class="vide">' + m + '</p>'; }
-      toast(m, true); })
-    .catch(function () { $('#charge').style.display = 'none'; toast('Problème de connexion. Réessayez dans un instant.', true); });
+      if (/Demande inconnue|Fonction inconnue/.test(m)) { m = 'Le script Google n\\'est pas à jour : demandez sa mise en ligne (nouvelle version du script).'; if (!D) $('#vue').innerHTML = '<p class="vide">' + m + '</p>'; }
+      erreur(m); })
+    .catch(function () { fini(); erreur('Problème de connexion. Réessayez dans un instant.'); });
 }
 """ + g[fin:]
 open(os.path.join(ICI, "..", "gestion.html"), "w", encoding="utf-8").write(g)

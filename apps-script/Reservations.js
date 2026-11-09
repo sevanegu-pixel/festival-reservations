@@ -180,7 +180,7 @@ var DROITS = [
   ['publier', 'Publier : changer ce qui est visible sur le site (statut Ouvert, Fermé, Brouillon)'],
   ['photos', 'Galerie : ajouter, recadrer ou supprimer des photos'],
   ['reglages', 'Réglages : e-mails de confirmation, adresse du site'],
-  ['boite', 'Boîte : lire les réponses du public et y répondre'],
+  ['boite', 'Mails : lire la boîte Gmail du festival, répondre, écrire, programmer des envois'],
   ['comptes', 'Comptes : créer des codes PIN et choisir leurs droits (administration)']
 ];
 var FONCTION_DROIT = {
@@ -191,7 +191,10 @@ var FONCTION_DROIT = {
   adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminEnregistrerOriginal: 'photos', adminSupprimerPhoto: 'photos', adminEnregistrerVisuel: 'photos',
   adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes', adminMettreAJour: 'comptes',
   adminListerAppareils: 'comptes', adminDeconnecterAppareil: 'comptes', adminQuitterAppareil: null,
-  adminBoite: 'boite', adminLireFil: 'boite', adminRepondreFil: 'boite', adminClasserFil: 'boite', adminModifierPlaces: 'reservations'
+  adminModifierPlaces: 'reservations',
+  adminMailsDossiers: 'boite', adminMailsListe: 'boite', adminMailsOuvrir: 'boite', adminMailsPiece: 'boite', adminMailsAction: 'boite',
+  adminMailsBrouillon: 'boite', adminMailsSupprimerBrouillon: 'boite', adminMailsEnvoyer: 'boite',
+  adminMailsProgrammes: 'boite', adminMailsProgrammer: 'boite', adminMailsProgrammeEnvoyer: 'boite', adminMailsProgrammeAnnuler: 'boite', adminMailsProgrammeLire: 'boite'
 };
 /** Droits d'un compte ; un compte créé avant la Boîte la reçoit s'il gère les comptes (administration). */
 function droitsDe_(c) {
@@ -206,6 +209,7 @@ function adminApi_(d) {
     if (droit && !compte.droits[droit]) throw new Error('Votre compte (' + compte.nom + ') n\'a pas ce droit : ' + droit + '.');
     var args = Array.isArray(d.args) ? d.args : [];
     if (d.fn === 'adminEnregistrerEvenement' && !compte.droits.publier) args[0] = sansPublication_(args[0]);
+    if (d.fn === 'adminMailsProgrammer') args = [args[0], args[1], args[2], compte.nom]; // qui a programmé le mail
     var cle = PropertiesService.getScriptProperties().getProperty(RESA.cleAdmin);
     var res = d.fn === 'adminQuitterAppareil' ? adminQuitterAppareil(cle, compte.appareil) : globalThis[d.fn].apply(null, [cle].concat(args));
     if (res && res.evenements && res.reglages) { // réponse adminCharger : on y joint le compte, et on cache les contacts à qui n'a pas le droit
