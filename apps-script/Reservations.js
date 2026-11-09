@@ -20,6 +20,8 @@ var RESA = {
   dossierPhotos: 'Petit Festival · photos du site',
   cleDossierPhotos: 'RESA_DOSSIER_PHOTOS',
   cleComptes: 'RESA_COMPTES',
+  cleAppareils: 'RESA_APPAREILS',
+  dureeAppareil: 180, // jours sans utilisation avant de redemander le code PIN
 };
 
 var COL_EV = ['id', 'Titre', 'Spectacle', 'Compagnie', 'Date', 'Début', 'Fin', 'Durée', 'Âge', 'Lieu', 'Adresse',
@@ -130,7 +132,8 @@ var FONCTION_DROIT = {
   adminAjouterReservation: 'reservations', adminAnnulerReservation: 'reservations', adminPointer: 'reservations',
   adminEnregistrerReglages: 'reglages', adminEssaiMail: 'reglages',
   adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminSupprimerPhoto: 'photos',
-  adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes', adminMettreAJour: 'comptes'
+  adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes', adminMettreAJour: 'comptes',
+  adminListerAppareils: 'comptes', adminDeconnecterAppareil: 'comptes', adminQuitterAppareil: null
 };
 function adminApi_(d) {
   try {
@@ -140,9 +143,10 @@ function adminApi_(d) {
     var args = Array.isArray(d.args) ? d.args : [];
     if (d.fn === 'adminEnregistrerEvenement' && !compte.droits.publier) args[0] = sansPublication_(args[0]);
     var cle = PropertiesService.getScriptProperties().getProperty(RESA.cleAdmin);
-    var res = globalThis[d.fn].apply(null, [cle].concat(args));
+    var res = d.fn === 'adminQuitterAppareil' ? adminQuitterAppareil(cle, compte.appareil) : globalThis[d.fn].apply(null, [cle].concat(args));
     if (res && res.evenements && res.reglages) { // réponse adminCharger : on y joint le compte, et on cache les contacts à qui n'a pas le droit
-      res.compte = { id: compte.id, nom: compte.nom, droits: compte.droits };
+      res.compte = { id: compte.id, nom: compte.nom, droits: compte.droits, appareil: compte.appareil || '' };
+      if (compte.jeton) res.jeton = compte.jeton; // nouvel appareil : il garde ce jeton et n'a plus à redonner le code
       res.version = VERSION_CODE;
       res.droits = DROITS;
       if (!compte.droits.reservations) res.reservations = res.reservations.map(function (r) { return { id: r.id, evenement: r.evenement, places: r.places, statut: r.statut }; });
@@ -163,6 +167,7 @@ function sansPublication_(ev) {
 function tousDroits_() { var o = {}; DROITS.forEach(function (d) { o[d[0]] = true; }); return o; }
 function acces_(d) {
   if (d.cle && cleValide_(d.cle)) return { id: 'cle', nom: 'Lien personnel', droits: tousDroits_() };
+  if (d.jeton) return accesParJeton_(String(d.jeton));
   var pin = String(d.pin || '');
   if (!pin) throw new Error('Code PIN requis.');
   if (!/^\d{4,8}$/.test(pin)) throw new Error('Code PIN incorrect.');
@@ -172,7 +177,45 @@ function acces_(d) {
   for (var i = 0; i < comptes.length; i++) if (comptes[i].hash === hashPin_(pin, comptes[i].id)) { c = comptes[i]; break; }
   if (!c) { cache.put('pin_echecs', String(echecs + 1), 600); throw new Error('Code PIN incorrect.'); }
   cache.remove('pin_echecs');
-  return { id: c.id, nom: c.nom, droits: c.droits || {} };
+  var acces = { id: c.id, nom: c.nom, droits: c.droits || {} };
+  if (d.appareil && d.appareil.id) { // on retient l'appareil : un jeton remplace le code PIN pour la suite
+    var jeton = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+    var l = appareils_().filter(function (a) { return a.id !== d.appareil.id; });
+    l.push({ id: String(d.appareil.id).slice(0, 40), compte: c.id, nom: String(d.appareil.nom || 'Appareil').slice(0, 80), hash: hashPin_(jeton, 'appareil'), cree: maintenant_(), dernier: maintenant_(), ts: Date.now() });
+    ecrireAppareils_(l);
+    acces.jeton = jeton; acces.appareil = d.appareil.id;
+  }
+  return acces;
+}
+// ----- Appareils connectés : un jeton par appareil, lié à un compte -----
+function appareils_() {
+  try { return JSON.parse(PropertiesService.getScriptProperties().getProperty(RESA.cleAppareils) || '[]') || []; } catch (e) { return []; }
+}
+function ecrireAppareils_(l) { PropertiesService.getScriptProperties().setProperty(RESA.cleAppareils, JSON.stringify(l)); }
+function accesParJeton_(jeton) {
+  var h = hashPin_(jeton, 'appareil'), l = appareils_(), a = l.filter(function (x) { return x.hash === h; })[0];
+  if (!a) throw new Error('Cet appareil a été déconnecté : redonnez le code PIN.');
+  var dernier = Number(a.ts) || 0;
+  if (dernier && Date.now() - dernier > RESA.dureeAppareil * 864e5) { ecrireAppareils_(l.filter(function (x) { return x !== a; })); throw new Error('Cet appareil n\'a plus servi depuis longtemps : redonnez le code PIN.'); }
+  var c = comptes_().filter(function (x) { return x.id === a.compte; })[0];
+  if (!c) { ecrireAppareils_(l.filter(function (x) { return x !== a; })); throw new Error('Ce compte n\'existe plus : redonnez le code PIN.'); }
+  if (Date.now() - dernier > 36e5) { a.dernier = maintenant_(); a.ts = Date.now(); ecrireAppareils_(l); }
+  return { id: c.id, nom: c.nom, droits: c.droits || {}, appareil: a.id };
+}
+function adminListerAppareils(cle) {
+  verifierCle_(cle);
+  var noms = {}; comptes_().forEach(function (c) { noms[c.id] = c.nom; });
+  return appareils_().map(function (a) { return { id: a.id, compte: noms[a.compte] || '(compte supprimé)', nom: a.nom, cree: a.cree, dernier: a.dernier }; }).reverse();
+}
+function adminDeconnecterAppareil(cle, id) {
+  verifierCle_(cle);
+  ecrireAppareils_(appareils_().filter(function (a) { return a.id !== id; }));
+  return adminListerAppareils(cle);
+}
+/** « Quitter » dans l'appli : l'appareil courant oublie son jeton côté script aussi. */
+function adminQuitterAppareil(cle, idAppareil) {
+  if (idAppareil) ecrireAppareils_(appareils_().filter(function (a) { return a.id !== idAppareil; }));
+  return true;
 }
 function hashPin_(pin, id) {
   return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, pin + '|' + id + '|petit-festival', Utilities.Charset.UTF_8)
@@ -208,6 +251,7 @@ function adminEnregistrerCompte(cle, c) {
 function adminSupprimerCompte(cle, id) {
   verifierCle_(cle);
   ecrireComptes_(comptes_().filter(function (x) { return x.id !== id; }));
+  ecrireAppareils_(appareils_().filter(function (a) { return a.compte !== id; }));
   return adminListerComptes(cle);
 }
 /** Pointage à l'entrée : la personne est arrivée (ou pas). */

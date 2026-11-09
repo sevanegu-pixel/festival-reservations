@@ -45,17 +45,17 @@ g = g.replace("var CLE = <?!= JSON.stringify(cle) ?>;",
     'var EXEC = ' + json.dumps(exec_defaut) + ';\n'
     'var CLE = (function () { var q = new URLSearchParams(location.search), c = q.get("cle");\n'
     '  try { if (c && /^[A-Za-z0-9]{16,64}$/.test(c)) localStorage.setItem("festival_resa_cle", c); return localStorage.getItem("festival_resa_cle") || ""; } catch (e) { return c || ""; } })();')
-g = g.replace("var PIN = '', COMPTE = null,", "var PIN = (function () { try { return localStorage.getItem('festival_resa_pin') || ''; } catch (e) { return ''; } })(), COMPTE = null,")
-g = g.replace("appel('adminCharger', [], recharger);", "if (!CLE && !PIN) ecranPin(); else appel('adminCharger', [], recharger);")
+g = g.replace("PIN = '', JETON = '', COMPTE = null,", "PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null,")
+g = g.replace("appel('adminCharger', [], recharger);", "if (!CLE && !PIN && !JETON) ecranPin(); else appel('adminCharger', [], recharger);")
 debut = g.index("function appel(fn, args, ok) {")
 fin = g.index("function recharger(res)")
 g = g[:debut] + """function appel(fn, args, ok) {
   $('#charge').style.display = 'block';
-  fetch(EXEC, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ api: 'admin', cle: CLE, pin: PIN, fn: fn, args: args || [] }) })
+  fetch(EXEC, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ api: 'admin', cle: CLE, pin: PIN, jeton: JETON, appareil: APPAREIL, fn: fn, args: args || [] }) })
     .then(function (r) { return r.json(); })
     .then(function (r) { $('#charge').style.display = 'none'; if (r.ok) return ok(r.resultat);
       var m = r.erreur || 'Erreur';
-      if (r.pin) { try { localStorage.removeItem('festival_resa_pin'); } catch (e) {} PIN = ''; if (!D) return ecranPin(m); }
+      if (r.pin) { garderLocal('pin', ''); garderLocal('jeton', ''); PIN = ''; JETON = ''; if (!D) return ecranPin(m); }
       if (/Demande inconnue|Fonction inconnue/.test(m)) { m = 'Le script Google n\\'est pas à jour : dans Apps Script, collez le nouveau code (a-coller.gs) et déployez une nouvelle version.'; if (!D) $('#vue').innerHTML = '<p class="vide">' + m + '</p>'; }
       toast(m, true); })
     .catch(function () { $('#charge').style.display = 'none'; toast('Problème de connexion. Réessayez dans un instant.', true); });

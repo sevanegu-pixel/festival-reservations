@@ -123,9 +123,19 @@ tr.annulee td:last-child{text-decoration:none}
 
 <script>
 var CLE = <?!= JSON.stringify(cle) ?>;
-var VERSION_APPLI = '__VERSION__', PIN = '', COMPTE = null, D = null, vue = 'evenements', ouvert = null;
+var VERSION_APPLI = '__VERSION__', PIN = '', JETON = '', COMPTE = null, D = null, vue = 'evenements', ouvert = null;
+function lireLocal(k) { try { return localStorage.getItem('festival_resa_' + k) || ''; } catch (e) { return ''; } }
+function garderLocal(k, v) { try { if (v) localStorage.setItem('festival_resa_' + k, v); else localStorage.removeItem('festival_resa_' + k); } catch (e) {} }
+// Cet appareil : un identifiant gardé dans le navigateur + un nom lisible (pour la liste des appareils connectés).
+var APPAREIL = (function () {
+  var id = lireLocal('appareil'); if (!id) { id = (Date.now().toString(36) + Math.random().toString(36).slice(2, 12)); garderLocal('appareil', id); }
+  var ua = navigator.userAgent || '', os = /iPhone/.test(ua) ? 'iPhone' : /iPad|Macintosh.*Mobile/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android' : /Macintosh/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : 'Ordinateur';
+  var nav = /CriOS|Chrome/.test(ua) && !/Edg/.test(ua) ? 'Chrome' : /Firefox|FxiOS/.test(ua) ? 'Firefox' : /Edg/.test(ua) ? 'Edge' : /Safari/.test(ua) ? 'Safari' : '';
+  var appli = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  return { id: id, nom: os + (nav ? ' · ' + nav : '') + (appli ? ' · appli installée' : '') };
+})();
 function droit(k) { return !COMPTE || !!COMPTE.droits[k]; }
-function deconnexion() { try { localStorage.removeItem('festival_resa_pin'); localStorage.removeItem('festival_resa_cle'); } catch (e) {} PIN = ''; COMPTE = null; D = null; location.reload(); }
+function deconnexion() { garderLocal('pin', ''); garderLocal('cle', ''); garderLocal('jeton', ''); PIN = ''; JETON = ''; COMPTE = null; D = null; location.reload(); }
 // Écran d'entrée par code PIN (appli GitHub Pages ; l'écran Apps Script, lui, s'ouvre par le lien personnel).
 function ecranPin(message) {
   $('#vue').innerHTML = '<form class="pin" id="formPin"><img src="icone_192.png" alt=""><h2>Code PIN</h2>' +
@@ -134,7 +144,7 @@ function ecranPin(message) {
     '<button class="btn plein" type="submit">Entrer</button></form>';
   $('#formPin').onsubmit = function (ev) {
     ev.preventDefault(); PIN = $('#pinSaisie').value.replace(/\D/g, '');
-    appel('adminCharger', [], function (res) { try { localStorage.setItem('festival_resa_pin', PIN); } catch (e) {} recharger(res); });
+    appel('adminCharger', [], function (res) { PIN = ''; recharger(res); });
   };
 }
 var MOIS = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
@@ -152,13 +162,14 @@ function appel(fn, args, ok) {
 }
 function recharger(res) {
   D = res; COMPTE = res.compte || null; $('#nomFestival').textContent = D.reglages.nomFestival || 'Festival';
+  if (res.jeton) { JETON = res.jeton; garderLocal('jeton', JETON); garderLocal('pin', ''); } // cet appareil est reconnu : plus de code PIN à redonner
   document.querySelectorAll('nav [data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
-  $('#quitter').hidden = !COMPTE || COMPTE.id === 'cle' && !PIN;
+  $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
   if ((vue === 'photos' && !droit('photos')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); }); }
   afficher();
 }
 
-$('#quitter').onclick = function () { if (confirm('Quitter ce compte ? Il faudra redonner le code PIN.')) deconnexion(); };
+$('#quitter').onclick = function () { if (!confirm('Quitter ce compte sur cet appareil ? Il faudra redonner le code PIN.')) return; if (JETON) appel('adminQuitterAppareil', [], deconnexion); else deconnexion(); };
 document.querySelectorAll('nav button[data-vue]').forEach(function (b) {
   b.onclick = function () { vue = b.dataset.vue; ouvert = null; document.querySelectorAll('nav button').forEach(function (x) { x.classList.toggle('on', x === b); }); afficher(); };
 });
@@ -326,7 +337,8 @@ function afficherReglages() {
     champ('messageAnnulation', 'Message d\'annulation', r.messageAnnulation, 'textarea') +
     '</div><p class="aide">Remplacés automatiquement : {nom} {places} {titre} {date} {heure} {lieu} {tarif} {festival}</p>' +
     '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="essai">M\'envoyer un essai</button></div></form>';
-  if (droit('comptes')) h += '<h2 id="comptes">Comptes et codes PIN</h2><div class="panneau" id="zoneComptes"><p class="vide">Chargement…</p></div>';
+  if (droit('comptes')) h += '<h2 id="comptes">Comptes et codes PIN</h2><div class="panneau" id="zoneComptes"><p class="vide">Chargement…</p></div>' +
+    '<h2>Appareils connectés</h2><div class="panneau" id="zoneAppareils"><p class="vide">Chargement…</p></div>';
   $('#vue').innerHTML = h;
   if ($('#regl')) {
     $('#regl').onsubmit = function (ev) {
@@ -336,7 +348,17 @@ function afficherReglages() {
     };
     $('#essai').onclick = function () { appel('adminEssaiMail', [], function (t) { toast(t); }); };
   }
-  if ($('#zoneComptes')) appel('adminListerComptes', [], comptesAfficher);
+  if ($('#zoneComptes')) appel('adminListerComptes', [], function (r) { comptesAfficher(r); appel('adminListerAppareils', [], appareilsAfficher); });
+}
+function appareilsAfficher(l) {
+  var z = $('#zoneAppareils'); if (!z) return;
+  if (!l.length) { z.innerHTML = '<p class="vide">Aucun appareil pour l\'instant (le lien personnel n\'en crée pas).</p>'; return; }
+  z.innerHTML = '<p class="aide">Chaque appareil qui a donné un code PIN reste connecté (sans redemander le code) jusqu\'à ce qu\'on le déconnecte ici, ou après six mois sans utilisation.</p><div class="tableau"><table><tr><th>Compte</th><th>Appareil</th><th>Première fois</th><th>Dernière fois</th><th></th></tr>' +
+    l.map(function (a) { return '<tr><td>' + esc(a.compte) + '</td><td>' + esc(a.nom) + (COMPTE && a.id === COMPTE.appareil ? ' <span class="badge Ouvert">celui-ci</span>' : '') + '</td><td>' + esc(a.cree) + '</td><td>' + esc(a.dernier) + '</td><td><button type="button" class="btn petit danger" data-deco="' + esc(a.id) + '">Déconnecter</button></td></tr>'; }).join('') + '</table></div>';
+  z.querySelectorAll('[data-deco]').forEach(function (b) { b.onclick = function () {
+    if (!confirm('Déconnecter cet appareil ? Il devra redonner un code PIN.')) return;
+    appel('adminDeconnecterAppareil', [b.dataset.deco], function (r) { appareilsAfficher(r); toast('Appareil déconnecté'); if (COMPTE && b.dataset.deco === COMPTE.appareil) deconnexion(); });
+  }; });
 }
 
 // ---------- Comptes : un code PIN par personne, avec ses droits ----------
