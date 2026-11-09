@@ -115,7 +115,7 @@ function doPost(e) {
  * par POST {api:'admin', cle, fn, args}. Même clé, mêmes fonctions que l'écran Admin.html.
  */
 var ADMIN_FONCTIONS = ['adminCharger', 'adminEnregistrerEvenement', 'adminSupprimerEvenement', 'adminAjouterReservation',
-  'adminAnnulerReservation', 'adminEnregistrerReglages', 'adminEssaiMail', 'adminEnregistrerImage'];
+  'adminAnnulerReservation', 'adminEnregistrerReglages', 'adminEssaiMail', 'adminEnregistrerImage', 'adminListerPhotos', 'adminLireImage', 'adminSupprimerPhoto'];
 function adminApi_(d) {
   try {
     if (ADMIN_FONCTIONS.indexOf(d.fn) < 0) throw new Error('Fonction inconnue.');
@@ -356,6 +356,35 @@ function adminEnregistrerImage(cle, d) {
   var fichier = dossierPhotos_().createFile(blob);
   fichier.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   return { url: 'https://drive.google.com/thumbnail?id=' + fichier.getId() + '&sz=w1600', id: fichier.getId(), nom: fichier.getName() };
+}
+
+// Galerie de l'appli : toutes les photos du dossier Drive, les plus récentes d'abord.
+function adminListerPhotos(cle) {
+  verifierCle_(cle);
+  var it = dossierPhotos_().getFiles(), l = [];
+  while (it.hasNext()) {
+    var f = it.next();
+    if (String(f.getMimeType()).indexOf('image/') !== 0) continue;
+    l.push({ id: f.getId(), nom: f.getName().replace(/\.[a-z]+$/i, ''), url: 'https://drive.google.com/thumbnail?id=' + f.getId() + '&sz=w1600', date: f.getDateCreated().getTime() });
+  }
+  l.sort(function (a, b) { return b.date - a.date; });
+  return l;
+}
+
+// Renvoie une photo du Drive en base64 pour la recadrer dans l'appli (le navigateur ne peut pas la lire directement).
+function adminLireImage(cle, id) {
+  verifierCle_(cle);
+  var f = DriveApp.getFileById(String(id)), b = f.getBlob();
+  if (b.getBytes().length > 12e6) throw new Error('Photo trop lourde pour être recadrée ici.');
+  return { base64: 'data:' + b.getContentType() + ';base64,' + Utilities.base64Encode(b.getBytes()), nom: f.getName() };
+}
+
+function adminSupprimerPhoto(cle, id) {
+  verifierCle_(cle);
+  var f = DriveApp.getFileById(String(id));
+  if (f.getParents().hasNext() && f.getParents().next().getId() !== dossierPhotos_().getId()) throw new Error('Cette photo n\'est pas dans le dossier du festival.');
+  f.setTrashed(true);
+  return true;
 }
 
 function dossierPhotos_() {

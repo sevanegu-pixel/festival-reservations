@@ -47,7 +47,10 @@ g = g[:debut] + """function appel(fn, args, ok) {
   $('#charge').style.display = 'block';
   fetch(EXEC, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ api: 'admin', cle: CLE, fn: fn, args: args || [] }) })
     .then(function (r) { return r.json(); })
-    .then(function (r) { $('#charge').style.display = 'none'; if (r.ok) ok(r.resultat); else toast(r.erreur || 'Erreur', true); })
+    .then(function (r) { $('#charge').style.display = 'none'; if (r.ok) return ok(r.resultat);
+      var m = r.erreur || 'Erreur';
+      if (/Demande inconnue|Fonction inconnue/.test(m)) { m = 'Le script Google n\\'est pas à jour : dans Apps Script, collez le nouveau code (a-coller.gs) et déployez une nouvelle version.'; if (!D) $('#vue').innerHTML = '<p class="vide">' + m + '</p>'; }
+      toast(m, true); })
     .catch(function () { $('#charge').style.display = 'none'; toast('Problème de connexion. Réessayez dans un instant.', true); });
 }
 """ + g[fin:]

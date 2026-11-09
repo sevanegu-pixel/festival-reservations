@@ -34,9 +34,16 @@ main{max-width:980px;margin:0 auto;padding:8px 16px 80px}
 .badge.Ouvert{border-color:var(--vert);color:var(--vert)}
 .badge.Annulé{border-color:var(--rouge);color:var(--rouge)}
 .statutRapide{width:auto;font-size:13px;padding:4px 6px;margin-top:6px;border-radius:999px}
-.photosSite{margin:14px 0 0}
-.photosSite .photo{opacity:.9}
-.photosSite .photo .outils{justify-content:flex-end}
+.galerie{margin:14px 0 0}
+.galerie h4{margin:12px 0 4px;font:600 14px Barlow,sans-serif;color:var(--doux)}
+.galerie details{margin-top:10px}
+.galerie summary{cursor:pointer;color:var(--lav2);font-weight:600;font-size:14px}
+.photo .etiquette{position:absolute;right:6px;top:4px;font:600 11px Barlow,sans-serif;background:rgba(11,10,16,.8);color:var(--vert);border-radius:999px;padding:1px 7px}
+.photo .etiquette.drive{color:var(--doux)}
+.photo .outils{flex-wrap:wrap;gap:0 2px}
+.photo.portrait img{object-fit:contain;background:#000}
+.groupe{margin-top:18px}
+.groupe h3{margin:0 0 6px;font:700 17px "Bricolage Grotesque",sans-serif}
 .vide{color:var(--doux);font-style:italic}
 form .grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 label{display:block;font-size:13px;color:var(--doux);margin-bottom:4px}
@@ -59,6 +66,7 @@ tr.annulee td:last-child{text-decoration:none}
 @keyframes c{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
 /* Photos et recadrage */
 .photos{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 8px}
+#photos .photo{width:180px}
 .photo{position:relative;width:150px;aspect-ratio:3/2;background:#100e17;border:1px solid var(--ligne);border-radius:8px;overflow:hidden}
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
 .photo .outils{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;background:rgba(11,10,16,.8);padding:3px 4px}
@@ -85,10 +93,11 @@ tr.annulee td:last-child{text-decoration:none}
 <div id="charge"></div>
 <header>
   <h1><small id="nomFestival">Festival</small>Réservations</h1>
-  <nav><button data-vue="evenements" class="on">Événements</button> <button data-vue="reglages">Réglages</button></nav>
+  <nav><button data-vue="evenements" class="on">Événements</button> <button data-vue="photos">Photos</button> <button data-vue="reglages">Réglages</button></nav>
 </header>
 <main id="vue"><p class="vide">Chargement…</p></main>
 <input type="file" id="fichierPhoto" accept="image/*" hidden>
+<input type="file" id="fichiersGalerie" accept="image/*" multiple hidden>
 <div id="recadrage"><div class="boite"><canvas id="cv"></canvas><div class="reglage">Zoom <input type="range" id="zoom" min="1" max="4" step="0.01" value="1"></div>
 <p class="aide">Déplacez la photo pour choisir le cadrage. Le cadre correspond aux photos du programme.</p>
 <div class="actions"><button type="button" class="btn plein" id="recadrerOk">Utiliser cette photo</button><button type="button" class="btn" id="recadrerNon">Annuler</button></div></div></div>
@@ -119,6 +128,7 @@ document.querySelectorAll('nav button').forEach(function (b) {
 function afficher() {
   if (!D) return;
   if (vue === 'reglages') return afficherReglages();
+  if (vue === 'photos') return afficherPhotos();
   if (ouvert) return afficherEvenement(ouvert);
   var today = aujourdhui();
   var evs = D.evenements.slice().sort(function (a, b) { return (a.date + a.debut) < (b.date + b.debut) ? -1 : 1; });
@@ -183,10 +193,10 @@ function afficherEvenement(id) {
     '<div><label for="f-statut">Statut</label><select id="f-statut" name="statut">' +
       D.statuts.map(function (s) { return '<option' + (s === e.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
       '<p class="aide">Ouvert : réservable. Fermé : affiché sans réservation. Brouillon et Annulé : cachés du site.</p></div>' +
-    '<div class="large"><label>Photos (la première est celle du programme ; sur la fiche, toutes s\'affichent)</label>' +
+    '<div class="large"><label>Photos affichées sur le site (la 1re est celle du programme ; sur la fiche, toutes défilent dans l\'ordre)</label>' +
     '<div class="photos" id="photos"></div><textarea id="f-image" name="image" hidden>' + esc(e.image) + '</textarea>' +
-    '<p class="aide">Choisissez une photo, cadrez-la, et elle est rangée dans le Drive du festival. Vous pouvez aussi <button type="button" class="btn petit" id="urlPhoto">coller une adresse</button>.</p>' +
-    '<div class="photosSite" id="photosSite"></div></div>' +
+    '<p class="aide">← → changent l\'ordre, « Recadrer » refait le cadrage 3:2. « Ajouter » prend une photo de l\'ordinateur ou du téléphone ; vous pouvez aussi <button type="button" class="btn petit" id="urlPhoto">coller une adresse</button>. Pensez à enregistrer l\'événement ensuite.</p>' +
+    '<div class="galerie" id="galerie"></div></div>' +
     champ('description', 'Description', e.description, 'textarea') +
     '</div><div class="actions"><button class="btn plein" type="submit">Enregistrer</button>' +
     (nouveau ? '' : '<button class="btn" type="button" id="dupliquer">Dupliquer (autre date)</button><button class="btn danger" type="button" id="supprimer">Supprimer</button>') +
@@ -276,48 +286,152 @@ function afficherReglages() {
 
 // ---------- Photos d'un événement : liste, ordre, recadrage ----------
 function listePhotos() { return $('#f-image').value.split(/\s*[\n,]\s*/).filter(Boolean); }
-function ecrirePhotos(l) { $('#f-image').value = l.join('\n'); photosAfficher(); photosSiteAfficher(); }
+function ecrirePhotos(l) { $('#f-image').value = l.join('\n'); photosAfficher(); galerieAfficher(); }
 function photosAfficher() {
   var l = listePhotos();
   $('#photos').innerHTML = l.map(function (u, i) {
     return '<div class="photo"><img src="' + esc(u) + '" alt="" loading="lazy"><span class="num">' + (i + 1) + '</span><div class="outils">' +
-      (i ? '<button type="button" data-premiere="' + i + '" title="Mettre en premier">↑ Première</button>' : '<span></span>') +
+      '<button type="button" data-bouger="' + i + ',-1" title="Avancer"' + (i ? '' : ' disabled') + '>←</button>' +
+      '<button type="button" data-bouger="' + i + ',1" title="Reculer"' + (i < l.length - 1 ? '' : ' disabled') + '>→</button>' +
+      '<button type="button" data-recadrer="' + esc(u) + '" data-index="' + i + '">Recadrer</button>' +
       '<button type="button" data-retirer="' + i + '">Retirer</button></div></div>';
-  }).join('') + '<button type="button" class="ajout" id="ajoutPhoto">+ Ajouter une photo</button>';
-  document.querySelectorAll('[data-retirer]').forEach(function (b) { b.onclick = function () { var l = listePhotos(); l.splice(+b.dataset.retirer, 1); ecrirePhotos(l); }; });
-  document.querySelectorAll('[data-premiere]').forEach(function (b) { b.onclick = function () { var l = listePhotos(); l.unshift(l.splice(+b.dataset.premiere, 1)[0]); ecrirePhotos(l); }; });
+  }).join('') + '<button type="button" class="ajout" id="ajoutPhoto">+ Ajouter</button>';
+  $('#photos').querySelectorAll('[data-retirer]').forEach(function (b) { b.onclick = function () { var l = listePhotos(); l.splice(+b.dataset.retirer, 1); ecrirePhotos(l); }; });
+  $('#photos').querySelectorAll('[data-bouger]').forEach(function (b) { b.onclick = function () {
+    var a = b.dataset.bouger.split(','), i = +a[0], j = i + (+a[1]), l = listePhotos(); if (j < 0 || j >= l.length) return;
+    var x = l[i]; l[i] = l[j]; l[j] = x; ecrirePhotos(l);
+  }; });
+  $('#photos').querySelectorAll('[data-recadrer]').forEach(function (b) { b.onclick = function () {
+    var i = +b.dataset.index;
+    recadrerUrl(b.dataset.recadrer, ($('#f-titre').value || 'photo'), function (url) { var l = listePhotos(); l[i] = url; ecrirePhotos(l); toast('Photo recadrée : pensez à enregistrer l\'événement'); });
+  }; });
   $('#ajoutPhoto').onclick = function () { $('#fichierPhoto').value = ''; $('#fichierPhoto').click(); };
 }
-// Photos déjà sur le site (fichier festival.js du site), pour les voir et les reprendre ici.
+
+// ---------- Galerie : toutes les photos (fichier du site + dossier Drive), par spectacle ----------
+var PHOTOS_DRIVE = null;
 function chargerSite(ok) {
   if (window.SPECTACLES || !siteUrl()) return ok();
   var sc = document.createElement('script'); sc.src = siteUrl() + 'festival.js?' + Date.now(); sc.onload = ok; sc.onerror = function () { ok(); }; document.head.appendChild(sc);
 }
-function normTitre(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
-function photosSiteAfficher() {
-  var z = $('#photosSite'); if (!z) return;
-  chargerSite(function () {
-    var SP = window.SPECTACLES || {}, cle = Object.keys(SP).filter(function (k) { return normTitre(k) === normTitre($('#f-spectacle').value || $('#f-titre').value); })[0];
-    var s = cle ? SP[cle] : null, l = s ? (s.photos || (s.photo ? [{ src: s.photo, credit: s.credit }] : [])) : [];
-    if (!l.length) { z.innerHTML = cle ? '' : '<p class="aide">Aucune fiche du site ne porte ce titre : vérifiez l\'orthographe du titre ou du spectacle.</p>'; return; }
-    z.innerHTML = '<label>Déjà sur le site pour « ' + esc(cle) + ' » (fichier du site, ' + l.length + ' photo' + (l.length > 1 ? 's' : '') + ')</label><div class="photos">' + l.map(function (p, i) {
-      var u = siteUrl() + p.src;
-      return '<div class="photo"><img src="' + esc(u) + '" alt="" loading="lazy" title="' + esc(p.credit || '') + '"><div class="outils">' + (listePhotos().indexOf(u) < 0 ? '<button type="button" data-reprendre="' + esc(u) + '">+ Reprendre ici</button>' : '<span style="color:var(--vert);font-size:12px;padding:3px 5px">Reprise</span>') + '</div></div>';
-    }).join('') + '</div><p class="aide">Ces photos s\'affichent déjà sur le site ; « Reprendre ici » les ajoute à cet événement pour les réordonner ou en ajouter d\'autres.</p>';
-    z.querySelectorAll('[data-reprendre]').forEach(function (b) { b.onclick = function () { ecrirePhotos(listePhotos().concat([b.dataset.reprendre])); }; });
+function chargerDrive(ok, force) {
+  if (PHOTOS_DRIVE && !force) return ok();
+  appel('adminListerPhotos', [], function (l) { PHOTOS_DRIVE = l || []; ok(); });
+}
+function normTitre(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+function titresConnus() {
+  var l = Object.keys(window.SPECTACLES || {}); (D.spectacles || []).forEach(function (s) { if (!l.some(function (k) { return normTitre(k) === normTitre(s); })) l.push(s); }); return l;
+}
+function titreDe(nom) { // « Titre · 3 » ou « Titre 3 » → titre connu
+  var n = normTitre(String(nom).split(' · ')[0]), l = titresConnus().slice().sort(function (a, b) { return b.length - a.length; });
+  for (var i = 0; i < l.length; i++) { var k = normTitre(l[i]); if (n === k || n.indexOf(k + ' ') === 0) return l[i]; }
+  return '';
+}
+function idDrive(u) { var m = /drive\.google\.com\/(?:thumbnail\?id=|uc\?id=|file\/d\/)([\w-]+)/.exec(u || ''); return m ? m[1] : ''; }
+// Toutes les photos connues : { titre, url, credit, origine: 'site'|'drive', id, surSite }
+function toutesPhotos() {
+  var l = [], SP = window.SPECTACLES || {}, utilisees = {};
+  D.evenements.forEach(function (e) { String(e.image || '').split(/\s*[\n,]\s*/).forEach(function (u) { if (u) utilisees[u.split('/').pop()] = true; }); });
+  Object.keys(SP).forEach(function (k) {
+    var s = SP[k], aff = (s.photos || (s.photo ? [{ src: s.photo, credit: s.credit }] : []));
+    aff.forEach(function (p) { l.push({ titre: k, url: siteUrl() + p.src, credit: p.credit || '', origine: 'site', surSite: true }); });
+    (s.banque || []).forEach(function (p) { l.push({ titre: k, url: siteUrl() + p.src, credit: p.credit || '', origine: 'site', surSite: false }); });
   });
+  (PHOTOS_DRIVE || []).forEach(function (f) { l.push({ titre: titreDe(f.nom), nom: f.nom, url: f.url, credit: '', origine: 'drive', id: f.id, surSite: !!utilisees[f.url.split('/').pop()] }); });
+  return l;
+}
+function cartePhoto(p, boutons) {
+  var portrait = /affiche|visuel|gerard-[1-6]\b|-z[15]\.|facteur-cheval-[245]\.|ma-vie-3|hans-boude|hans-pepite|gaza-/.test(p.url);
+  return '<div class="photo' + (portrait ? ' portrait' : '') + '" title="' + esc(p.credit || p.nom || '') + '"><img src="' + esc(p.url) + '" alt="" loading="lazy">' +
+    (p.surSite ? '<span class="etiquette">Sur le site</span>' : (p.origine === 'drive' ? '<span class="etiquette drive">Drive</span>' : '')) +
+    '<div class="outils">' + boutons + '</div></div>';
+}
+function galerieAfficher() {
+  var z = $('#galerie'); if (!z) return;
+  chargerSite(function () { chargerDrive(function () {
+    var cible = normTitre($('#f-spectacle').value || $('#f-titre').value), prises = listePhotos();
+    var toutes = toutesPhotos(), pour = toutes.filter(function (p) { return normTitre(p.titre) === cible; }), autres = toutes.filter(function (p) { return normTitre(p.titre) !== cible; });
+    function boutons(p) {
+      var deja = prises.some(function (u) { return u === p.url || u.split('/').pop() === p.url.split('/').pop(); });
+      return (deja ? '<span style="color:var(--vert);font-size:12px;padding:3px 5px">✓ Utilisée</span>' : '<button type="button" data-utiliser="' + esc(p.url) + '">+ Utiliser</button>') +
+        '<button type="button" data-recadrer-g="' + esc(p.url) + '">Recadrer</button>';
+    }
+    var h = '<h4>Galerie · pour « ' + esc($('#f-spectacle').value || $('#f-titre').value) + ' » (' + pour.length + ')</h4>';
+    h += pour.length ? '<div class="photos">' + pour.map(function (p) { return cartePhoto(p, boutons(p)); }).join('') + '</div>'
+      : '<p class="aide">Aucune photo dans la galerie pour ce titre. Ajoutez-en dans l\'onglet Photos, ou vérifiez l\'orthographe du titre.</p>';
+    var groupes = {}; autres.forEach(function (p) { (groupes[p.titre || 'Sans spectacle'] = groupes[p.titre || 'Sans spectacle'] || []).push(p); });
+    h += '<details><summary>Toutes les autres photos de la galerie (' + autres.length + ')</summary>' + Object.keys(groupes).sort().map(function (k) {
+      return '<h4>' + esc(k) + '</h4><div class="photos">' + groupes[k].map(function (p) { return cartePhoto(p, boutons(p)); }).join('') + '</div>';
+    }).join('') + '</details>';
+    z.innerHTML = h;
+    z.querySelectorAll('[data-utiliser]').forEach(function (b) { b.onclick = function () { ecrirePhotos(listePhotos().concat([b.dataset.utiliser])); }; });
+    z.querySelectorAll('[data-recadrer-g]').forEach(function (b) { b.onclick = function () {
+      recadrerUrl(b.dataset.recadrerG, ($('#f-titre').value || 'photo'), function (url) { ecrirePhotos(listePhotos().concat([url])); toast('Photo recadrée et ajoutée : pensez à enregistrer'); });
+    }; });
+  }); });
 }
 function photosInit() {
   if (!$('#photos')) return;
-  photosAfficher(); photosSiteAfficher();
-  $('#f-titre').onchange = $('#f-spectacle').onchange = photosSiteAfficher;
+  photosAfficher(); galerieAfficher();
+  $('#f-titre').onchange = $('#f-spectacle').onchange = galerieAfficher;
   $('#urlPhoto').onclick = function () { var u = prompt('Adresse de l\'image (https://…) :'); if (u && /^https?:\/\//.test(u.trim())) ecrirePhotos(listePhotos().concat([u.trim()])); };
   $('#fichierPhoto').onchange = function () { var f = this.files[0]; if (f) recadrer(f, function (base64) {
-    toast('Envoi de la photo…');
-    appel('adminEnregistrerImage', [{ nom: ($('#f-titre').value || 'photo') + ' ' + (listePhotos().length + 1), base64: base64 }], function (r) {
-      ecrirePhotos(listePhotos().concat([r.url])); toast('Photo ajoutée : pensez à enregistrer l\'événement');
-    });
+    envoyerImage(($('#f-titre').value || 'photo'), base64, function (r) { ecrirePhotos(listePhotos().concat([r.url])); toast('Photo ajoutée : pensez à enregistrer l\'événement'); });
   }); };
+}
+function envoyerImage(titre, base64, ok) {
+  toast('Envoi de la photo…');
+  appel('adminEnregistrerImage', [{ nom: titre + ' · ' + new Date().toISOString().slice(0, 16).replace('T', ' '), base64: base64 }], function (r) { PHOTOS_DRIVE = null; ok(r); });
+}
+// Récupère une photo existante (site ou Drive) pour la recadrer, puis l'enregistre comme nouvelle photo.
+function recadrerUrl(url, titre, ok) {
+  var id = idDrive(url);
+  function suite(blob) { recadrer(blob, function (base64) { envoyerImage(titre, base64, function (r) { ok(r.url); }); }); }
+  function rate() { toast('Impossible de lire cette photo pour la recadrer.', true); }
+  if (id) appel('adminLireImage', [id], function (r) { fetch(r.base64).then(function (x) { return x.blob(); }).then(suite).catch(rate); });
+  else fetch(url, { mode: 'cors' }).then(function (x) { if (!x.ok) throw 0; return x.blob(); }).then(suite).catch(rate);
+}
+// Réduit une photo (max 1600 px) sans la recadrer, pour la galerie.
+function reduire(fichier, ok) {
+  var charge = window.createImageBitmap ? createImageBitmap(fichier, { imageOrientation: 'from-image' }) : Promise.reject();
+  charge.catch(function () { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = URL.createObjectURL(fichier); }); })
+    .then(function (im) {
+      var k = Math.min(1, 1600 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.85));
+    }).catch(function () { toast('Photo illisible : ' + fichier.name, true); });
+}
+
+// ---------- Onglet Photos : la galerie complète ----------
+function afficherPhotos() {
+  $('#vue').innerHTML = '<p class="vide">Chargement de la galerie…</p>';
+  chargerSite(function () { chargerDrive(function () {
+    var toutes = toutesPhotos(), groupes = {}, titres = titresConnus();
+    toutes.forEach(function (p) { (groupes[p.titre || 'Sans spectacle'] = groupes[p.titre || 'Sans spectacle'] || []).push(p); });
+    var h = '<div class="panneau"><div class="grille"><div><label for="g-titre">Spectacle</label><select id="g-titre">' + titres.map(function (s) { return '<option>' + esc(s) + '</option>'; }).join('') + '<option value="">Sans spectacle</option></select></div>' +
+      '<div><label>&nbsp;</label><button type="button" class="btn plein" id="ajoutGalerie">+ Ajouter des photos à la galerie</button></div></div>' +
+      '<p class="aide">Les photos ajoutées ici sont rangées dans le Drive du festival (dossier « ' + esc('Petit Festival · photos du site') + ' »), sans recadrage. On choisit ensuite, dans chaque événement, lesquelles afficher, dans quel ordre, et on les recadre si besoin. Les photos marquées « Sur le site » sont déjà affichées.</p></div>';
+    Object.keys(groupes).sort(function (a, b) { return a.localeCompare(b, 'fr'); }).forEach(function (k) {
+      h += '<div class="groupe"><h3>' + esc(k) + ' <span class="badge">' + groupes[k].length + '</span></h3><div class="photos">' + groupes[k].map(function (p) {
+        return cartePhoto(p, '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" style="color:var(--texte);font:600 12px Barlow,sans-serif;padding:3px 5px;text-decoration:none">Voir</a>' +
+          (p.origine === 'drive' ? '<button type="button" data-suppr="' + esc(p.id) + '">Supprimer</button>' : '<span style="font-size:11px;color:var(--doux);padding:3px 5px">fichier du site</span>'));
+      }).join('') + '</div></div>';
+    });
+    if (!toutes.length) h += '<p class="vide">Aucune photo pour l\'instant.</p>';
+    $('#vue').innerHTML = h;
+    $('#ajoutGalerie').onclick = function () { $('#fichiersGalerie').value = ''; $('#fichiersGalerie').click(); };
+    $('#fichiersGalerie').onchange = function () {
+      var fichiers = Array.prototype.slice.call(this.files), titre = $('#g-titre').value || 'photo', n = 0;
+      if (!fichiers.length) return;
+      (function suivant() {
+        if (n >= fichiers.length) { toast(fichiers.length + ' photo' + (fichiers.length > 1 ? 's' : '') + ' ajoutée' + (fichiers.length > 1 ? 's' : '')); return chargerDrive(afficherPhotos, true); }
+        reduire(fichiers[n++], function (base64) { appel('adminEnregistrerImage', [{ nom: titre + ' · ' + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' ' + n, base64: base64 }], suivant); });
+      })();
+    };
+    document.querySelectorAll('[data-suppr]').forEach(function (b) { b.onclick = function () {
+      if (!confirm('Supprimer cette photo du Drive ? Si un événement l\'affiche, elle disparaîtra du site.')) return;
+      appel('adminSupprimerPhoto', [b.dataset.suppr], function () { toast('Photo supprimée'); chargerDrive(afficherPhotos, true); });
+    }; });
+  }); });
 }
 
 // Recadrage : la photo se déplace au doigt ou à la souris, le curseur zoome ; le cadre est au format 3:2 du site.
