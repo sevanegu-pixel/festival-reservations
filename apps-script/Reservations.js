@@ -25,9 +25,9 @@ var RESA = {
 };
 
 var COL_EV = ['id', 'Titre', 'Spectacle', 'Compagnie', 'Date', 'Début', 'Fin', 'Durée', 'Âge', 'Lieu', 'Adresse',
-  'Description', 'Tarif', 'Places', 'Statut', 'Image', 'Créé le', 'Liste d\'attente', 'Texte long', 'Distribution'];
+  'Description', 'Tarif', 'Places', 'Statut', 'Image', 'Créé le', 'Liste d\'attente', 'Texte long', 'Distribution', 'Vidéo'];
 var CHAMPS_EV = ['id', 'titre', 'spectacle', 'compagnie', 'date', 'debut', 'fin', 'duree', 'age', 'lieu', 'adresse',
-  'description', 'tarif', 'places', 'statut', 'image', 'cree', 'attente', 'long', 'distribution'];
+  'description', 'tarif', 'places', 'statut', 'image', 'cree', 'attente', 'long', 'distribution', 'video'];
 
 // Adresse de l'appli de gestion (page GitHub installable comme une icône, ordinateur et téléphone)
 var GESTION_URL = 'https://sevanegu-pixel.github.io/festival-reservations/';
@@ -287,7 +287,7 @@ function versPublic_(ev, prises) {
   return {
     id: ev.id, titre: ev.titre, spectacle: ev.spectacle, date: ev.date, debut: ev.debut, fin: ev.fin,
     compagnie: ev.compagnie, duree: ev.duree, age: ev.age,
-    lieu: ev.lieu, adresse: ev.adresse, description: ev.description, long: ev.long, distribution: ev.distribution, tarif: ev.tarif, image: ev.image,
+    lieu: ev.lieu, adresse: ev.adresse, description: ev.description, long: ev.long, distribution: ev.distribution, video: ev.video, tarif: ev.tarif, image: ev.image,
     reservable: ev.statut === 'Ouvert' && (places === 0 || prises < places),
     complet: places > 0 && prises >= places,
     restantes: places > 0 ? Math.max(0, places - prises) : null,
