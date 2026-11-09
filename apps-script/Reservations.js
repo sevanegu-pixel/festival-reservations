@@ -50,8 +50,24 @@ var REGLAGES_DEFAUT = {
   sujetAttente: 'Liste d\'attente : {titre}',
   messageAttente: 'Bonjour {nom},\n\nC\'est complet pour « {titre} » le {date} à {heure}, mais vous êtes sur la liste d\'attente pour {places} place(s). ' +
     'Dès qu\'une place se libère, nous vous écrivons pour confirmer.\n\n{festival}',
+  sujetLiberee: 'Une place s\'est libérée : {titre}',
+  messageLiberee: 'Bonjour {nom},\n\nBonne nouvelle : une place s\'est libérée ! Votre réservation de {places} place(s) pour « {titre} », le {date} à {heure}, {lieu}, est maintenant confirmée.\n\n' +
+    'Le paiement se fait sur place. Si vous ne pouvez plus venir, répondez simplement à cet e-mail pour que quelqu\'un d\'autre en profite.\n\nÀ très vite !\n{festival}',
+  sujetRappel: 'C\'est demain : {titre}',
+  messageRappel: 'Bonjour {prenom},\n\nPetit rappel : nous vous attendons pour « {titre} », le {date} à {heure}, {lieu}.\n\n' +
+    'La buvette ouvre une heure avant le spectacle. Le paiement se fait sur place ({tarif}).\n\nSi vous ne pouvez plus venir, répondez à cet e-mail : votre place fera un·e heureux·se sur la liste d\'attente.\n\nÀ demain !\n{festival}',
+  sujetEvenementAnnule: 'Important : {titre} du {date}',
+  messageEvenementAnnule: 'Bonjour {nom},\n\nNous sommes désolés : la représentation de « {titre} » prévue le {date} à {heure} ne pourra pas avoir lieu comme prévu.\n\n' +
+    '**Nous vous proposons…** (à compléter : nouvelle date, remboursement, autre spectacle)\n\nRépondez à cet e-mail pour toute question, nous vous répondrons vite.\n\n{festival}',
+  sujetMerci: 'Merci d\'être venu·e !',
+  messageMerci: 'Bonjour {prenom},\n\nMerci d\'être venu·e voir « {titre} » hier soir. Nous espérons que la soirée vous a plu !\n\n' +
+    'Le festival continue : tout le programme est sur {site}. Et si vous avez envie de nous dire un mot sur le spectacle, répondez simplement à cet e-mail.\n\nÀ bientôt au Théâtricul,\n{festival}',
   piedDePage: '{festival}\n{adresse}\n{site}\nPour toute question, répondez simplement à cet e-mail.',
+  piedStyle: 'simple',
+  instagram: '',
+  facebook: '',
   billet: 'Oui',
+  optionsMail: '{}',
 };
 
 // ---------- Point d'entrée web ----------
@@ -386,7 +402,7 @@ function adminConfirmerReservation(cle, id, prevenir) {
   resa.places = Number(resa.places) || 1;
   feuille.getRange(n, CHAMPS_RES.indexOf('statut') + 1).setValue('Confirmée');
   var ev = lireEvenements_().filter(function (x) { return x.id === resa.evenement; })[0];
-  if (prevenir && ev && resa.email) envoyerConfirmation_(ev, resa);
+  if (prevenir && ev && resa.email) envoyerType_('liberee', ev, resa);
   return adminCharger(cle);
 }
 
@@ -397,7 +413,33 @@ function valeursMail_(ev, resa) {
     heure: ev.debut || '', lieu: [ev.lieu, ev.adresse].filter(String).join(', '), adresse: ev.adresse || '', tarif: ev.tarif || '',
     numero: resa.id || '', email: resa.email || '', telephone: resa.telephone || '', message: resa.message || '',
     festival: r.nomFestival, site: String(r.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, ''),
+    lien: ev.id ? String(r.siteUrl || '').replace(/\/?$/, '/') + 'programme.html#' + encodeURIComponent(ev.id) : String(r.siteUrl || ''),
+    image: ev.image || '',
   };
+}
+
+/**
+ * E-mail « groupé » envoyé à la demande depuis la page d'un événement (rappel, spectacle annulé, merci) :
+ * une copie personnalisée à chaque réservation active (liste d'attente comprise pour « spectacle annulé »).
+ * brouillon : réglages pas encore enregistrés (pour l'essai). Renvoie le nombre d'envois.
+ */
+function adminEnvoyerGroupe(cle, evId, type, brouillon) {
+  verifierCle_(cle);
+  var t = MAIL.TYPES[type];
+  if (!t || !t.groupe) throw new Error('Ce modèle ne s\'envoie pas en groupe.');
+  var ev = lireEvenements_().filter(function (x) { return x.id === evId; })[0];
+  if (!ev) throw new Error('Événement introuvable.');
+  var r = reglages_();
+  if (brouillon && typeof brouillon === 'object') Object.keys(REGLAGES_DEFAUT).forEach(function (k) { if (k in brouillon) r[k] = String(brouillon[k]); });
+  var resas = lireReservations_().filter(function (x) { return x.evenement === evId && x.email && x.statut !== 'Annulée' && (t.attente || x.statut !== 'Liste d\'attente'); });
+  var quota = MailApp.getRemainingDailyQuota();
+  if (resas.length > quota) throw new Error('Google n\'autorise plus que ' + quota + ' e-mail(s) aujourd\'hui, il en faudrait ' + resas.length + '. Réessayez demain ou envoyez en deux fois.');
+  var n = 0, erreurs = [];
+  resas.forEach(function (resa) {
+    try { envoyerType_(type, ev, resa, r); n++; } catch (err) { erreurs.push(resa.nom + ' : ' + err); }
+  });
+  if (erreurs.length) console.error('Envoi groupé ' + type + ' : ' + erreurs.join(' | '));
+  return { envoyes: n, erreurs: erreurs.length, total: resas.length };
 }
 
 function remplir_(modele, valeurs) { return MAIL.remplir(modele, valeurs); }

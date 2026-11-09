@@ -164,6 +164,15 @@ tr.attente td{color:var(--doux)}
 .apercuMail .entete b{color:var(--texte)}
 .apercuMail .corps{background:#fff;color:#1b1733;padding:18px;max-height:70vh;overflow:auto}
 .apercuMail .corps a{color:#c81f74}
+.apercuMail .corps.nu{padding:0;background:transparent}
+.quandMail{display:flex;gap:10px;align-items:flex-start;margin:0 0 12px;padding:10px 14px;border:1px dashed var(--ligne);border-radius:10px;font-size:14px;color:var(--doux)}
+.quandMail .badge{flex:none;margin-top:2px}
+.optionsMail{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px 14px;margin:14px 0 4px;padding:12px 14px;background:var(--carte);border-radius:10px}
+.optionsMail label{font-size:13px;color:var(--doux)}.optionsMail label input:not([type=checkbox]),.optionsMail label select{margin-top:4px}
+.optionsMail .coche{font-size:14px;color:var(--texte);align-self:end;min-height:38px}
+.choixEx{display:flex;gap:8px;align-items:center;padding:8px 14px;background:var(--carte);border-bottom:1px solid var(--ligne);font-size:13px;color:var(--doux)}
+.choixEx select{width:auto;flex:1;min-width:0;padding:5px 8px;font-size:13px}
+#dlgTexte select{width:100%;margin-top:10px}
 @media (max-width:960px){.editeurMail{display:block}.apercuMail{position:static;margin-top:14px}}
 </style>
 </head>
@@ -171,7 +180,7 @@ tr.attente td{color:var(--doux)}
 <div id="charge"></div>
 <header>
   <h1><small id="nomFestival">Festival</small>Réservations</h1>
-  <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
+  <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="mails" data-droit="reglages">E-mails</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
 </header>
 <main id="vue"><p class="vide">Chargement…</p></main>
 <input type="file" id="fichierPhoto" accept="image/*" multiple hidden>
@@ -219,7 +228,7 @@ function aujourdhui() { var d = new Date(); return d.getFullYear() + '-' + ('0' 
 // Boîtes de dialogue de l'appli (pas celles du navigateur). confirmer(texte, ok, options) ; demander(texte, ok, options)
 function dialogue(o) {
   var d = $('#dialogue'), ch = $('#dlgChamp');
-  $('#dlgTitre').textContent = o.titre || ''; $('#dlgTitre').hidden = !o.titre; $('#dlgTexte').textContent = o.texte || '';
+  $('#dlgTitre').textContent = o.titre || ''; $('#dlgTitre').hidden = !o.titre; if (o.html) $('#dlgTexte').innerHTML = o.html; else $('#dlgTexte').textContent = o.texte || '';
   ch.hidden = !o.champ; ch.value = o.champ ? (o.defaut || '') : ''; ch.placeholder = o.placeholder || '';
   $('#dlgOui').textContent = o.oui || 'OK'; $('#dlgNon').textContent = o.non || 'Annuler'; $('#dlgNon').hidden = o.non === false;
   $('#dlgOui').className = 'btn ' + (o.danger ? 'danger' : 'plein');
@@ -245,7 +254,7 @@ function recharger(res) {
   if (res.jeton) { JETON = res.jeton; garderLocal('jeton', JETON); garderLocal('pin', ''); } // cet appareil est reconnu : plus de code PIN à redonner
   document.querySelectorAll('nav [data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
   $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
-  if ((vue === 'photos' && !droit('photos')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); }); }
+  if ((vue === 'photos' && !droit('photos')) || (vue === 'mails' && !droit('reglages')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); }); }
   afficher();
 }
 
@@ -326,6 +335,7 @@ var TRI_EV = { statut: '', ordre: 'date', q: '' };
 function afficher() {
   if (!D) return;
   if (vue === 'reglages') return afficherReglages();
+  if (vue === 'mails') return afficherMails();
   if (vue === 'photos') return afficherPhotos();
   if (ouvert) return afficherEvenement(ouvert);
   if (vue === 'accueil') return afficherAccueil();
@@ -544,7 +554,7 @@ function afficherEvenement(id) {
           '</td><td>' + esc(r.message) + '</td><td>' + esc(r.recue) + '</td><td>' +
           (ann ? 'Annulée' : (att ? '<button class="btn petit plein" data-confirmer="' + esc(r.id) + '">Confirmer</button> ' : '') + '<button class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler</button>') + '</td></tr>';
       }).join('') + '</table></div>';
-    if (peutResa) h += '<div class="actions">' + (actives.length ? '<button class="btn" id="copier">Copier les e-mails</button>' : '') + '</div>';
+    if (peutResa) h += '<div class="actions">' + (actives.length ? '<button class="btn" id="copier">Copier les e-mails</button>' : '') + (actives.length || enAttente.length ? '<button class="btn" id="ecrire">Écrire aux inscrits…</button>' : '') + '</div>';
     if (peutResa) h += '<h2>Ajouter une réservation à la main</h2><form id="ajout"><div class="grille">' +
       (champ('nom', 'Nom', '', 'text', 'required') + champ('email', 'E-mail', '', 'email') + champ('telephone', 'Téléphone', '') +
       champ('places', 'Places', '1', 'number', 'min="1"')).replace(/(id|for)="f-/g, '$1="a-') +
@@ -612,6 +622,20 @@ function afficherEvenement(id) {
       }, { titre: 'Confirmer la réservation', oui: 'Confirmer et envoyer' });
     };
   });
+  var ec = $('#ecrire');
+  if (ec) ec.onclick = function () {
+    var groupes = Object.keys(MAIL.TYPES).filter(function (k) { return MAIL.TYPES[k].groupe; });
+    var resasEv = D.reservations.filter(function (r) { return r.evenement === e.id && r.email && r.statut !== 'Annulée'; });
+    function compte(k) { return resasEv.filter(function (r) { return MAIL.TYPES[k].attente || r.statut !== 'Liste d\'attente'; }).length; }
+    dialogue({ titre: 'Écrire aux inscrits', html: 'Chaque personne reçoit sa propre copie, avec son nom et ses places. Les textes se règlent dans l\'onglet E-mails.<select id="dlgType">' + groupes.map(function (k) { return '<option value="' + k + '">' + esc(MAIL.TYPES[k].nom) + ' · ' + compte(k) + ' personne' + (compte(k) > 1 ? 's' : '') + '</option>'; }).join('') + '</select>', oui: 'Continuer', ok: function () {
+      var k = $('#dlgType').value, n = compte(k);
+      if (!n) return toast('Personne à prévenir pour cet e-mail.', true);
+      confirmer('Envoyer « ' + MAIL.TYPES[k].nom + ' » à ' + n + ' personne' + (n > 1 ? 's' : '') + ' maintenant ? Impossible de rappeler un e-mail parti.', function () {
+        toast('Envoi en cours…');
+        appel('adminEnvoyerGroupe', [e.id, k], function (res) { toast(res.envoyes + ' e-mail' + (res.envoyes > 1 ? 's' : '') + ' envoyé' + (res.envoyes > 1 ? 's' : '') + (res.erreurs ? ', ' + res.erreurs + ' en erreur' : '') + ' ✓'); });
+      }, { titre: 'Confirmer l\'envoi', oui: 'Envoyer à ' + n });
+    } });
+  };
   var cp = $('#copier');
   if (cp) cp.onclick = function () {
     var mails = actives.map(function (r) { return r.email; }).filter(Boolean).join(', ');
@@ -630,62 +654,111 @@ function pucesVariables(pour) {
   return '<div class="puces" data-pour="' + pour + '"><span>Insérer :</span>' + MAIL.VARIABLES.map(function (v) { return '<button type="button" data-var="' + v[0] + '" title="' + esc(v[1]) + '">' + v[0] + '</button>'; }).join('') + '</div>';
 }
 function dateLongueFr(iso) { if (!iso) return ''; var p = iso.split('-'), d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); return ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][d.getUTCDay()] + ' ' + Number(p[2]) + ' ' + ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'][+p[1] - 1] + ' ' + p[0]; }
+// ---------- E-mails : un modèle par cas de figure, options de présentation, aperçu en direct ----------
+var MAIL_VU = 'confirmation', MAIL_EX = '';
+function optionsDuFormulaire(f) {
+  var o = {}; try { o = JSON.parse(D.reglages.optionsMail || '{}') || {}; } catch (e) { o = {}; }
+  Object.keys(MAIL.TYPES).forEach(function (k) {
+    var t = o[k] || {}; o[k] = t;
+    ['theme', 'bouton', 'lienBouton', 'separateur'].forEach(function (c) { var el = f.querySelector('[name="opt_' + k + '_' + c + '"]'); if (el) t[c] = el.value; });
+    ['entete', 'visuel', 'billet'].forEach(function (c) { var el = f.querySelector('[name="opt_' + k + '_' + c + '"]'); if (el) t[c] = el.checked; });
+  });
+  return o;
+}
+function brouillonMails() {
+  var f = $('#formMail'), o = Object.assign({}, D.reglages);
+  new FormData(f).forEach(function (v, k) { if (k.indexOf('opt_') !== 0) o[k] = v; });
+  o.optionsMail = JSON.stringify(optionsDuFormulaire(f));
+  return o;
+}
+function valeursExemple(o) {
+  var v = MAIL.exemple(), evs = (D.evenements || []).filter(function (e) { return e.statut === 'Ouvert' || e.statut === 'Fermé'; });
+  var ev = evs.filter(function (e) { return e.id === MAIL_EX; })[0] || evs.filter(function (e) { return e.date >= aujourdhui(); })[0] || evs[0];
+  if (ev) { MAIL_EX = ev.id; v.titre = ev.titre; v.date = dateLongueFr(ev.date); v.heure = ev.debut || ''; v.lieu = [ev.lieu, ev.adresse].filter(Boolean).join(', '); v.adresse = ev.adresse || ''; v.tarif = ev.tarif || ''; v.image = ev.image || (window.SPECTACLES && photosSitePour(ev.spectacle || ev.titre)[0] ? siteUrl() + photosSitePour(ev.spectacle || ev.titre)[0].src : ''); v.lien = siteUrl() + 'programme.html#' + encodeURIComponent(ev.id); }
+  v.festival = o.nomFestival || v.festival; v.site = String(o.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, '') || v.site;
+  return v;
+}
+function afficherMails() {
+  var r = D.reglages, o = {}; try { o = JSON.parse(r.optionsMail || '{}') || {}; } catch (e) { o = {}; }
+  var evs = (D.evenements || []).filter(function (e) { return e.statut === 'Ouvert' || e.statut === 'Fermé'; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+  function opt(k) { var d = Object.assign({}, MAIL.OPTIONS_DEFAUT, o[k] || {}); if (d.billet == null) d.billet = MAIL.TYPES[k].billet; return d; }
+  function sel(nom, label, val, choix) { return '<label>' + label + '<select name="' + nom + '">' + choix.map(function (c) { return '<option value="' + c[0] + '"' + (c[0] === val ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('') + '</select></label>'; }
+  function coche(nom, label, val) { return '<label class="coche"><input type="checkbox" name="' + nom + '"' + (val ? ' checked' : '') + '> ' + label + '</label>'; }
+  var themes = Object.keys(MAIL.THEMES).map(function (k) { return [k, MAIL.THEMES[k].nom]; });
+  var h = '<h2>E-mails</h2><p class="aide">Chaque cas de figure a son propre modèle. Cliquez une variable pour l\'insérer là où est le curseur ; l\'aperçu se met à jour en direct avec un vrai événement. Le texte accepte **gras** et *italique* ; les adresses https:// deviennent des liens.</p>' +
+    '<div class="ongletsMail" id="ongletsMail">' + Object.keys(MAIL.TYPES).map(function (k) { return '<button type="button" data-type="' + k + '"' + (k === MAIL_VU ? ' class="on"' : '') + '>' + MAIL.TYPES[k].nom + '</button>'; }).join('') + '<button type="button" data-type="pied"' + (MAIL_VU === 'pied' ? ' class="on"' : '') + '>Pied de page</button></div>' +
+    '<form id="formMail" class="panneau"><div class="editeurMail"><div id="volMail">' +
+    Object.keys(MAIL.TYPES).map(function (k) {
+      var t = MAIL.TYPES[k], d = opt(k);
+      return '<div data-panneau="' + k + '"' + (k === MAIL_VU ? '' : ' hidden') + '><div class="quandMail"><span class="badge ' + (t.auto ? 'Ouvert' : '') + '">' + (t.auto ? 'Automatique' : 'À la demande') + '</span><span>' + esc(t.quand) + '</span></div>' +
+        champ(t.sujet, 'Sujet', r[t.sujet] || '') + '<div class="large" style="margin-top:10px"><label for="f-' + t.message + '">Message</label>' + pucesVariables('f-' + t.message) + '<textarea id="f-' + t.message + '" name="' + t.message + '">' + esc(r[t.message] || '') + '</textarea></div>' +
+        '<h3 class="section" style="margin-top:14px">Présentation de cet e-mail</h3><div class="optionsMail">' +
+        sel('opt_' + k + '_theme', 'Couleurs', d.theme, themes) +
+        coche('opt_' + k + '_entete', 'Nom du festival en en-tête', d.entete) +
+        coche('opt_' + k + '_visuel', 'Visuel du spectacle en haut', d.visuel) +
+        (t.billet ? coche('opt_' + k + '_billet', 'Billet récapitulatif', d.billet) : '') +
+        '<label>Texte du bouton (vide = pas de bouton)<input type="text" name="opt_' + k + '_bouton" value="' + esc(d.bouton || '') + '" placeholder="Ex. Voir le spectacle"></label>' +
+        sel('opt_' + k + '_lienBouton', 'Le bouton mène vers', d.lienBouton, [['lien', 'La page du spectacle'], ['site', 'L\'accueil du site']]) +
+        sel('opt_' + k + '_separateur', 'Avant le pied de page', d.separateur, [['etoiles', 'Trois étoiles'], ['ligne', 'Petite ligne'], ['aucun', 'Rien']]) +
+        '</div></div>';
+    }).join('') +
+    '<div data-panneau="pied"' + (MAIL_VU === 'pied' ? '' : ' hidden') + '><div class="quandMail"><span class="badge Ouvert">Commun</span><span>Le pied de page termine chacun des e-mails ci-dessus : signature, adresse, lien du site, réseaux.</span></div>' +
+    '<div class="large"><label for="f-piedDePage">Texte du pied de page</label>' + pucesVariables('f-piedDePage') + '<textarea id="f-piedDePage" name="piedDePage">' + esc(r.piedDePage || '') + '</textarea></div>' +
+    '<div class="optionsMail">' + sel('piedStyle', 'Présentation', r.piedStyle || 'simple', Object.keys(MAIL.PIEDS).map(function (k) { return [k, MAIL.PIEDS[k]]; })) +
+    '<label>Instagram (adresse complète)<input type="url" name="instagram" value="' + esc(r.instagram || '') + '" placeholder="https://instagram.com/…"></label>' +
+    '<label>Facebook (adresse complète)<input type="url" name="facebook" value="' + esc(r.facebook || '') + '" placeholder="https://facebook.com/…"></label></div>' +
+    '<p class="aide">Le lien du site vient des Réglages. Laissez le texte vide et sans réseaux pour aucun pied de page.</p></div>' +
+    '</div><div class="apercuMail" id="apercuMail"></div></div>' +
+    '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="essai">M\'envoyer cet e-mail en essai</button></div></form>';
+  $('#vue').innerHTML = h;
+  function rendreMail() {
+    var o = brouillonMails(), t = MAIL_VU === 'pied' ? 'confirmation' : MAIL_VU, v = valeursExemple(o), m = MAIL.composer(t, o, v);
+    $('#apercuMail').innerHTML = '<div class="choixEx">Exemple avec <select id="exEv">' + evs.map(function (e) { return '<option value="' + esc(e.id) + '"' + (e.id === MAIL_EX ? ' selected' : '') + '>' + esc(e.titre) + ' · ' + esc(e.date.split('-').reverse().slice(0, 2).join('.')) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="entete"><b>De :</b> ' + esc(o.nomFestival || '') + ' &lt;réservations&gt;<br><b>À :</b> ' + esc(v.email) + '<br><b>Objet :</b> <b>' + esc(m.sujet) + '</b></div><div class="corps nu">' + m.html + '</div>';
+    $('#exEv').onchange = function () { MAIL_EX = this.value; rendreMail(); };
+  }
+  document.querySelectorAll('.puces button').forEach(function (b) {
+    b.onmousedown = function (ev) { ev.preventDefault(); };
+    b.onclick = function () {
+      var ta = $('#' + b.parentNode.dataset.pour), v = '{' + b.dataset.var + '}', d = ta.selectionStart || 0, f = ta.selectionEnd || 0;
+      ta.value = ta.value.slice(0, d) + v + ta.value.slice(f); ta.selectionStart = ta.selectionEnd = d + v.length; ta.focus(); rendreMail();
+    };
+  });
+  document.querySelectorAll('#ongletsMail button').forEach(function (b) {
+    b.onclick = function () {
+      MAIL_VU = b.dataset.type;
+      document.querySelectorAll('#ongletsMail button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      document.querySelectorAll('#volMail [data-panneau]').forEach(function (p) { p.hidden = p.dataset.panneau !== MAIL_VU; });
+      rendreMail();
+    };
+  });
+  $('#formMail').addEventListener('input', rendreMail); $('#formMail').addEventListener('change', rendreMail);
+  $('#formMail').onsubmit = function (ev) {
+    ev.preventDefault();
+    var b = ev.target.querySelector('[type=submit]'); b.disabled = true;
+    appel('adminEnregistrerReglages', [brouillonMails()], function (res) { D = res; b.disabled = false; b.textContent = 'Enregistré ✓'; setTimeout(function () { b.textContent = 'Enregistrer'; }, 2500); toast('E-mails enregistrés ✓'); });
+  };
+  $('#essai').onclick = function () { var t = MAIL_VU === 'pied' ? 'confirmation' : MAIL_VU; $('#essai').disabled = true; appel('adminEssaiMail', [t, brouillonMails()], function (txt) { $('#essai').disabled = false; toast(txt); }); };
+  rendreMail();
+}
+
 function afficherReglages() {
   var r = D.reglages, h = '';
   if (droit('reglages')) h += '<h2>Réglages</h2><form id="regl" class="panneau"><div class="grille">' +
     champ('nomFestival', 'Nom du festival (signature des e-mails)', r.nomFestival) +
     champ('siteUrl', 'Adresse du site (pour les aperçus)', r.siteUrl, 'url') +
     champ('copieA', 'Adresse qui reçoit une copie de chaque réservation', r.copieA, 'email') + '</div>' +
-    '<h3 class="section">E-mails envoyés au public</h3><p class="aide">Trois e-mails automatiques, un pied de page commun et un billet dans la confirmation. Cliquez une variable pour l\'insérer là où est le curseur ; l\'aperçu à droite se met à jour en direct avec des données d\'exemple.</p>' +
-    '<div class="ongletsMail" id="ongletsMail">' + Object.keys(MAIL.TYPES).map(function (k, i) { return '<button type="button" data-type="' + k + '"' + (i ? '' : ' class="on"') + '>' + MAIL.TYPES[k].nom + '</button>'; }).join('') + '<button type="button" data-type="pied">Pied de page</button><button type="button" data-type="billet">Billet</button></div>' +
-    '<div class="editeurMail"><div id="volMail">' +
-    Object.keys(MAIL.TYPES).map(function (k) { var t = MAIL.TYPES[k]; return '<div data-panneau="' + k + '"' + (k === 'confirmation' ? '' : ' hidden') + '>' + champ(t.sujet, 'Sujet', r[t.sujet] || '') + '<div class="large" style="margin-top:10px"><label for="f-' + t.message + '">Message</label>' + pucesVariables('f-' + t.message) + '<textarea id="f-' + t.message + '" name="' + t.message + '">' + esc(r[t.message] || '') + '</textarea></div>' +
-      (k === 'confirmation' ? '<p class="aide">Envoyé à la réservation, quand vous confirmez une inscription en liste d\'attente, et à une réservation ajoutée à la main si la case est cochée.</p>' : k === 'annulation' ? '<p class="aide">Envoyé quand vous annulez une réservation en choisissant « prévenir ».</p>' : '<p class="aide">Envoyé quand quelqu\'un s\'inscrit sur la liste d\'attente d\'un événement complet.</p>') + '</div>'; }).join('') +
-    '<div data-panneau="pied" hidden><div class="large"><label for="f-piedDePage">Pied de page (sous chaque e-mail)</label>' + pucesVariables('f-piedDePage') + '<textarea id="f-piedDePage" name="piedDePage">' + esc(r.piedDePage || '') + '</textarea></div><p class="aide">Signature, adresse, lien du site… Laissez vide pour aucun pied de page.</p></div>' +
-    '<div data-panneau="billet" hidden><label class="coche"><input type="checkbox" name="billet" value="Oui"' + (String(r.billet || '') === 'Oui' ? ' checked' : '') + '> Joindre un billet récapitulatif dans l\'e-mail de confirmation</label><p class="aide">Un encadré aux couleurs du site : spectacle, date, heure, lieu, nom, places, numéro de réservation. Les gens le montrent sur leur téléphone à l\'entrée. Il reprend automatiquement vos textes et le tarif de l\'événement.</p></div>' +
-    '</div><div class="apercuMail" id="apercuMail"></div></div>' +
-    '<p class="aide" style="margin-top:12px">Le texte accepte **gras** et *italique* ; les adresses https:// deviennent des liens. Variables : ' + MAIL.VARIABLES.map(function (v) { return '{' + v[0] + '}'; }).join(' ') + '</p>' +
-    '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="essai">M\'envoyer cet e-mail en essai</button></div></form>';
+    '<p class="aide">Les e-mails envoyés au public se règlent dans l\'onglet <b>E-mails</b>.</p>' +
+    '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button></div></form>';
   if (droit('comptes')) h += '<h2 id="comptes">Comptes et codes PIN</h2><div class="panneau" id="zoneComptes"><p class="vide">Chargement…</p></div>' +
     '<h2>Appareils connectés</h2><div class="panneau" id="zoneAppareils"><p class="vide">Chargement…</p></div>';
   $('#vue').innerHTML = h;
   if ($('#regl')) {
     $('#regl').onsubmit = function (ev) {
       ev.preventDefault();
-      var o = {}; new FormData(ev.target).forEach(function (v, k) { o[k] = v; }); if (!o.billet) o.billet = '';
+      var o = Object.assign({}, D.reglages); new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
       appel('adminEnregistrerReglages', [o], function (res) { recharger(res); toast('Réglages enregistrés ✓'); });
     };
-    var typeMail = 'confirmation', typeVu = 'confirmation';
-    function brouillonReglages() { var o = {}; new FormData($('#regl')).forEach(function (v, k) { o[k] = v; }); if (!o.billet) o.billet = ''; return o; }
-    function rendreMail() {
-      var o = brouillonReglages(), t = typeVu === 'pied' || typeVu === 'billet' ? 'confirmation' : typeVu, v = MAIL.exemple();
-      var ev = (D.evenements || []).filter(function (e) { return e.statut === 'Ouvert' || e.statut === 'Fermé'; })[0];
-      if (ev) { v.titre = ev.titre; v.date = dateLongueFr(ev.date); v.heure = ev.debut || ''; v.lieu = [ev.lieu, ev.adresse].filter(Boolean).join(', '); v.adresse = ev.adresse || ''; v.tarif = ev.tarif || ''; }
-      v.festival = o.nomFestival || v.festival; v.site = String(o.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, '') || v.site;
-      if (typeVu === 'billet') o.billet = 'Oui';
-      var m = MAIL.composer(t, o, v);
-      $('#apercuMail').innerHTML = '<div class="entete"><b>De :</b> ' + esc(o.nomFestival || '') + ' &lt;réservations&gt;<br><b>À :</b> ' + esc(v.email) + '<br><b>Objet :</b> <b>' + esc(m.sujet) + '</b></div><div class="corps">' + m.html + '</div>';
-    }
-    function pucesInit() {
-      document.querySelectorAll('.puces button').forEach(function (b) {
-        b.onmousedown = function (ev) { ev.preventDefault(); };
-        b.onclick = function () {
-          var ta = $('#' + b.parentNode.dataset.pour), v = '{' + b.dataset.var + '}', d = ta.selectionStart || 0, f = ta.selectionEnd || 0;
-          ta.value = ta.value.slice(0, d) + v + ta.value.slice(f); ta.selectionStart = ta.selectionEnd = d + v.length; ta.focus(); rendreMail();
-        };
-      });
-    }
-    document.querySelectorAll('#ongletsMail button').forEach(function (b) {
-      b.onclick = function () {
-        typeVu = b.dataset.type; typeMail = MAIL.TYPES[typeVu] ? typeVu : 'confirmation';
-        document.querySelectorAll('#ongletsMail button').forEach(function (x) { x.classList.toggle('on', x === b); });
-        document.querySelectorAll('#volMail [data-panneau]').forEach(function (p) { p.hidden = p.dataset.panneau !== typeVu; });
-        rendreMail();
-      };
-    });
-    $('#regl').addEventListener('input', rendreMail); $('#regl').addEventListener('change', rendreMail);
-    pucesInit(); rendreMail();
-    $('#essai').onclick = function () { $('#essai').disabled = true; appel('adminEssaiMail', [typeMail, brouillonReglages()], function (t) { $('#essai').disabled = false; toast(t); }); };
   }
   if ($('#zoneComptes')) appel('adminListerComptes', [], function (r) { comptesAfficher(r); appel('adminListerAppareils', [], appareilsAfficher); });
 }
