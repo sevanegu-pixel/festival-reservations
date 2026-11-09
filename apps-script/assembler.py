@@ -22,6 +22,7 @@ morceaux = [
     lire("Code.js"),
     lire("Reservations.js"),
     lire("Mail.js"),
+    lire("Boite.js"),
     lire("MiseAJour.js"),
     "var ADMIN_HTML = " + json.dumps(lire("Admin.html").replace("/*__MAIL_JS__*/", lire("Mail.js")), ensure_ascii=False) + ";\n",
 ]

@@ -145,6 +145,7 @@ var DROITS = [
   ['publier', 'Publier : changer ce qui est visible sur le site (statut Ouvert, Fermé, Brouillon)'],
   ['photos', 'Galerie : ajouter, recadrer ou supprimer des photos'],
   ['reglages', 'Réglages : e-mails de confirmation, adresse du site'],
+  ['boite', 'Boîte : lire les réponses du public et y répondre'],
   ['comptes', 'Comptes : créer des codes PIN et choisir leurs droits (administration)']
 ];
 var FONCTION_DROIT = {
@@ -154,8 +155,15 @@ var FONCTION_DROIT = {
   adminEnregistrerReglages: 'reglages', adminEssaiMail: 'reglages',
   adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminSupprimerPhoto: 'photos', adminEnregistrerVisuel: 'photos',
   adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes', adminMettreAJour: 'comptes',
-  adminListerAppareils: 'comptes', adminDeconnecterAppareil: 'comptes', adminQuitterAppareil: null
+  adminListerAppareils: 'comptes', adminDeconnecterAppareil: 'comptes', adminQuitterAppareil: null,
+  adminBoite: 'boite', adminLireFil: 'boite', adminRepondreFil: 'boite', adminClasserFil: 'boite', adminModifierPlaces: 'reservations'
 };
+/** Droits d'un compte ; un compte créé avant la Boîte la reçoit s'il gère les comptes (administration). */
+function droitsDe_(c) {
+  var d = {}; Object.keys((c && c.droits) || {}).forEach(function (k) { d[k] = !!c.droits[k]; });
+  if (!('boite' in d)) d.boite = !!d.comptes;
+  return d;
+}
 function adminApi_(d) {
   try {
     if (!(d.fn in FONCTION_DROIT)) throw new Error('Fonction inconnue.');
@@ -170,6 +178,7 @@ function adminApi_(d) {
       if (compte.jeton) res.jeton = compte.jeton; // nouvel appareil : il garde ce jeton et n'a plus à redonner le code
       res.version = VERSION_CODE;
       res.droits = DROITS;
+      if (compte.droits.boite && d.fn === 'adminCharger') res.boiteNonLus = boiteNonLus_();
       if (!compte.droits.reservations) res.reservations = res.reservations.map(function (r) { return { id: r.id, evenement: r.evenement, places: r.places, statut: r.statut }; });
       if (!compte.droits.reglages && !compte.droits.comptes) res.reglages = { nomFestival: res.reglages.nomFestival, siteUrl: res.reglages.siteUrl };
     }
@@ -198,7 +207,7 @@ function acces_(d) {
   for (var i = 0; i < comptes.length; i++) if (comptes[i].hash === hashPin_(pin, comptes[i].id)) { c = comptes[i]; break; }
   if (!c) { cache.put('pin_echecs', String(echecs + 1), 600); throw new Error('Code PIN incorrect.'); }
   cache.remove('pin_echecs');
-  var acces = { id: c.id, nom: c.nom, droits: c.droits || {} };
+  var acces = { id: c.id, nom: c.nom, droits: droitsDe_(c) };
   if (d.appareil && d.appareil.id) { // on retient l'appareil : un jeton remplace le code PIN pour la suite
     var jeton = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
     var l = appareils_().filter(function (a) { return a.id !== d.appareil.id; });
@@ -221,7 +230,7 @@ function accesParJeton_(jeton) {
   var c = comptes_().filter(function (x) { return x.id === a.compte; })[0];
   if (!c) { ecrireAppareils_(l.filter(function (x) { return x !== a; })); throw new Error('Ce compte n\'existe plus : redonnez le code PIN.'); }
   if (Date.now() - dernier > 36e5) { a.dernier = maintenant_(); a.ts = Date.now(); ecrireAppareils_(l); }
-  return { id: c.id, nom: c.nom, droits: c.droits || {}, appareil: a.id };
+  return { id: c.id, nom: c.nom, droits: droitsDe_(c), appareil: a.id };
 }
 function adminListerAppareils(cle) {
   verifierCle_(cle);
@@ -248,7 +257,7 @@ function comptes_() {
 function ecrireComptes_(l) { PropertiesService.getScriptProperties().setProperty(RESA.cleComptes, JSON.stringify(l)); }
 function adminListerComptes(cle) {
   verifierCle_(cle);
-  return { comptes: comptes_().map(function (c) { return { id: c.id, nom: c.nom, droits: c.droits, cree: c.cree }; }), droits: DROITS, lien: GESTION_URL };
+  return { comptes: comptes_().map(function (c) { return { id: c.id, nom: c.nom, droits: droitsDe_(c), cree: c.cree }; }), droits: DROITS, lien: GESTION_URL };
 }
 /** Crée ou modifie un compte : { id?, nom, pin?, droits:{...} }. Le PIN n'est gardé que haché. */
 function adminEnregistrerCompte(cle, c) {

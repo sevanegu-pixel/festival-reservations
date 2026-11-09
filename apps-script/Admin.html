@@ -159,12 +159,34 @@ tr.attente td{color:var(--doux)}
 .puces span{font-size:12px;color:var(--doux);align-self:center;margin-right:4px}
 .puces button{font:600 12px Barlow,sans-serif;background:var(--carte);border:1px dashed var(--lav);color:var(--lav2);border-radius:999px;padding:3px 9px;cursor:pointer}
 .puces button:hover{background:var(--lav);color:#0b0a10}
-.apercuMail{border:1px solid var(--ligne);border-radius:12px;overflow:hidden;position:sticky;top:70px}
+.apercuMail{border:1px solid var(--ligne);border-radius:12px;overflow:hidden;background:var(--carte)}
 .apercuMail .entete{padding:10px 14px;background:var(--carte);border-bottom:1px solid var(--ligne);font-size:13px;color:var(--doux);line-height:1.5}
 .apercuMail .entete b{color:var(--texte)}
-.apercuMail .corps{background:#fff;color:#1b1733;padding:18px;max-height:70vh;overflow:auto}
-.apercuMail .corps a{color:#c81f74}
-.apercuMail .corps.nu{padding:0;background:transparent}
+.apercuMail .rendu{padding:14px;background:#2a2733;overflow-x:auto}
+.apercuMail iframe{display:block;border:0;width:100%;min-height:300px;background:#fff;margin:0 auto}
+.apercuMail .cadreMail{margin:0 auto;max-width:100%}
+.apercuMail .cadreMail.ordi{width:640px}
+.apercuMail .cadreMail.tel{width:390px;border:9px solid #1d1d1f;border-radius:30px;overflow:hidden;box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
+.barreApercu{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--ligne)}
+.barreApercu b{flex:1;font:700 15px "Bricolage Grotesque",sans-serif;color:var(--texte)}
+.segment{display:inline-flex;border:1px solid var(--lav);border-radius:999px;overflow:hidden}
+.segment button{background:transparent;border:0;color:var(--lav2);font:600 13px Barlow,sans-serif;padding:6px 12px;cursor:pointer}
+.segment button.on{background:var(--lav);color:#0b0a10}
+main.large{max-width:none}
+.atelier{display:grid;grid-template-columns:minmax(420px,var(--col-editeur,.9fr)) 10px minmax(380px,1.1fr);gap:0 6px;align-items:start}
+.atelier .voletApercuMail{position:sticky;top:70px;max-height:calc(100vh - 84px);overflow:auto}
+.poignee{align-self:stretch;cursor:col-resize;position:relative;touch-action:none}
+.poignee::after{content:"";position:absolute;top:40px;bottom:40px;left:4px;width:2px;border-radius:2px;background:var(--ligne)}
+.poignee:hover::after,.poignee.tire::after{background:var(--lav)}
+.ongletsAtelier{display:none;position:sticky;top:62px;z-index:6;margin:0 0 10px;box-shadow:0 0 0 6px var(--fond,#0b0a10);background:var(--fond,#0b0a10)}
+.ongletsAtelier button{flex:1;padding:9px 12px;font-size:15px}
+.couleursMail{grid-column:1/-1;border-top:1px solid var(--ligne);padding-top:10px}
+.couleursMail summary{cursor:pointer;color:var(--texte);font-weight:600}
+.grilleCouleurs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px 12px;margin-top:10px}
+.grilleCouleurs label{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--texte)}
+.grilleCouleurs input[type=color]{width:42px;height:32px;padding:2px;border-radius:8px;flex:none;cursor:pointer}
+.grilleCouleurs label.change{font-weight:700}
+.grilleCouleurs label.change:after{content:"•";color:var(--lav)}
 .quandMail{display:flex;gap:10px;align-items:flex-start;margin:0 0 12px;padding:10px 14px;border:1px dashed var(--ligne);border-radius:10px;font-size:14px;color:var(--doux)}
 .quandMail .badge{flex:none;margin-top:2px}
 .optionsMail{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px 14px;margin:14px 0 4px;padding:12px 14px;background:var(--carte);border-radius:10px}
@@ -173,14 +195,40 @@ tr.attente td{color:var(--doux)}
 .choixEx{display:flex;gap:8px;align-items:center;padding:8px 14px;background:var(--carte);border-bottom:1px solid var(--ligne);font-size:13px;color:var(--doux)}
 .choixEx select{width:auto;flex:1;min-width:0;padding:5px 8px;font-size:13px}
 #dlgTexte select{width:100%;margin-top:10px}
-@media (max-width:960px){.editeurMail{display:block}.apercuMail{position:static;margin-top:14px}}
+@media (min-width:1600px){.atelier{grid-template-columns:minmax(480px,var(--col-editeur,.9fr)) 10px minmax(660px,1.1fr)}}
+@media (max-width:1100px){.ongletsAtelier{display:flex}.atelier{grid-template-columns:minmax(0,1fr)}.poignee{display:none}.atelier .voletApercuMail{position:static;max-height:none}
+.atelier[data-panneau="editer"] .voletApercuMail,.atelier[data-panneau="apercu"] .voletEditionMail{display:none}}
+@media (max-width:760px){.apercuMail .rendu{padding:8px 0}.apercuMail .cadreMail.ordi{overflow-x:auto}}
+/* Boîte : réponses du public */
+.pastille{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--lav);color:#0b0a10;font-size:12px;line-height:20px;text-align:center;margin-left:4px}
+nav button.on .pastille{background:#0b0a10;color:var(--lav)}
+.boite{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:16px;align-items:start}
+.filsBoite{display:grid;gap:8px;position:sticky;top:70px;max-height:calc(100vh - 84px);overflow:auto}
+.fil{display:block;width:100%;text-align:left;background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:10px 12px;color:var(--texte);font:inherit;cursor:pointer}
+.fil:hover,.fil.on{border-color:var(--lav)}
+.fil .ligne1{display:flex;gap:8px;justify-content:space-between}.fil .ligne1 span{font-size:13px;color:var(--doux);flex:none}
+.fil .ligne1 b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fil.nonLu .ligne1 b,.fil.nonLu .sujet{font-weight:700}.fil.nonLu{border-left:4px solid var(--lav)}
+.fil .sujet{font-size:14px;margin-top:2px}.fil .extrait{font-size:13px;color:var(--doux);margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.doux{color:var(--doux)}
+.puces2{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.eti{font-size:12px;border:1px solid var(--ligne);border-radius:999px;padding:1px 8px;color:var(--doux)}.eti.ok{color:var(--vert);border-color:var(--vert)}.eti.resa{color:var(--lav2);border-color:var(--lav)}
+.sujetFil{font:700 20px "Bricolage Grotesque",sans-serif;margin:12px 0 8px}
+.etiquettesFil{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.resasFil{display:grid;gap:8px;margin-bottom:12px}.resaFil{background:var(--carte);border:1px dashed var(--lav);border-radius:10px;padding:10px 12px;font-size:14px}.resaFil .actions{margin-top:8px}
+.messagesFil{display:grid;gap:10px;margin-bottom:14px}
+.msg{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:10px 14px;max-width:92%}
+.msg.moi{justify-self:end;border-color:var(--lav);background:#241a26}
+.msg .qui{font-size:12px;color:var(--doux);margin-bottom:4px}.msg .txt{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px}
+.reponseFil textarea{min-height:160px;margin:6px 0 8px}
+.filBoite #retourBoite{display:none}
+@media (max-width:1100px){.boite{grid-template-columns:minmax(0,1fr)}.filsBoite{position:static;max-height:none}.boite.avecFil .filsBoite{display:none}.boite:not(.avecFil) .filBoite{display:none}.filBoite #retourBoite{display:inline-block}}
 </style>
 </head>
 <body>
 <div id="charge"></div>
 <header>
   <h1><small id="nomFestival">Festival</small>Réservations</h1>
-  <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="mails" data-droit="reglages">E-mails</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
+  <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="mails" data-droit="reglages">E-mails</button> <button data-vue="boite" data-droit="boite">Boîte</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
 </header>
 <main id="vue"><p class="vide">Chargement…</p></main>
 <input type="file" id="fichierPhoto" accept="image/*" multiple hidden>
@@ -254,7 +302,8 @@ function recharger(res) {
   if (res.jeton) { JETON = res.jeton; garderLocal('jeton', JETON); garderLocal('pin', ''); } // cet appareil est reconnu : plus de code PIN à redonner
   document.querySelectorAll('nav [data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
   $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
-  if ((vue === 'photos' && !droit('photos')) || (vue === 'mails' && !droit('reglages')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); }); }
+  if (typeof res.boiteNonLus === 'number') { BOITE_NL = res.boiteNonLus; badgeBoite(); }
+  if ((vue === 'photos' && !droit('photos')) || (vue === 'mails' && !droit('reglages')) || (vue === 'boite' && !droit('boite')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); }); }
   afficher();
 }
 
@@ -335,8 +384,10 @@ function activerListe() {
 var TRI_EV = { statut: '', ordre: 'date', q: '' };
 function afficher() {
   if (!D) return;
+  $('#vue').classList.toggle('large', vue === 'mails' || vue === 'boite');
   if (vue === 'reglages') return afficherReglages();
   if (vue === 'mails') return afficherMails();
+  if (vue === 'boite') return afficherBoite();
   if (vue === 'photos') return afficherPhotos();
   if (ouvert) return afficherEvenement(ouvert);
   if (vue === 'accueil') return afficherAccueil();
@@ -661,7 +712,10 @@ function optionsDuFormulaire(f) {
   Object.keys(MAIL.TYPES).forEach(function (k) {
     var t = o[k] || {}; o[k] = t;
     ['theme', 'bouton', 'lienBouton', 'separateur'].forEach(function (c) { var el = f.querySelector('[name="opt_' + k + '_' + c + '"]'); if (el) t[c] = el.value; });
-    ['entete', 'visuel', 'billet'].forEach(function (c) { var el = f.querySelector('[name="opt_' + k + '_' + c + '"]'); if (el) t[c] = el.checked; });
+    ['entete', 'visuel', 'billet', 'ombre'].forEach(function (c) { var el = f.querySelector('[name="opt_' + k + '_' + c + '"]'); if (el) t[c] = el.checked; });
+    var th = MAIL.THEMES[t.theme] || MAIL.THEMES.festival, cs = {}; // on ne garde que les couleurs qui diffèrent du thème
+    MAIL.COULEURS.forEach(function (c) { var el = f.querySelector('[name="opt_' + k + '_c_' + c[0] + '"]'); if (el && el.value.toLowerCase() !== th[c[0]]) cs[c[0]] = el.value.toLowerCase(); });
+    if (f.querySelector('[name="opt_' + k + '_c_fond"]')) t.couleurs = cs;
   });
   return o;
 }
@@ -681,48 +735,123 @@ function valeursExemple(o) {
 function afficherMails() {
   var r = D.reglages, o = {}; try { o = JSON.parse(r.optionsMail || '{}') || {}; } catch (e) { o = {}; }
   var evs = (D.evenements || []).filter(function (e) { return e.statut === 'Ouvert' || e.statut === 'Fermé'; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; });
-  function opt(k) { var d = Object.assign({}, MAIL.OPTIONS_DEFAUT, o[k] || {}); if (d.billet == null) d.billet = MAIL.TYPES[k].billet; return d; }
+  function opt(k) { var d = Object.assign({}, MAIL.OPTIONS_DEFAUT, o[k] || {}); if (d.billet == null) d.billet = MAIL.TYPES[k].billet; if (d.ombre == null) d.ombre = true; return d; }
   function sel(nom, label, val, choix) { return '<label>' + label + '<select name="' + nom + '">' + choix.map(function (c) { return '<option value="' + c[0] + '"' + (c[0] === val ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('') + '</select></label>'; }
   function coche(nom, label, val) { return '<label class="coche"><input type="checkbox" name="' + nom + '"' + (val ? ' checked' : '') + '> ' + label + '</label>'; }
+  function couleurs(k, d) {
+    var p = MAIL.palette(d), base = MAIL.THEMES[d.theme] || MAIL.THEMES.festival;
+    return '<details class="couleursMail" data-couleurs="' + k + '"' + (Object.keys(d.couleurs || {}).length ? ' open' : '') + '><summary>Choisir chaque couleur</summary><div class="grilleCouleurs">' +
+      MAIL.COULEURS.map(function (c) { return '<label' + (p[c[0]] !== base[c[0]] ? ' class="change"' : '') + '><input type="color" name="opt_' + k + '_c_' + c[0] + '" value="' + p[c[0]] + '"> ' + c[1] + '</label>'; }).join('') +
+      '</div><div class="actions" style="margin-top:10px"><button type="button" class="btn petit" data-recolorer="' + k + '">Revenir aux couleurs du thème</button><button type="button" class="btn petit" data-partout="' + k + '">Utiliser ces couleurs pour tous les e-mails</button></div></details>';
+  }
   var themes = Object.keys(MAIL.THEMES).map(function (k) { return [k, MAIL.THEMES[k].nom]; });
   var exp = String(D.expediteur || ''), origami = /compagnieorigami/i.test(exp);
-  var h = '<h2>E-mails</h2>' + (exp ? '<div class="' + (origami ? 'bandeau' : 'quandMail') + '">' + (origami ? '⚠️ ' : '') + 'Les e-mails partent de <b>' + esc(exp) + '</b>' + (origami ? ' : ce n\'est pas l\'adresse du festival. Redéployez le script depuis le compte du festival (Apps Script › Déployer › Gérer les déploiements › Nouvelle version).' : ', au nom de « ' + esc(r.nomFestival || '') + ' ».') + '</div>' : '') + '<p class="aide">Chaque cas de figure a son propre modèle. Cliquez une variable pour l\'insérer là où est le curseur ; l\'aperçu se met à jour en direct avec un vrai événement. Le texte accepte **gras** et *italique* ; les adresses https:// deviennent des liens.</p>' +
+  var formatAp = lireLocal('apercuMail') === 'tel' || (!lireLocal('apercuMail') && innerWidth < 760) ? 'tel' : 'ordi';
+  var h = '<h2>E-mails</h2>' + (exp ? '<div class="' + (origami ? 'bandeau' : 'quandMail') + '">' + (origami ? '⚠️ ' : '') + 'Les e-mails partent de <b>' + esc(exp) + '</b>' + (origami ? ' : ce n\'est pas l\'adresse du festival. Redéployez le script depuis le compte du festival (Apps Script › Déployer › Gérer les déploiements › Nouvelle version).' : ', au nom de « ' + esc(r.nomFestival || '') + ' ».') + '</div>' : '') +
     '<div class="ongletsMail" id="ongletsMail">' + Object.keys(MAIL.TYPES).map(function (k) { return '<button type="button" data-type="' + k + '"' + (k === MAIL_VU ? ' class="on"' : '') + '>' + MAIL.TYPES[k].nom + '</button>'; }).join('') + '<button type="button" data-type="pied"' + (MAIL_VU === 'pied' ? ' class="on"' : '') + '>Pied de page</button></div>' +
-    '<form id="formMail" class="panneau"><div class="editeurMail"><div id="volMail">' +
+    '<div class="segment ongletsAtelier" id="ongletsAtelier" role="tablist"><button type="button" data-panneau="editer" class="on">Écrire</button><button type="button" data-panneau="apercu">Aperçu</button></div>' +
+    '<form id="formMail"><div class="atelier" id="atelier" data-panneau="editer"><div class="voletEditionMail panneau" id="volMail">' +
+    '<p class="aide" style="margin-top:0">Cliquez une variable pour l\'insérer là où est le curseur. Le texte accepte **gras** et *italique* ; les adresses https:// deviennent des liens.</p>' +
     Object.keys(MAIL.TYPES).map(function (k) {
       var t = MAIL.TYPES[k], d = opt(k);
       return '<div data-panneau="' + k + '"' + (k === MAIL_VU ? '' : ' hidden') + '><div class="quandMail"><span class="badge ' + (t.auto ? 'Ouvert' : '') + '">' + (t.auto ? 'Automatique' : 'À la demande') + '</span><span>' + esc(t.quand) + '</span></div>' +
         champ(t.sujet, 'Sujet', r[t.sujet] || '') + '<div class="large" style="margin-top:10px"><label for="f-' + t.message + '">Message</label>' + pucesVariables('f-' + t.message) + '<textarea id="f-' + t.message + '" name="' + t.message + '">' + esc(r[t.message] || '') + '</textarea></div>' +
         '<h3 class="section" style="margin-top:14px">Présentation de cet e-mail</h3><div class="optionsMail">' +
-        sel('opt_' + k + '_theme', 'Couleurs', d.theme, themes) +
+        sel('opt_' + k + '_theme', 'Thème de départ', d.theme, themes) +
+        coche('opt_' + k + '_ombre', 'Ombre portée colorée', d.ombre) +
         coche('opt_' + k + '_entete', 'Nom du festival en en-tête', d.entete) +
         coche('opt_' + k + '_visuel', 'Visuel du spectacle en haut', d.visuel) +
         (t.billet ? coche('opt_' + k + '_billet', 'Billet récapitulatif', d.billet) : '') +
         '<label>Texte du bouton (vide = pas de bouton)<input type="text" name="opt_' + k + '_bouton" value="' + esc(d.bouton || '') + '" placeholder="Ex. Voir le spectacle"></label>' +
         sel('opt_' + k + '_lienBouton', 'Le bouton mène vers', d.lienBouton, [['lien', 'La page du spectacle'], ['site', 'L\'accueil du site']]) +
         sel('opt_' + k + '_separateur', 'Avant le pied de page', d.separateur, [['etoiles', 'Trois étoiles'], ['ligne', 'Petite ligne'], ['aucun', 'Rien']]) +
-        '</div></div>';
+        couleurs(k, d) + '</div></div>';
     }).join('') +
-    '<div data-panneau="pied"' + (MAIL_VU === 'pied' ? '' : ' hidden') + '><div class="quandMail"><span class="badge Ouvert">Commun</span><span>Le pied de page termine chacun des e-mails ci-dessus : signature, adresse, lien du site, réseaux.</span></div>' +
+    '<div data-panneau="pied"' + (MAIL_VU === 'pied' ? '' : ' hidden') + '><div class="quandMail"><span class="badge Ouvert">Commun</span><span>Le pied de page termine chacun des e-mails : signature, adresse, lien du site, réseaux.</span></div>' +
     '<div class="large"><label for="f-piedDePage">Texte du pied de page</label>' + pucesVariables('f-piedDePage') + '<textarea id="f-piedDePage" name="piedDePage">' + esc(r.piedDePage || '') + '</textarea></div>' +
     '<div class="optionsMail">' + sel('piedStyle', 'Présentation', r.piedStyle || 'simple', Object.keys(MAIL.PIEDS).map(function (k) { return [k, MAIL.PIEDS[k]]; })) +
     '<label>Instagram (adresse complète)<input type="url" name="instagram" value="' + esc(r.instagram || '') + '" placeholder="https://instagram.com/…"></label>' +
     '<label>Facebook (adresse complète)<input type="url" name="facebook" value="' + esc(r.facebook || '') + '" placeholder="https://facebook.com/…"></label></div>' +
-    '<p class="aide">Le lien du site vient des Réglages. Laissez le texte vide et sans réseaux pour aucun pied de page.</p></div>' +
-    '</div><div class="apercuMail" id="apercuMail"></div></div>' +
-    '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="essai">M\'envoyer cet e-mail en essai</button></div></form>';
+    '<p class="aide">Le lien du site vient des Réglages. Laissez le texte vide et sans réseaux pour aucun pied de page. Les couleurs du pied suivent celles de chaque e-mail.</p></div>' +
+    '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="essai">M\'envoyer cet e-mail en essai</button></div>' +
+    '</div><div class="poignee" id="poignee" role="separator" aria-orientation="vertical" title="Glisser pour élargir l\'édition ou l\'aperçu (double-clic : largeur normale)"></div>' +
+    '<div class="voletApercuMail"><div class="apercuMail" id="apercuMail">' +
+    '<div class="barreApercu"><b>Aperçu</b><div class="segment" id="formatAp"><button type="button" data-format="ordi"' + (formatAp === 'ordi' ? ' class="on"' : '') + '>Ordinateur</button><button type="button" data-format="tel"' + (formatAp === 'tel' ? ' class="on"' : '') + '>Téléphone</button></div></div>' +
+    '<div class="choixEx">Exemple avec <select id="exEv"></select></div><div class="entete" id="enteteAp"></div>' +
+    '<div class="rendu"><div class="cadreMail ' + formatAp + '" id="cadreMail"><iframe id="cadreAp" title="Aperçu de l\'e-mail" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe></div></div>' +
+    '</div></div></div></form>';
   $('#vue').innerHTML = h;
+  $('#vue').classList.add('large');
+  var col = lireLocal('colEditeurMail'); if (col) $('#atelier').style.setProperty('--col-editeur', col);
+  $('#exEv').innerHTML = evs.map(function (e) { return '<option value="' + esc(e.id) + '">' + esc(e.titre) + ' · ' + esc(e.date.split('-').reverse().slice(0, 2).join('.')) + '</option>'; }).join('');
+  function hauteurCadre() { var f = $('#cadreAp'); try { var d = f.contentDocument; if (d && d.documentElement) f.style.height = Math.max(300, d.documentElement.scrollHeight) + 'px'; } catch (e) { f.style.height = '900px'; } }
+  // Le même HTML que celui qui part, isolé dans un cadre (les styles de l'appli ne s'y mélangent pas, comme dans Gmail).
   function rendreMail() {
     var o = brouillonMails(), t = MAIL_VU === 'pied' ? 'confirmation' : MAIL_VU, v = valeursExemple(o), m = MAIL.composer(t, o, v);
-    $('#apercuMail').innerHTML = '<div class="choixEx">Exemple avec <select id="exEv">' + evs.map(function (e) { return '<option value="' + esc(e.id) + '"' + (e.id === MAIL_EX ? ' selected' : '') + '>' + esc(e.titre) + ' · ' + esc(e.date.split('-').reverse().slice(0, 2).join('.')) + '</option>'; }).join('') + '</select></div>' +
-      '<div class="entete"><b>De :</b> ' + esc(o.nomFestival || '') + ' &lt;réservations&gt;<br><b>À :</b> ' + esc(v.email) + '<br><b>Objet :</b> <b>' + esc(m.sujet) + '</b></div><div class="corps nu">' + m.html + '</div>';
-    $('#exEv').onchange = function () { MAIL_EX = this.value; rendreMail(); };
+    if ($('#exEv').value !== MAIL_EX) $('#exEv').value = MAIL_EX;
+    $('#enteteAp').innerHTML = '<b>De :</b> ' + esc(o.nomFestival || '') + (D.expediteur ? ' &lt;' + esc(D.expediteur) + '&gt;' : '') + '<br><b>À :</b> ' + esc(v.email) + '<br><b>Objet :</b> <b>' + esc(m.sujet) + '</b>';
+    var f = $('#cadreAp');
+    f.onload = function () { hauteurCadre(); try { f.contentDocument.querySelectorAll('img').forEach(function (i) { i.addEventListener('load', hauteurCadre); }); } catch (e) {} };
+    f.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><base target="_blank"><style>body{margin:0}</style></head><body>' + m.html + '</body></html>';
+    document.querySelectorAll('[data-couleurs]').forEach(function (z) {
+      var k = z.dataset.couleurs, th = MAIL.THEMES[$('[name="opt_' + k + '_theme"]').value] || MAIL.THEMES.festival;
+      z.querySelectorAll('input[type=color]').forEach(function (i) { var c = i.name.split('_c_')[1]; i.parentNode.classList.toggle('change', i.value.toLowerCase() !== th[c]); });
+    });
   }
+  var minuterie; function rendreBientot() { clearTimeout(minuterie); minuterie = setTimeout(rendreMail, 120); }
+  $('#exEv').onchange = function () { MAIL_EX = this.value; rendreMail(); };
+  $('#formatAp').onclick = function (ev) {
+    var b = ev.target.closest('[data-format]'); if (!b) return;
+    garderLocal('apercuMail', b.dataset.format); $('#cadreMail').className = 'cadreMail ' + b.dataset.format;
+    this.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); }); setTimeout(hauteurCadre, 30);
+  };
+  // Écrire / Aperçu (écrans étroits) : chaque volet garde sa position de défilement.
+  var defile = {};
+  function placerBascule() { var hd = document.querySelector('header'); $('#ongletsAtelier').style.top = (hd ? Math.round(hd.getBoundingClientRect().height) : 0) + 'px'; }
+  placerBascule(); window.onresize = function () { if ($('#ongletsAtelier')) placerBascule(); };
+  $('#ongletsAtelier').onclick = function (ev) {
+    var b = ev.target.closest('[data-panneau]'); if (!b) return;
+    var a = $('#atelier'), avant = a.dataset.panneau, p = b.dataset.panneau; if (avant === p) return;
+    defile[avant] = scrollY; a.dataset.panneau = p;
+    this.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    if (p === 'apercu') rendreMail();
+    var y = defile[p] !== undefined ? defile[p] : Math.min(scrollY, $('#ongletsAtelier').offsetTop); scrollTo(0, y); requestAnimationFrame(function () { scrollTo(0, y); });
+  };
+  // Poignée : partage de la largeur entre édition et aperçu (gardé sur l'appareil) ; double-clic = réglage normal.
+  $('#poignee').onpointerdown = function (e) {
+    var po = this, a = $('#atelier'), gauche = a.getBoundingClientRect().left;
+    po.classList.add('tire'); try { po.setPointerCapture(e.pointerId); } catch (x) {}
+    function bouge(ev) { var l = Math.max(420, Math.min(a.clientWidth - 380, ev.clientX - gauche)); a.style.setProperty('--col-editeur', l + 'px'); }
+    function fin() { po.classList.remove('tire'); po.removeEventListener('pointermove', bouge); po.removeEventListener('pointerup', fin); garderLocal('colEditeurMail', a.style.getPropertyValue('--col-editeur')); setTimeout(hauteurCadre, 30); }
+    po.addEventListener('pointermove', bouge); po.addEventListener('pointerup', fin);
+  };
+  $('#poignee').ondblclick = function () { $('#atelier').style.removeProperty('--col-editeur'); garderLocal('colEditeurMail', ''); };
   document.querySelectorAll('.puces button').forEach(function (b) {
     b.onmousedown = function (ev) { ev.preventDefault(); };
     b.onclick = function () {
       var ta = $('#' + b.parentNode.dataset.pour), v = '{' + b.dataset.var + '}', d = ta.selectionStart || 0, f = ta.selectionEnd || 0;
       ta.value = ta.value.slice(0, d) + v + ta.value.slice(f); ta.selectionStart = ta.selectionEnd = d + v.length; ta.focus(); rendreMail();
+    };
+  });
+  // Thème de départ changé : les couleurs reprennent celles du thème.
+  document.querySelectorAll('select[name$="_theme"]').forEach(function (s) {
+    s.addEventListener('change', function () { var k = s.name.split('_')[1]; remettreCouleurs(k); });
+  });
+  function remettreCouleurs(k) {
+    var th = MAIL.THEMES[$('[name="opt_' + k + '_theme"]').value] || MAIL.THEMES.festival;
+    MAIL.COULEURS.forEach(function (c) { var i = $('[name="opt_' + k + '_c_' + c[0] + '"]'); if (i) i.value = th[c[0]]; });
+    rendreMail();
+  }
+  document.querySelectorAll('[data-recolorer]').forEach(function (b) { b.onclick = function () { remettreCouleurs(b.dataset.recolorer); }; });
+  document.querySelectorAll('[data-partout]').forEach(function (b) {
+    b.onclick = function () {
+      var k = b.dataset.partout, theme = $('[name="opt_' + k + '_theme"]').value, ombre = $('[name="opt_' + k + '_ombre"]').checked;
+      Object.keys(MAIL.TYPES).forEach(function (j) {
+        if (j === k) return;
+        $('[name="opt_' + j + '_theme"]').value = theme; $('[name="opt_' + j + '_ombre"]').checked = ombre;
+        MAIL.COULEURS.forEach(function (c) { $('[name="opt_' + j + '_c_' + c[0] + '"]').value = $('[name="opt_' + k + '_c_' + c[0] + '"]').value; });
+      });
+      rendreMail(); toast('Ces couleurs sont reprises dans tous les e-mails. Pensez à enregistrer.');
     };
   });
   document.querySelectorAll('#ongletsMail button').forEach(function (b) {
@@ -733,7 +862,7 @@ function afficherMails() {
       rendreMail();
     };
   });
-  $('#formMail').addEventListener('input', rendreMail); $('#formMail').addEventListener('change', rendreMail);
+  $('#formMail').addEventListener('input', rendreBientot); $('#formMail').addEventListener('change', rendreBientot);
   $('#formMail').onsubmit = function (ev) {
     ev.preventDefault();
     var b = ev.target.querySelector('[type=submit]'); b.disabled = true;
@@ -741,6 +870,112 @@ function afficherMails() {
   };
   $('#essai').onclick = function () { var t = MAIL_VU === 'pied' ? 'confirmation' : MAIL_VU; $('#essai').disabled = true; appel('adminEssaiMail', [t, brouillonMails()], function (txt) { $('#essai').disabled = false; toast(txt); }); };
   rendreMail();
+}
+
+// ---------- Boîte : réponses du public (fils Gmail du festival liés aux réservations) ----------
+var BOITE_NL = null, BOITE = { dossier: 'inbox', fils: null, fil: null, etiquettes: {} };
+function badgeBoite() {
+  var b = $('nav [data-vue=boite]'); if (!b) return;
+  b.innerHTML = 'Boîte' + (BOITE_NL > 0 ? ' <span class="pastille">' + BOITE_NL + '</span>' : '');
+}
+var REPONSES_RAPIDES = [
+  ['Annulation notée', 'Bonjour {prenom},\n\nC\'est noté : votre réservation pour « {titre} » du {date} est annulée. Merci de nous avoir prévenus !\n\nÀ une prochaine fois,\n{festival}'],
+  ['Places changées', 'Bonjour {prenom},\n\nC\'est fait : votre réservation pour « {titre} » du {date} est maintenant de {places} place(s).\n\nÀ bientôt !\n{festival}'],
+  ['Merci', 'Bonjour {prenom},\n\nMerci pour votre message !\n\n{festival}']
+];
+function afficherBoite() {
+  var h = '<div class="barreEv"><h2>Boîte</h2><div class="segment" id="dossierBoite"><button type="button" data-dossier="inbox"' + (BOITE.dossier === 'inbox' ? ' class="on"' : '') + '>À traiter</button><button type="button" data-dossier="traites"' + (BOITE.dossier === 'traites' ? ' class="on"' : '') + '>Traités</button></div><button type="button" class="btn petit" id="actualiserBoite">Actualiser</button></div>' +
+    '<p class="aide">Les réponses du public aux e-mails du festival, et les messages des personnes qui ont réservé. Le reste de la boîte Gmail du festival n\'apparaît pas ici.</p>' +
+    '<div class="boite' + (BOITE.fil ? ' avecFil' : '') + '"><div class="filsBoite" id="filsBoite"><p class="vide">Chargement…</p></div><div class="filBoite" id="filBoite">' + (BOITE.fil ? '' : '<p class="vide">Choisissez un message à gauche.</p>') + '</div></div>';
+  $('#vue').innerHTML = h;
+  document.querySelectorAll('#dossierBoite button').forEach(function (b) { b.onclick = function () { BOITE.dossier = b.dataset.dossier; BOITE.fils = null; BOITE.fil = null; afficherBoite(); }; });
+  $('#actualiserBoite').onclick = function () { BOITE.fils = null; chargerFils(); };
+  if (BOITE.fils) listeFils(); else chargerFils();
+  if (BOITE.fil) afficherFil(BOITE.fil);
+}
+function chargerFils() {
+  appel('adminBoite', [BOITE.dossier], function (res) {
+    BOITE.fils = res.fils; BOITE.etiquettes = res.etiquettes || {};
+    if (BOITE.dossier === 'inbox') { BOITE_NL = res.fils.filter(function (f) { return f.nonLu; }).length; badgeBoite(); }
+    if (vue === 'boite') listeFils();
+  });
+}
+function resumeResa(r) { return esc(r.titre) + (r.date ? ' · ' + esc(r.date.split('-').reverse().slice(0, 2).join('.')) : '') + ' · ' + r.places + ' pl.' + (r.statut && r.statut !== 'Confirmée' ? ' · ' + esc(r.statut) : ''); }
+function listeFils() {
+  var z = $('#filsBoite'); if (!z) return;
+  var l = BOITE.fils || [];
+  if (!l.length) { z.innerHTML = '<p class="vide">' + (BOITE.dossier === 'inbox' ? 'Rien à traiter pour l\'instant.' : 'Aucun message traité.') + '</p>'; return; }
+  z.innerHTML = l.map(function (f) {
+    return '<button type="button" class="fil' + (f.nonLu ? ' nonLu' : '') + (BOITE.fil === f.id ? ' on' : '') + '" data-fil="' + esc(f.id) + '"><div class="ligne1"><b>' + esc(f.nom) + '</b><span>' + esc(f.date.slice(5).split(' ')[0].split('-').reverse().join('.')) + '</span></div>' +
+      '<div class="sujet">' + esc(f.sujet) + (f.nb > 1 ? ' <span class="doux">(' + f.nb + ')</span>' : '') + '</div><div class="extrait">' + esc(f.extrait) + '</div>' +
+      '<div class="puces2">' + (f.automatique ? '<span class="eti">Réponse automatique</span>' : '') + (f.repondu ? '<span class="eti ok">Répondu</span>' : '') + f.etiquettes.filter(function (e) { return e !== 'Traité'; }).map(function (e) { return '<span class="eti">' + esc(e) + '</span>'; }).join('') +
+      (f.resas[0] ? '<span class="eti resa">' + resumeResa(f.resas[0]) + (f.resas.length > 1 ? ' +' + (f.resas.length - 1) : '') + '</span>' : '') + '</div></button>';
+  }).join('');
+  z.querySelectorAll('[data-fil]').forEach(function (b) { b.onclick = function () { ouvrirFil(b.dataset.fil); }; });
+}
+function ouvrirFil(id) {
+  BOITE.fil = id;
+  appel('adminLireFil', [id], function (f) {
+    var g = (BOITE.fils || []).filter(function (x) { return x.id === id; })[0]; if (g && g.nonLu) { g.nonLu = false; BOITE_NL = Math.max(0, (BOITE_NL || 1) - 1); badgeBoite(); }
+    if (vue !== 'boite') return;
+    $('.boite').classList.add('avecFil'); listeFils(); afficherFil(id, f);
+    if (innerWidth < 1100) scrollTo(0, 0);
+  });
+}
+function afficherFil(id, f) {
+  if (!f) { appel('adminLireFil', [id], function (x) { if (vue === 'boite' && BOITE.fil === id) afficherFil(id, x); }); return; }
+  var z = $('#filBoite'), cleBr = 'boite_' + f.id, brouillon = lireLocal(cleBr);
+  var et = BOITE.etiquettes || {};
+  var h = '<button type="button" class="btn petit" id="retourBoite">← Tous les messages</button><h3 class="sujetFil">' + esc(f.sujet) + '</h3>' +
+    '<div class="etiquettesFil">' + Object.keys(et).map(function (k) { var on = f.etiquettes.indexOf(et[k]) >= 0; return '<button type="button" class="btn petit' + (on ? ' plein' : '') + '" data-etiquette="' + k + '" data-actif="' + (on ? '1' : '') + '">' + esc(et[k]) + '</button>'; }).join('') +
+    '<button type="button" class="btn petit' + (f.traite ? ' plein' : '') + '" id="traiteFil">' + (f.traite ? 'Traité ✓ (remettre à traiter)' : 'Marquer comme traité') + '</button></div>';
+  if (f.resas.length) h += '<div class="resasFil">' + f.resas.map(function (r) {
+    return '<div class="resaFil"><div><b>' + esc(r.nom) + '</b> · ' + resumeResa(r) + '</div>' + (droit('reservations') && r.statut !== 'Annulée' ? '<div class="actions"><button type="button" class="btn petit" data-places="' + esc(r.id) + '" data-n="' + r.places + '">Changer les places</button><button type="button" class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler la réservation</button></div>' : '') + '</div>';
+  }).join('') + '</div>';
+  else h += '<p class="aide">Aucune réservation trouvée avec l\'adresse ' + esc(f.email) + '.</p>';
+  h += '<div class="messagesFil">' + f.messages.map(function (m) { return '<div class="msg' + (m.moi ? ' moi' : '') + '"><div class="qui">' + esc(m.nom) + ' · ' + esc(m.date.split(' ')[0].split('-').reverse().join('.')) + ' ' + esc(m.date.split(' ')[1] || '') + '</div><div class="txt">' + esc(m.texte) + '</div></div>'; }).join('') + '</div>' +
+    '<div class="reponseFil panneau"><label for="txtReponse">Répondre à ' + esc(f.email) + '</label><div class="puces"><span>Réponses toutes prêtes :</span>' + REPONSES_RAPIDES.map(function (x, i) { return '<button type="button" data-rapide="' + i + '">' + esc(x[0]) + '</button>'; }).join('') + '</div>' +
+    '<textarea id="txtReponse" placeholder="Votre réponse…">' + esc(brouillon) + '</textarea>' +
+    '<label class="coche"><input type="checkbox" id="traiterApres"' + (f.traite ? '' : ' checked') + '> Marquer comme traité après l\'envoi</label>' +
+    '<div class="actions"><button type="button" class="btn plein" id="envoyerReponse">Envoyer la réponse</button></div></div>';
+  z.innerHTML = h;
+  $('#retourBoite').onclick = function () { BOITE.fil = null; $('.boite').classList.remove('avecFil'); z.innerHTML = '<p class="vide">Choisissez un message à gauche.</p>'; listeFils(); };
+  var ta = $('#txtReponse');
+  ta.oninput = function () { garderLocal(cleBr, ta.value); };
+  z.querySelectorAll('[data-rapide]').forEach(function (b) { b.onclick = function () {
+    var r = f.resas[0] || {}, v = { prenom: String(r.nom || '').split(/\s+/)[0] || '', titre: r.titre || '', date: r.date ? dateLongueFr(r.date) : '', places: r.places || '', festival: D.reglages.nomFestival || '' };
+    function mettre() { ta.value = MAIL.remplir(REPONSES_RAPIDES[b.dataset.rapide][1], v); garderLocal(cleBr, ta.value); ta.focus(); }
+    if (ta.value.trim()) confirmer('Remplacer le texte déjà écrit ?', mettre, { oui: 'Remplacer' }); else mettre();
+  }; });
+  z.querySelectorAll('[data-etiquette]').forEach(function (b) { b.onclick = function () {
+    appel('adminClasserFil', [f.id, b.dataset.etiquette, !b.dataset.actif], function (x) { majFil(x); });
+  }; });
+  $('#traiteFil').onclick = function () { appel('adminClasserFil', [f.id, 'traite', !f.traite], function (x) { majFil(x); toast(x.traite ? 'Rangé dans « Traités » ✓' : 'Remis dans « À traiter »'); }); };
+  z.querySelectorAll('[data-annuler]').forEach(function (b) { b.onclick = function () {
+    dialogue({ titre: 'Annuler la réservation', html: '<p>La réservation passe en « Annulée » et les places sont libérées.</p><label class="coche"><input type="checkbox" id="prevenirAnn"> Envoyer aussi l\'e-mail automatique « Réservation annulée »</label>', oui: 'Annuler la réservation', non: 'Garder', danger: true,
+      ok: function () { var prev = !!($('#prevenirAnn') && $('#prevenirAnn').checked); appel('adminAnnulerReservation', [b.dataset.annuler, prev], function (res) { recharger(res); toast('Réservation annulée ✓'); }); } });
+  }; });
+  z.querySelectorAll('[data-places]').forEach(function (b) { b.onclick = function () {
+    demander('Nouveau nombre de places :', function (v) {
+      appel('adminModifierPlaces', [b.dataset.places, Number(v)], function (res) { recharger(res); toast('Places changées : ' + v + ' ✓ (aucun e-mail envoyé, répondez ci-dessous)'); });
+    }, { defaut: String(b.dataset.n), oui: 'Changer', titre: 'Changer les places' });
+  }; });
+  $('#envoyerReponse').onclick = function () {
+    var t = ta.value.trim(); if (!t) { toast('La réponse est vide.', true); return; }
+    confirmer('Envoyer cette réponse à ' + f.email + ' ?', function () {
+      var btn = $('#envoyerReponse'); btn.disabled = true; btn.textContent = 'Envoi…';
+      appel('adminRepondreFil', [f.id, t, $('#traiterApres').checked], function (x) {
+        garderLocal(cleBr, ''); toast('Réponse envoyée ✓');
+        var g = (BOITE.fils || []).filter(function (y) { return y.id === f.id; })[0]; if (g) { g.repondu = true; if (x.traite && BOITE.dossier === 'inbox') BOITE.fils = BOITE.fils.filter(function (y) { return y !== g; }); }
+        majFil(x);
+      });
+    }, { oui: 'Envoyer' });
+  };
+  function majFil(x) {
+    var g = (BOITE.fils || []).filter(function (y) { return y.id === x.id; })[0];
+    if (g) { g.etiquettes = x.etiquettes; if ((x.traite && BOITE.dossier === 'inbox') || (!x.traite && BOITE.dossier === 'traites')) BOITE.fils = BOITE.fils.filter(function (y) { return y !== g; }); }
+    if (vue === 'boite') { listeFils(); afficherFil(x.id, x); }
+  }
 }
 
 function afficherReglages() {
