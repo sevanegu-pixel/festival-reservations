@@ -188,7 +188,7 @@ var FONCTION_DROIT = {
   adminEnregistrerEvenement: 'evenements', adminSupprimerEvenement: 'evenements',
   adminAjouterReservation: 'reservations', adminAnnulerReservation: 'reservations', adminPointer: 'reservations', adminConfirmerReservation: 'reservations', adminEnvoyerGroupe: 'reservations',
   adminEnregistrerReglages: 'reglages', adminEssaiMail: 'reglages',
-  adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminSupprimerPhoto: 'photos', adminEnregistrerVisuel: 'photos',
+  adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminEnregistrerOriginal: 'photos', adminSupprimerPhoto: 'photos', adminEnregistrerVisuel: 'photos',
   adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes', adminMettreAJour: 'comptes',
   adminListerAppareils: 'comptes', adminDeconnecterAppareil: 'comptes', adminQuitterAppareil: null,
   adminBoite: 'boite', adminLireFil: 'boite', adminRepondreFil: 'boite', adminClasserFil: 'boite', adminModifierPlaces: 'reservations'
@@ -498,7 +498,7 @@ function valeursMail_(ev, resa) {
     numero: resa.id || '', email: resa.email || '', telephone: resa.telephone || '', message: resa.message || '', options: resa.options || '',
     festival: r.nomFestival, site: String(r.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, ''),
     lien: ev.id ? String(r.siteUrl || '').replace(/\/?$/, '/') + 'programme.html#' + encodeURIComponent(ev.id) : String(r.siteUrl || ''),
-    image: ev.image || '',
+    image: String(ev.image || '').split(/\s*[\n,]\s*/).filter(function (u) { return u && u.charAt(0) !== '#'; })[0] || '',
   };
 }
 
@@ -653,6 +653,8 @@ function adminEnregistrerImage(cle, d) {
   var fichier = dossierPhotos_().createFile(blob);
   fichier.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   if (d.spectacle || d.credit || d.legende) adminEnregistrerVisuel(cle, { cle: fichier.getId(), spectacle: d.spectacle, credit: d.credit, legende: d.legende });
+  // Recadrage : on garde l'image d'origine et le cadre, pour rouvrir l'éditeur sur le même cadrage.
+  if (d.source && d.cadre) { try { fichier.setDescription(JSON.stringify({ source: String(d.source).slice(0, 300), cadre: d.cadre })); } catch (e) {} }
   return { url: 'https://drive.google.com/thumbnail?id=' + fichier.getId() + '&sz=w1600', id: fichier.getId(), nom: fichier.getName() };
 }
 
@@ -688,7 +690,19 @@ function adminLireImage(cle, id) {
   verifierCle_(cle);
   var f = DriveApp.getFileById(String(id)), b = f.getBlob();
   if (b.getBytes().length > 12e6) throw new Error('Photo trop lourde pour être recadrée ici.');
-  return { base64: 'data:' + b.getContentType() + ';base64,' + Utilities.base64Encode(b.getBytes()), nom: f.getName() };
+  var info = {}; try { info = JSON.parse(f.getDescription() || '{}') || {}; } catch (e) {}
+  return { base64: 'data:' + b.getContentType() + ';base64,' + Utilities.base64Encode(b.getBytes()), nom: f.getName(), source: info.source || '', cadre: info.cadre || null };
+}
+
+// Image d'origine d'un recadrage (envoyée depuis l'ordinateur ou le téléphone) : rangée dans un sous-dossier, hors de la bibliothèque.
+function adminEnregistrerOriginal(cle, d) {
+  verifierCle_(cle);
+  var base64 = String(d.base64 || '').replace(/^data:[^,]*,/, '');
+  if (!base64 || base64.length > 12e6) throw new Error('Photo manquante ou trop lourde.');
+  var parent = dossierPhotos_(), it = parent.getFoldersByName('Originaux'), dossier = it.hasNext() ? it.next() : parent.createFolder('Originaux');
+  var nom = String(d.nom || 'original').replace(/[^\w\u00C0-\u017F .-]+/g, ' ').trim().slice(0, 80) || 'original';
+  var fichier = dossier.createFile(Utilities.newBlob(Utilities.base64Decode(base64), 'image/jpeg', nom + '.jpg'));
+  return { id: fichier.getId() };
 }
 
 function adminSupprimerPhoto(cle, id) {

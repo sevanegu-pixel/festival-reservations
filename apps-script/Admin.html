@@ -376,7 +376,7 @@ function afficherAccueil() {
   evs.filter(function (e) { return e.date >= today; }).forEach(function (e) {
     var manques = [];
     if (e.statut === 'Brouillon') manques.push('encore en brouillon');
-    if (!e.image && !(window.SPECTACLES && photosSitePour(e.spectacle || e.titre).length)) manques.push('pas de visuel');
+    if (!String(e.image || '').replace(/#seules/g, '').trim() && !(window.SPECTACLES && photosSitePour(e.spectacle || e.titre).length)) manques.push('pas de visuel');
     if (!e.description && !(window.SPECTACLES && ficheSite(e.spectacle || e.titre).court)) manques.push('pas d\'accroche');
     if (!e.tarif && !(window.SPECTACLES && ficheSite(e.spectacle || e.titre).tarif)) manques.push('pas de tarif');
     if (manques.length) afaire.push({ e: e, manques: manques });
@@ -396,7 +396,7 @@ function ouvrirEvenement(id) { vue = 'evenements'; ouvert = id; document.querySe
 function ficheSite(titre) { var SP = window.SPECTACLES || {}, k = Object.keys(SP).filter(function (k) { return normTitre(k) === normTitre(titre); })[0]; return k ? SP[k] : {}; }
 function photosSitePour(titre) { var s = ficheSite(titre); return s.photos || (s.photo ? [{ src: s.photo, credit: s.credit }] : []); }
 function miniature(e) {
-  var u = String(e.image || '').split(/\s*[\n,]\s*/).filter(Boolean)[0];
+  var u = String(e.image || '').split(/\s*[\n,]\s*/).filter(function (x) { return x && x.charAt(0) !== '#'; })[0];
   if (!u && window.SPECTACLES && siteUrl()) { var l = photosSitePour(e.spectacle || e.titre); if (l.length) u = siteUrl() + l[0].src; }
   var lettre = esc((e.titre || '?').charAt(0));
   return u ? '<img class="mini" src="' + esc(u) + '" alt="' + lettre + '" loading="lazy" onerror="var s=document.createElement(\'span\');s.className=\'mini vide-mini\';s.textContent=this.alt;this.replaceWith(s)">' : '<span class="mini vide-mini">' + lettre + '</span>';
@@ -870,7 +870,7 @@ function brouillonMails() {
 function valeursExemple(o) {
   var v = MAIL.exemple(), evs = (D.evenements || []).filter(function (e) { return e.statut === 'Ouvert' || e.statut === 'Fermé'; });
   var ev = evs.filter(function (e) { return e.id === MAIL_EX; })[0] || evs.filter(function (e) { return e.date >= aujourdhui(); })[0] || evs[0];
-  if (ev) { MAIL_EX = ev.id; v.titre = ev.titre; v.date = dateLongueFr(ev.date); v.heure = ev.debut || ''; v.lieu = [ev.lieu, ev.adresse].filter(Boolean).join(', '); v.adresse = ev.adresse || ''; v.tarif = ev.tarif || ''; v.image = ev.image || (window.SPECTACLES && photosSitePour(ev.spectacle || ev.titre)[0] ? siteUrl() + photosSitePour(ev.spectacle || ev.titre)[0].src : ''); v.lien = siteUrl() + 'programme.html#' + encodeURIComponent(ev.id); }
+  if (ev) { MAIL_EX = ev.id; v.titre = ev.titre; v.date = dateLongueFr(ev.date); v.heure = ev.debut || ''; v.lieu = [ev.lieu, ev.adresse].filter(Boolean).join(', '); v.adresse = ev.adresse || ''; v.tarif = ev.tarif || ''; v.image = String(ev.image || '').split(/\s*[\n,]\s*/).filter(function (u) { return u && u.charAt(0) !== '#'; })[0] || (window.SPECTACLES && photosSitePour(ev.spectacle || ev.titre)[0] ? siteUrl() + photosSitePour(ev.spectacle || ev.titre)[0].src : ''); v.lien = siteUrl() + 'programme.html#' + encodeURIComponent(ev.id); }
   v.festival = o.nomFestival || v.festival; v.site = String(o.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, '') || v.site;
   return v;
 }
@@ -1217,8 +1217,38 @@ function partager(c, pin, lien) {
 }
 
 // ---------- Visuels d'un événement : principal + galerie, ordre, recadrage ----------
-function listePhotos() { return $('#f-image').value.split(/\s*[\n,]\s*/).filter(Boolean); }
-function ecrirePhotos(l) { $('#f-image').value = l.join('\n'); MODIFIE = true; photosAfficher(); galerieAfficher(); $('#f-image').dispatchEvent(new Event('input', { bubbles: true })); }
+function listePhotos() { return $('#f-image').value.split(/\s*[\n,]\s*/).filter(function (u) { return u && u.charAt(0) !== '#'; }); }
+function nomFichier(u) { return String(u || '').split('?')[0].split('/').pop(); }
+// Visuels que le site prend dans ses fiches pour ce spectacle (adresses complètes), comme le fait le site.
+function photosSiteUrls(titre) {
+  var s = ficheSite(titre), l = (s.photos || []).map(function (p) { return p.src; });
+  if (s.photo && l.indexOf(s.photo) < 0) l.unshift(s.photo);
+  return siteUrl() ? l.map(function (src) { return siteUrl() + src; }) : [];
+}
+// Liste complète des visuels affichés sur le site : ceux de la feuille d'abord, puis ceux des fiches du site.
+// Si la feuille contient déjà un visuel du site (ou « #seules »), elle fait foi telle quelle.
+function photosCompletes(brut, titre) {
+  var l = String(brut || '').split(/\s*[\n,]\s*/).filter(Boolean), site = photosSiteUrls(titre), noms = site.map(nomFichier);
+  var seules = l.indexOf('#seules') >= 0 || l.some(function (u) { return noms.indexOf(nomFichier(u)) >= 0; });
+  l = l.filter(function (u) { return u.charAt(0) !== '#'; });
+  if (seules || !site.length) return l;
+  var res = site.slice();
+  l.slice().reverse().forEach(function (u) { var i = res.map(nomFichier).indexOf(nomFichier(u)); if (i >= 0) res.unshift(res.splice(i, 1)[0]); else res.unshift(u); });
+  return res;
+}
+function valeurPhotos(l) {
+  var noms = photosSiteUrls($('#f-spectacle').value || $('#f-titre').value).map(nomFichier);
+  var marque = noms.length && !l.some(function (u) { return noms.indexOf(nomFichier(u)) >= 0; });
+  return l.concat(marque ? ['#seules'] : []).join('\n');
+}
+var FUSION_PHOTOS = false;
+function fusionnerPhotosSite() {
+  if (FUSION_PHOTOS || !window.SPECTACLES || !$('#f-image')) return;
+  FUSION_PHOTOS = true;
+  var l = photosCompletes($('#f-image').value, $('#f-spectacle').value || $('#f-titre').value);
+  if (l.join('\n') !== listePhotos().join('\n')) { $('#f-image').value = valeurPhotos(l); photosAfficher(); }
+}
+function ecrirePhotos(l) { $('#f-image').value = valeurPhotos(l); MODIFIE = true; photosAfficher(); galerieAfficher(); $('#f-image').dispatchEvent(new Event('input', { bubbles: true })); }
 function photosAfficher(lectureSeule) {
   var l = listePhotos(), zp = $('#photoPrincipale'), zg = $('#photos');
   function carte(u, i) {
@@ -1299,6 +1329,7 @@ function cartePhoto(p, boutons) {
 function galerieAfficher() {
   var z = $('#galerie'); if (!z) return;
   chargerSite(function () { chargerDrive(function () {
+    fusionnerPhotosSite();
     var cible = normTitre($('#f-spectacle').value || $('#f-titre').value), prises = listePhotos();
     var toutes = toutesPhotos(), pour = toutes.filter(function (p) { return normTitre(p.titre) === cible; }), autres = toutes.filter(function (p) { return normTitre(p.titre) !== cible; });
     function boutons(p) {
@@ -1322,13 +1353,18 @@ function galerieAfficher() {
 }
 function photosInit() {
   if (!$('#photos')) return;
-  photosAfficher(); galerieAfficher();
+  FUSION_PHOTOS = false; photosAfficher(); galerieAfficher();
   $('#f-titre').addEventListener('change', galerieAfficher); $('#f-spectacle').addEventListener('change', galerieAfficher);
   $('#urlPhoto').onclick = function () { demander('Adresse de l\'image (https://…) :', function (u) { if (/^https?:\/\//.test(u)) ecrirePhotos(listePhotos().concat([u])); else toast('Adresse invalide', true); }, { placeholder: 'https://…' }); };
   $('#fichierPhoto').onchange = function () {
     var fichiers = Array.prototype.slice.call(this.files), titre = ($('#f-spectacle').value || $('#f-titre').value || 'photo'); if (!fichiers.length) return;
-    if (fichiers.length === 1) return recadrer(fichiers[0], function (base64) {
-      envoyerImage(titre, base64, function (r) { ecrirePhotos(listePhotos().concat([r.url])); toast('Visuel ajouté ✓ Pensez à enregistrer.'); });
+    if (fichiers.length === 1) return recadrer(fichiers[0], function (base64, cadre) {
+      // On garde aussi l'original (sans le recadrer) pour pouvoir rouvrir le cadrage plus tard.
+      reduire(fichiers[0], function (orig) {
+        appel('adminEnregistrerOriginal', [{ nom: titre + ' · original', base64: orig }], function (o) {
+          envoyerImage(titre, base64, function (r) { ecrirePhotos(listePhotos().concat([r.url])); toast('Visuel ajouté ✓ Pensez à enregistrer.'); }, { source: 'drive:' + o.id, cadre: cadre });
+        });
+      }, 2400);
     });
     // Plusieurs fichiers : on les ajoute tels quels (réduits), à recadrer ensuite si besoin
     var n = 0; toast('Envoi de ' + fichiers.length + ' visuels…');
@@ -1347,19 +1383,29 @@ function envoyerImage(titre, base64, ok, extra) {
   appel('adminEnregistrerImage', [d], function (r) { ENVOIS = Math.max(0, ENVOIS - 1); PHOTOS_DRIVE = null; ok(r); vignetteEnvoi(); });
 }
 // Récupère un visuel existant (site ou Drive) pour le recadrer, puis l'enregistre comme nouveau fichier.
+// Si le visuel a déjà été recadré dans l'appli, l'éditeur repart de l'image d'origine avec le même cadre.
 function recadrerUrl(url, titre, ok) {
   var id = idDrive(url);
-  function suite(blob) { recadrer(blob, function (base64) { envoyerImage(titre, base64, function (r) { ok(r.url); }); }); }
   function rate() { toast('Impossible de lire ce visuel pour le recadrer.', true); }
-  if (id) appel('adminLireImage', [id], function (r) { fetch(r.base64).then(function (x) { return x.blob(); }).then(suite).catch(rate); });
-  else fetch(url, { mode: 'cors' }).then(function (x) { if (!x.ok) throw 0; return x.blob(); }).then(suite).catch(rate);
+  function suite(blob, source, cadre) {
+    recadrer(blob, function (base64, nouveau) { envoyerImage(titre, base64, function (r) { ok(r.url); }, { source: source, cadre: nouveau }); }, cadre);
+  }
+  function lire(src, fini, echec) { // src : « drive:ID » ou adresse
+    var d = /^drive:(.+)$/.exec(src) || (idDrive(src) ? [0, idDrive(src)] : null);
+    if (d) appel('adminLireImage', [d[1]], function (r) { fetch(r.base64).then(function (x) { return x.blob(); }).then(function (b) { fini(b, r); }).catch(echec); });
+    else fetch(src, { mode: 'cors' }).then(function (x) { if (!x.ok) throw 0; return x.blob(); }).then(function (b) { fini(b, {}); }).catch(echec);
+  }
+  lire(url, function (blob, r) {
+    if (r.source && r.cadre) lire(r.source, function (orig) { suite(orig, r.source, r.cadre); }, function () { suite(blob, id ? 'drive:' + id : url, null); });
+    else suite(blob, id ? 'drive:' + id : url, null);
+  }, rate);
 }
 // Réduit un visuel (max 1600 px) sans le recadrer, pour la bibliothèque.
-function reduire(fichier, ok) {
+function reduire(fichier, ok, max) {
   var charge = window.createImageBitmap ? createImageBitmap(fichier, { imageOrientation: 'from-image' }) : Promise.reject();
   charge.catch(function () { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = URL.createObjectURL(fichier); }); })
     .then(function (im) {
-      var k = Math.min(1, 1600 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      var k = Math.min(1, (max || 1600) / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
       c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.85));
     }).catch(function () { toast('Visuel illisible : ' + fichier.name, true); });
 }
@@ -1447,18 +1493,23 @@ function afficherPhotos() {
 }
 
 // ---------- Recadrage : cadre 3:2 du site, repères pour les autres emplacements, zoom, rotation ----------
-function recadrer(fichier, ok) {
+function recadrer(fichier, ok, cadreInitial) {
   var boite = $('#recadrage'), cv = $('#cv'), ctx = cv.getContext('2d'), zoom = $('#zoom'), reperes = $('#reperes');
   var img, base, s, ox, oy, W = 900, H = 600, rotation = 0;
   cv.width = W; cv.height = H;
+  function appliquer(c) { // cadre enregistré : quarts de tour, zoom, centre (en fraction de l'image)
+    for (var i = 0; i < ((+c.r || 0) % 4); i++) tourner();
+    var z = Math.min(4, Math.max(1, +c.z || 1)); zoom.value = z; s = base * z;
+    ox = W / 2 - (+c.cx || 0.5) * img.width * s; oy = H / 2 - (+c.cy || 0.5) * img.height * s; dessiner();
+  }
   var charge = window.createImageBitmap ? createImageBitmap(fichier, { imageOrientation: 'from-image' }).catch(function () { return chargerImage(fichier); }) : chargerImage(fichier);
-  charge.then(function (im) { img = im; recentrer(); boite.classList.add('ouvert'); });
+  charge.then(function (im) { img = im; rotation = 0; recentrer(); if (cadreInitial) appliquer(cadreInitial); boite.classList.add('ouvert'); });
   function chargerImage(f) { return new Promise(function (res, rej) { var u = URL.createObjectURL(f), i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = u; }); }
   function recentrer() { base = Math.max(W / img.width, H / img.height); s = base; zoom.value = 1; ox = (W - img.width * s) / 2; oy = (H - img.height * s) / 2; dessiner(); }
   function tourner() { // 90° : on redessine l'image dans un canevas pivoté, puis on recentre
     var c = document.createElement('canvas'); c.width = img.height; c.height = img.width;
     var x = c.getContext('2d'); x.translate(c.width / 2, c.height / 2); x.rotate(Math.PI / 2); x.drawImage(img, -img.width / 2, -img.height / 2);
-    img = c; recentrer();
+    img = c; rotation = (rotation + 1) % 4; recentrer();
   }
   function borner() { ox = Math.min(0, Math.max(W - img.width * s, ox)); oy = Math.min(0, Math.max(H - img.height * s, oy)); }
   function dessiner() {
@@ -1492,7 +1543,8 @@ function recadrer(fichier, ok) {
   $('#recadrerOk').onclick = function () {
     var out = document.createElement('canvas'), f = 1600 / W; out.width = 1600; out.height = 1067;
     var c = out.getContext('2d'); c.fillStyle = '#000'; c.fillRect(0, 0, out.width, out.height); c.drawImage(img, ox * f, oy * f, img.width * s * f, img.height * s * f);
-    boite.classList.remove('ouvert'); ok(out.toDataURL('image/jpeg', 0.85));
+    var cadre = { r: rotation, z: Math.round(zoom.value * 1000) / 1000, cx: Math.round((W / 2 - ox) / (img.width * s) * 10000) / 10000, cy: Math.round((H / 2 - oy) / (img.height * s) * 10000) / 10000 };
+    boite.classList.remove('ouvert'); ok(out.toDataURL('image/jpeg', 0.85), cadre);
   };
   $('#recadrerNon').onclick = function () { boite.classList.remove('ouvert'); };
 }
