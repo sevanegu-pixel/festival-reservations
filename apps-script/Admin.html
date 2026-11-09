@@ -222,7 +222,7 @@ var MOIS = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.',
 
 function $(s, r) { return (r || document).querySelector(s); }
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-function toast(t, err) { var b = $('#toast'); b.textContent = t; b.className = err ? 'erreur' : ''; b.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(function () { b.style.display = 'none'; }, err ? 6000 : 2500); }
+function toast(t, err) { var b = $('#toast'); b.textContent = t; b.className = err ? 'erreur' : ''; b.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(function () { b.style.display = 'none'; }, err ? 7000 : (t.length > 60 ? 5000 : 2500)); }
 function aujourdhui() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
 
 // Boîtes de dialogue de l'appli (pas celles du navigateur). confirmer(texte, ok, options) ; demander(texte, ok, options)
@@ -253,6 +253,11 @@ function recharger(res) {
   D = res; COMPTE = res.compte || null; $('#nomFestival').textContent = D.reglages.nomFestival || 'Festival';
   if (res.jeton) { JETON = res.jeton; garderLocal('jeton', JETON); garderLocal('pin', ''); } // cet appareil est reconnu : plus de code PIN à redonner
   document.querySelectorAll('nav [data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
+  // Script Google en retard sur l'appli : on le met à jour tout seul, une fois par ouverture (plus rien à cliquer).
+  if (D.version && VERSION_APPLI !== '__VERSION__' && D.version !== VERSION_APPLI && droit('comptes') && !recharger.majFaite) {
+    recharger.majFaite = true; toast('Mise à jour du script Google en cours…');
+    appel('adminMettreAJour', [], function (t) { toast(t); setTimeout(function () { appel('adminCharger', [], recharger); }, 1500); });
+  }
   $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
   if ((vue === 'photos' && !droit('photos')) || (vue === 'mails' && !droit('reglages')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); }); }
   afficher();
