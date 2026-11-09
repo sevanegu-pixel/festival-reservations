@@ -1,3 +1,4 @@
 .clasp.json
 apps-script/envoi/
 outils/script-id.txt
+outils/deploy.log
