@@ -423,6 +423,9 @@ function valeursMail_(ev, resa) {
  * une copie personnalisée à chaque réservation active (liste d'attente comprise pour « spectacle annulé »).
  * brouillon : réglages pas encore enregistrés (pour l'essai). Renvoie le nombre d'envois.
  */
+/** Compte Google au nom duquel le script tourne, donc d'où partent les e-mails (celui qui a déployé). */
+function expediteur_() { try { return Session.getEffectiveUser().getEmail() || ''; } catch (e) { return ''; } }
+
 function adminEnvoyerGroupe(cle, evId, type, brouillon) {
   verifierCle_(cle);
   var t = MAIL.TYPES[type];
@@ -473,6 +476,7 @@ function adminCharger(cle) {
     spectacles: titresSpectacles_(),
     statuts: STATUTS_EV,
     nbComptes: comptes_().length,
+    expediteur: expediteur_(),
   };
 }
 
