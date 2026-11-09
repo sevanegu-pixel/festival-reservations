@@ -316,7 +316,8 @@ function photosSitePour(titre) { var s = ficheSite(titre); return s.photos || (s
 function miniature(e) {
   var u = String(e.image || '').split(/\s*[\n,]\s*/).filter(Boolean)[0];
   if (!u && window.SPECTACLES && siteUrl()) { var l = photosSitePour(e.spectacle || e.titre); if (l.length) u = siteUrl() + l[0].src; }
-  return u ? '<img class="mini" src="' + esc(u) + '" alt="" loading="lazy">' : '<span class="mini vide-mini">' + esc((e.titre || '?').charAt(0)) + '</span>';
+  var lettre = esc((e.titre || '?').charAt(0));
+  return u ? '<img class="mini" src="' + esc(u) + '" alt="' + lettre + '" loading="lazy" onerror="var s=document.createElement(\'span\');s.className=\'mini vide-mini\';s.textContent=this.alt;this.replaceWith(s)">' : '<span class="mini vide-mini">' + lettre + '</span>';
 }
 function activerListe() {
   document.querySelectorAll('.ev').forEach(function (b) { b.onclick = function () { ouvrirEvenement(b.dataset.id); }; });
@@ -867,9 +868,16 @@ function photosAfficher(lectureSeule) {
 
 // ---------- Visuels : tous (fichiers du site + dossier Drive), classés par spectacle ----------
 var PHOTOS_DRIVE = null, INFOS_VISUELS = {};
+var SITE_ECHEC = 0, SITE_EN_COURS = false;
+// Charge festival.js du site une seule fois ; si le site ne répond pas, on réessaie au plus toutes les minutes (sinon la liste se redessinait en boucle).
 function chargerSite(ok) {
   if (window.SPECTACLES || !siteUrl()) return ok();
-  var sc = document.createElement('script'); sc.src = siteUrl() + 'festival.js?' + Date.now(); sc.onload = ok; sc.onerror = function () { ok(); }; document.head.appendChild(sc);
+  if (SITE_EN_COURS || Date.now() - SITE_ECHEC < 60000) return;
+  SITE_EN_COURS = true;
+  var sc = document.createElement('script'); sc.src = siteUrl() + 'festival.js?' + Date.now();
+  sc.onload = function () { SITE_EN_COURS = false; ok(); };
+  sc.onerror = function () { SITE_EN_COURS = false; SITE_ECHEC = Date.now(); sc.remove(); };
+  document.head.appendChild(sc);
 }
 function chargerDrive(ok, force) {
   if (PHOTOS_DRIVE && !force) return ok();

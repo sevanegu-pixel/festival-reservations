@@ -39,7 +39,7 @@ var STATUTS_EV = ['Ouvert', 'Fermé', 'Brouillon', 'Annulé'];
 
 var REGLAGES_DEFAUT = {
   nomFestival: 'Le Petit Festival au Théâtricul',
-  siteUrl: 'https://petit-festival.ch/apercu/',
+  siteUrl: 'https://ptit-festival.ch/apercu/',
   copieA: 'petitfestival.ge@gmail.com',
   sujet: 'Votre réservation : {titre}',
   message: 'Bonjour {nom},\n\nNous avons bien reçu votre réservation de {places} place(s) pour « {titre} », ' +
@@ -774,5 +774,7 @@ function reglages_() {
   var r = {};
   var lu = brut ? JSON.parse(brut) : {};
   Object.keys(REGLAGES_DEFAUT).forEach(function (k) { r[k] = k in lu ? lu[k] : REGLAGES_DEFAUT[k]; });
+  // Depuis le 09.11.2026 le site est sur ptit-festival.ch ; l'ancienne adresse redirige vers l'accueil sans garder le chemin.
+  r.siteUrl = String(r.siteUrl || '').replace(/^https?:\/\/(www\.)?petit-festival\.ch/i, 'https://ptit-festival.ch');
   return r;
 }
