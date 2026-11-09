@@ -88,8 +88,8 @@ tr.annulee td:last-child{text-decoration:none}
 .photo{position:relative;width:150px;aspect-ratio:3/2;background:#100e17;border:1px solid var(--ligne);border-radius:8px;overflow:hidden}
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
 .photo .outils{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;background:rgba(11,10,16,.8);padding:3px 4px}
-.photo .outils button{background:none;border:0;color:var(--texte);font:600 12px Barlow,sans-serif;cursor:pointer;padding:3px 5px}
-.photo .outils button:hover{color:var(--lav2)}
+.photo .outils button,.photo .outils a{background:none;border:0;color:var(--texte);font:600 12px Barlow,sans-serif;cursor:pointer;padding:3px 5px;text-decoration:none}
+.photo .outils button:hover,.photo .outils a:hover{color:var(--lav2)}
 .photo .num{position:absolute;left:6px;top:4px;font:700 12px Barlow,sans-serif;background:var(--lav);color:#0b0a10;border-radius:999px;padding:1px 7px}
 .photos .ajout{width:150px;aspect-ratio:3/2;border:1px dashed var(--lav);border-radius:8px;background:none;color:var(--lav2);font:600 14px Barlow,sans-serif;cursor:pointer}
 #recadrage{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:40;display:none;align-items:center;justify-content:center;padding:12px}
@@ -104,26 +104,40 @@ tr.annulee td:last-child{text-decoration:none}
 .apercu iframe{width:100%;height:min(78vh,900px);border:1px solid var(--ligne);border-radius:12px;background:#120f24}
 .apercu .cadre{position:relative}
 .apercu.tel iframe{width:400px;max-width:100%;margin:0 auto;display:block}
-@media (max-width:560px){.ev{grid-template-columns:52px 1fr}.jauge{grid-column:2;text-align:left}.jauge .barre{width:120px}}
+@media (max-width:560px){.ev{grid-template-columns:52px 48px 1fr}.mini,.vide-mini{width:48px;height:48px}.jauge{grid-column:2;text-align:left}.jauge .barre{width:120px}}
+.tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.tuile{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:14px}.tuile b{display:block;font:700 30px/1 "Bricolage Grotesque"}.tuile span{font-size:13px;color:var(--doux)}.tuile.chaud{border-color:var(--lav)}
+.afaire{margin:0;padding-left:18px}.afaire a{color:var(--lav2)}
+.ev{grid-template-columns:64px 56px 1fr auto}.mini{width:56px;height:56px;object-fit:cover;border-radius:8px}.vide-mini{display:grid;place-items:center;width:56px;height:56px;border-radius:8px;background:var(--ligne);font-weight:700}
+.barreEv{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.barreEv h2{flex:1;margin:0}
+.editeur.avecApercu{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,44%);gap:16px}.voletApercu{position:sticky;top:70px;align-self:start}.voletApercu iframe{height:80vh}
+.zones{display:grid;grid-template-columns:minmax(200px,1fr) 2fr;gap:14px}.photo.principale{width:260px}
+h3.section{margin:14px 0 0;font:700 18px "Bricolage Grotesque"}
+.barreTexte{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px}.barreTexte button{font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--ligne);background:var(--carte);color:var(--texte);cursor:pointer}
+.coche{display:flex;gap:8px;align-items:center;color:var(--texte)}.coche input{width:auto}
+.photo .legende{position:absolute;left:6px;bottom:30px;font-size:11px;background:rgba(11,10,16,.8);padding:1px 6px;border-radius:6px}
+.groupe.aClasser h3{color:var(--lav2)}
+.classer{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}.classer img{width:180px;border-radius:8px}
+tr.attente td{color:var(--doux)}
+@media (max-width:960px){.editeur.avecApercu{display:block}.voletApercu{position:static}.voletApercu iframe{height:60vh}}
 </style>
 </head>
 <body>
 <div id="charge"></div>
 <header>
   <h1><small id="nomFestival">Festival</small>Réservations</h1>
-  <nav><button data-vue="evenements" class="on">Événements</button> <button data-vue="photos" data-droit="photos">Photos</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
+  <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
 </header>
 <main id="vue"><p class="vide">Chargement…</p></main>
 <input type="file" id="fichierPhoto" accept="image/*" hidden>
 <input type="file" id="fichiersGalerie" accept="image/*" multiple hidden>
-<div id="recadrage"><div class="boite"><canvas id="cv"></canvas><div class="reglage">Zoom <input type="range" id="zoom" min="1" max="4" step="0.01" value="1"></div>
+<div id="recadrage"><div class="boite"><canvas id="cv"></canvas><div class="reglage">Zoom <input type="range" id="zoom" min="1" max="4" step="0.01" value="1"> <button type="button" class="btn petit" id="tourner">Tourner</button> <button type="button" class="btn petit" id="recentrer">Recentrer</button> <label class="coche"><input type="checkbox" id="reperes" checked> Repères</label></div>
 <p class="aide">Déplacez la photo pour choisir le cadrage. Le cadre correspond aux photos du programme.</p>
 <div class="actions"><button type="button" class="btn plein" id="recadrerOk">Utiliser cette photo</button><button type="button" class="btn" id="recadrerNon">Annuler</button></div></div></div>
 <div id="toast"></div>
 
 <script>
 var CLE = <?!= JSON.stringify(cle) ?>;
-var VERSION_APPLI = '__VERSION__', PIN = '', JETON = '', COMPTE = null, D = null, vue = 'evenements', ouvert = null;
+var VERSION_APPLI = '__VERSION__', PIN = '', JETON = '', COMPTE = null, D = null, vue = 'accueil', ouvert = null;
 function lireLocal(k) { try { return localStorage.getItem('festival_resa_' + k) || ''; } catch (e) { return ''; } }
 function garderLocal(k, v) { try { if (v) localStorage.setItem('festival_resa_' + k, v); else localStorage.removeItem('festival_resa_' + k); } catch (e) {} }
 // Cet appareil : un identifiant gardé dans le navigateur + un nom lisible (pour la liste des appareils connectés).
@@ -174,11 +188,80 @@ document.querySelectorAll('nav button[data-vue]').forEach(function (b) {
   b.onclick = function () { vue = b.dataset.vue; ouvert = null; document.querySelectorAll('nav button').forEach(function (x) { x.classList.toggle('on', x === b); }); afficher(); };
 });
 
+// ---------- Tableau de bord (page d'accueil) ----------
+function afficherAccueil() {
+  var today = aujourdhui(), dans7 = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+  var evs = D.evenements.slice().sort(function (a, b) { return (a.date + a.debut) < (b.date + b.debut) ? -1 : 1; });
+  var publics = evs.filter(function (e) { return e.statut === 'Ouvert' || e.statut === 'Fermé'; });
+  var avenir = publics.filter(function (e) { return e.date >= today; });
+  var resas = D.reservations.filter(function (r) { return r.statut !== 'Annulée'; });
+  var confirmees = resas.filter(function (r) { return r.statut !== 'Liste d\'attente'; });
+  var attente = resas.filter(function (r) { return r.statut === 'Liste d\'attente'; });
+  var places = confirmees.reduce(function (s, r) { return s + (Number(r.places) || 0); }, 0);
+  var capacite = avenir.reduce(function (s, e) { return s + (Number(e.places) || 0); }, 0);
+  var prisesAvenir = avenir.reduce(function (s, e) { return s + (Number(e.prises) || 0); }, 0);
+  var complets = avenir.filter(function (e) { return Number(e.places) && e.prises >= Number(e.places); });
+  function tuile(n, l, c) { return '<div class="tuile' + (c ? ' ' + c : '') + '"><b>' + n + '</b><span>' + l + '</span></div>'; }
+  var h = '<h2>Tableau de bord</h2><div class="tuiles">' +
+    tuile(places, 'place' + (places > 1 ? 's' : '') + ' réservée' + (places > 1 ? 's' : '')) +
+    tuile(avenir.length, 'spectacle' + (avenir.length > 1 ? 's' : '') + ' à venir') +
+    tuile(capacite ? Math.round(100 * prisesAvenir / capacite) + ' %' : '–', 'de remplissage à venir') +
+    tuile(complets.length, 'complet' + (complets.length > 1 ? 's' : ''), complets.length ? 'chaud' : '') +
+    (attente.length ? tuile(attente.length, 'en liste d\'attente', 'chaud') : '') + '</div>';
+  var proches = avenir.filter(function (e) { return e.date <= dans7; });
+  h += '<h2>' + (proches.length ? 'Ces 7 prochains jours' : 'Prochains spectacles') + '</h2>' + liste(proches.length ? proches : avenir.slice(0, 5));
+  if (droit('reservations') && resas.length) {
+    var dernieres = D.reservations.slice().reverse().slice(0, 8);
+    h += '<h2>Dernières réservations</h2><div class="panneau"><div class="tableau"><table><tr><th>Reçue</th><th>Nom</th><th>Spectacle</th><th>Places</th><th>Statut</th></tr>' +
+      dernieres.map(function (r) { return '<tr class="' + (r.statut === 'Annulée' ? 'annulee' : '') + '"><td>' + esc(r.recue) + '</td><td>' + esc(r.nom) + '</td><td>' + esc(r.titreEvenement) + '</td><td>' + r.places + '</td><td>' + esc(r.statut) + '</td></tr>'; }).join('') + '</table></div></div>';
+  }
+  var afaire = [];
+  evs.filter(function (e) { return e.date >= today; }).forEach(function (e) {
+    var manques = [];
+    if (e.statut === 'Brouillon') manques.push('encore en brouillon');
+    if (!e.image && !(window.SPECTACLES && photosSitePour(e.spectacle || e.titre).length)) manques.push('pas de visuel');
+    if (!e.description && !(window.SPECTACLES && ficheSite(e.spectacle || e.titre).court)) manques.push('pas d\'accroche');
+    if (!e.tarif && !(window.SPECTACLES && ficheSite(e.spectacle || e.titre).tarif)) manques.push('pas de tarif');
+    if (manques.length) afaire.push({ e: e, manques: manques });
+  });
+  attente.forEach(function (r) { var e = evs.filter(function (x) { return x.id === r.evenement; })[0]; if (e && e.prises < (Number(e.places) || 0)) afaire.push({ e: e, manques: ['une place s\'est libérée : ' + r.nom + ' attend (' + r.places + ')'] }); });
+  if (droit('evenements') || droit('reservations')) {
+    h += '<h2>À faire</h2><div class="panneau">' + (afaire.length ? '<ul class="afaire">' + afaire.map(function (a) {
+      return '<li><a href="#" data-ouvrir="' + esc(a.e.id) + '"><b>' + esc(a.e.titre) + '</b> · ' + esc(a.e.date.split('-').reverse().join('.')) + '</a> — ' + esc(a.manques.join(', ')) + '</li>';
+    }).join('') + '</ul>' : '<p class="vide">Rien à signaler : tout est en ordre.</p>') + '</div>';
+  }
+  $('#vue').innerHTML = h;
+  document.querySelectorAll('[data-ouvrir]').forEach(function (a) { a.onclick = function (ev) { ev.preventDefault(); ouvrirEvenement(a.dataset.ouvrir); }; });
+  activerListe();
+  if (!window.SPECTACLES && siteUrl()) chargerSite(function () { if (vue === 'accueil' && !ouvert) afficherAccueil(); });
+}
+function ouvrirEvenement(id) { vue = 'evenements'; ouvert = id; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === 'evenements'); }); afficher(); scrollTo(0, 0); }
+function ficheSite(titre) { var SP = window.SPECTACLES || {}, k = Object.keys(SP).filter(function (k) { return normTitre(k) === normTitre(titre); })[0]; return k ? SP[k] : {}; }
+function photosSitePour(titre) { var s = ficheSite(titre); return s.photos || (s.photo ? [{ src: s.photo, credit: s.credit }] : []); }
+function miniature(e) {
+  var u = String(e.image || '').split(/\s*[\n,]\s*/).filter(Boolean)[0];
+  if (!u && window.SPECTACLES && siteUrl()) { var l = photosSitePour(e.spectacle || e.titre); if (l.length) u = siteUrl() + l[0].src; }
+  return u ? '<img class="mini" src="' + esc(u) + '" alt="" loading="lazy">' : '<span class="mini vide-mini">' + esc((e.titre || '?').charAt(0)) + '</span>';
+}
+function activerListe() {
+  document.querySelectorAll('.ev').forEach(function (b) { b.onclick = function () { ouvrirEvenement(b.dataset.id); }; });
+  document.querySelectorAll('.statutRapide').forEach(function (s) {
+    s.onclick = function (ev) { ev.stopPropagation(); };
+    s.onchange = function (ev) {
+      ev.stopPropagation();
+      var e = D.evenements.filter(function (x) { return x.id === s.dataset.id; })[0]; if (!e) return;
+      var o = {}; Object.keys(e).forEach(function (k) { o[k] = e[k]; }); o.statut = s.value;
+      appel('adminEnregistrerEvenement', [o], function (res) { recharger(res); toast('« ' + e.titre + ' » : ' + s.value); });
+    };
+  });
+}
+
 function afficher() {
   if (!D) return;
   if (vue === 'reglages') return afficherReglages();
   if (vue === 'photos') return afficherPhotos();
   if (ouvert) return afficherEvenement(ouvert);
+  if (vue === 'accueil') return afficherAccueil();
   var today = aujourdhui();
   var evs = D.evenements.slice().sort(function (a, b) { return (a.date + a.debut) < (b.date + b.debut) ? -1 : 1; });
   var avenir = evs.filter(function (e) { return e.date >= today; });
@@ -191,26 +274,19 @@ function afficher() {
   if ($('#nouveau')) $('#nouveau').onclick = function () { ouvert = 'nouveau'; afficher(); };
   if ($('#majScript')) $('#majScript').onclick = function () { $('#majScript').disabled = true; toast('Mise à jour en cours…'); appel('adminMettreAJour', [], function (t) { toast(t); setTimeout(function () { appel('adminCharger', [], recharger); }, 1500); }); };
   if ($('#versComptes')) $('#versComptes').onclick = function (ev) { ev.preventDefault(); $('nav [data-vue=reglages]').click(); setTimeout(function () { var c = $('#comptes'); if (c) c.scrollIntoView({ behavior: 'smooth' }); }, 300); };
-  document.querySelectorAll('.ev').forEach(function (b) { b.onclick = function () { ouvert = b.dataset.id; afficher(); scrollTo(0, 0); }; });
-  document.querySelectorAll('.statutRapide').forEach(function (s) {
-    s.onclick = function (ev) { ev.stopPropagation(); };
-    s.onchange = function (ev) {
-      ev.stopPropagation();
-      var e = D.evenements.filter(function (x) { return x.id === s.dataset.id; })[0]; if (!e) return;
-      var o = {}; Object.keys(e).forEach(function (k) { o[k] = e[k]; }); o.statut = s.value;
-      appel('adminEnregistrerEvenement', [o], function (res) { recharger(res); toast('« ' + e.titre + ' » : ' + s.value); });
-    };
-  });
+  activerListe();
+  if (!window.SPECTACLES && siteUrl()) chargerSite(function () { if (vue === 'evenements' && !ouvert) afficher(); });
 }
 
 function liste(evs) {
   if (!evs.length) return '<p class="vide">Aucun événement.</p>';
   return '<div class="liste">' + evs.map(function (e) {
     var p = e.date.split('-'), places = Number(e.places) || 0;
-    var pc = places ? Math.min(100, Math.round(100 * e.prises / places)) : 0;
-    return '<button class="ev" data-id="' + esc(e.id) + '"><div class="jour"><b>' + Number(p[2]) + '</b><span>' + MOIS[Number(p[1]) - 1] + ' ' + p[0] + '</span></div>' +
-      '<div><h3>' + esc(e.titre) + '<span class="badge ' + esc(e.statut) + '">' + esc(e.statut) + '</span></h3>' +
-      '<p>' + esc([e.debut && (e.debut + (e.fin ? '–' + e.fin : '')), e.lieu].filter(Boolean).join(' · ')) + '</p></div>' +
+    var pc = places ? Math.min(100, Math.round(100 * e.prises / places)) : 0, complet = places && e.prises >= places;
+    var attente = D.reservations.filter(function (r) { return r.evenement === e.id && r.statut === 'Liste d\'attente'; }).length;
+    return '<button class="ev" data-id="' + esc(e.id) + '"><div class="jour"><b>' + Number(p[2]) + '</b><span>' + MOIS[Number(p[1]) - 1] + ' ' + p[0] + '</span></div>' + miniature(e) +
+      '<div><h3>' + esc(e.titre) + '<span class="badge ' + esc(e.statut) + '">' + esc(e.statut) + '</span>' + (complet ? '<span class="badge Annulé">Complet</span>' : '') + '</h3>' +
+      '<p>' + esc([e.debut && (e.debut + (e.fin ? '–' + e.fin : '')), e.lieu].filter(Boolean).join(' · ')) + (attente ? ' · ' + attente + ' en liste d\'attente' : '') + '</p></div>' +
       '<div class="jauge">' + e.prises + (places ? ' / ' + places : '') + ' place' + (e.prises > 1 || places > 1 ? 's' : '') +
       (places ? '<div class="barre"><i style="width:' + pc + '%"></i></div>' : '') +
       (droit('publier') ? '<select class="statutRapide" data-id="' + esc(e.id) + '" aria-label="Statut">' + D.statuts.map(function (s) { return '<option' + (s === e.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' : '<div><span class="badge ' + esc(e.statut) + '">' + esc(e.statut) + '</span></div>') + '</div></button>';
@@ -222,15 +298,44 @@ function champ(nom, label, val, type, attrs) {
     (type === 'textarea' ? '<textarea id="f-' + nom + '" name="' + nom + '">' + esc(val) + '</textarea>'
       : '<input id="f-' + nom + '" name="' + nom + '" type="' + (type || 'text') + '" value="' + esc(val) + '" ' + (attrs || '') + '>') + '</div>';
 }
+// Zone de texte avec une petite barre de mise en forme (gras, italique, sous-titre, citation, liste).
+function champTexte(nom, label, val, aide) {
+  return '<div class="large"><label for="f-' + nom + '">' + label + '</label>' +
+    '<div class="barreTexte" data-pour="f-' + nom + '"><button type="button" data-mf="**" title="Gras"><b>G</b></button><button type="button" data-mf="*" title="Italique"><i>I</i></button>' +
+    '<button type="button" data-mf="## " title="Sous-titre">Sous-titre</button><button type="button" data-mf="> " title="Citation">« Citation »</button><button type="button" data-mf="- " title="Liste">• Liste</button></div>' +
+    '<textarea id="f-' + nom + '" name="' + nom + '">' + esc(val) + '</textarea>' + (aide ? '<p class="aide">' + aide + '</p>' : '') + '</div>';
+}
+function miseEnFormeInit(racine) {
+  (racine || document).querySelectorAll('.barreTexte button').forEach(function (b) {
+    b.onclick = function () {
+      var ta = $('#' + b.parentNode.dataset.pour), m = b.dataset.mf, d = ta.selectionStart, f = ta.selectionEnd, v = ta.value, sel = v.slice(d, f);
+      if (m === '**' || m === '*') { ta.value = v.slice(0, d) + m + (sel || (m === '**' ? 'texte en gras' : 'texte en italique')) + m + v.slice(f); ta.selectionStart = d + m.length; ta.selectionEnd = d + m.length + (sel || (m === '**' ? 'texte en gras' : 'texte en italique')).length; }
+      else { var debutLigne = v.lastIndexOf('\n', d - 1) + 1, avant = v.slice(0, debutLigne), apres = v.slice(debutLigne); var saut = avant && !/\n\s*\n$/.test(avant) && m !== '- ' ? '\n' : ''; ta.value = avant + saut + m + (apres || (m === '## ' ? 'Sous-titre' : m === '> ' ? 'Citation' : 'Premier point')); ta.selectionStart = ta.selectionEnd = avant.length + saut.length + m.length; }
+      ta.focus(); ta.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+  });
+}
+
+// Durée ↔ heure de fin
+function minutesDe(duree) { var m = /(\d+)\s*h\s*(\d+)?/i.exec(duree); if (m) return Number(m[1]) * 60 + Number(m[2] || 0); m = /(\d+)\s*(min|mn|')?/.exec(duree); return m ? Number(m[1]) : 0; }
+function texteDuree(min) { if (!min) return ''; var h = Math.floor(min / 60), m = min % 60; return h ? h + ' h' + (m ? ' ' + ('0' + m).slice(-2) : '') : m + ' min'; }
+function heurePlus(debut, min) { var p = debut.split(':'); if (p.length < 2) return ''; var t = (Number(p[0]) * 60 + Number(p[1]) + min) % 1440; return ('0' + Math.floor(t / 60)).slice(-2) + ':' + ('0' + (t % 60)).slice(-2); }
+function ecartMinutes(debut, fin) { var a = debut.split(':'), b = fin.split(':'); if (a.length < 2 || b.length < 2) return 0; var t = (Number(b[0]) * 60 + Number(b[1])) - (Number(a[0]) * 60 + Number(a[1])); return t < 0 ? t + 1440 : t; }
+
+var MODIFIE = false;
+window.addEventListener('beforeunload', function (ev) { if (MODIFIE) { ev.preventDefault(); ev.returnValue = ''; } });
 
 function afficherEvenement(id) {
   var nouveau = id === 'nouveau' || id === 'copie';
-  var e = id === 'nouveau' ? { statut: 'Ouvert', places: '45', lieu: 'Théâtricul', adresse: 'Chêne-Bourg' } : (id === 'copie' ? afficherEvenement.copie : D.evenements.filter(function (x) { return x.id === id; })[0]);
+  var e = id === 'nouveau' ? { statut: 'Brouillon', places: '45', lieu: 'Théâtricul', adresse: 'Chêne-Bourg' } : (id === 'copie' ? afficherEvenement.copie : D.evenements.filter(function (x) { return x.id === id; })[0]);
   if (!e) { ouvert = null; return afficher(); }
   if (nouveau && !droit('evenements')) { ouvert = null; return afficher(); }
   var peutModifier = droit('evenements'), peutResa = droit('reservations');
-  var h = '<div class="actions"><button class="btn" id="retour">← Tous les événements</button></div>';
-  h += '<h2>' + (nouveau ? 'Nouvel événement' : esc(e.titre)) + '</h2>';
+  MODIFIE = false;
+  var h = '<div class="barreEv"><button class="btn" id="retour">← Tous les événements</button><h2>' + (nouveau ? 'Nouvel événement' : 'Modifier · ' + esc(e.titre)) + '</h2>' +
+    (peutModifier ? '<button class="btn plein" type="submit" form="form" id="enregistrerHaut">Enregistrer</button>' : '') +
+    (siteUrl() ? '<button class="btn" type="button" id="voirApercu">Aperçu</button>' : '') + '</div>';
+  h += '<div class="editeur" id="editeur"><div class="colonne">';
   h += '<form id="form" class="panneau"><div class="grille">' +
     champ('titre', 'Titre affiché', e.titre, 'text', 'required list="spectacles"') +
     '<datalist id="spectacles">' + D.spectacles.map(function (s) { return '<option value="' + esc(s) + '">'; }).join('') + '</datalist>' +
@@ -238,41 +343,49 @@ function afficherEvenement(id) {
     champ('compagnie', 'Compagnie / artistes', e.compagnie) +
     champ('date', 'Date', e.date, 'date', 'required') +
     champ('debut', 'Début', e.debut, 'time') +
-    champ('fin', 'Fin', e.fin, 'time') +
-    champ('duree', 'Durée', e.duree, 'text', 'placeholder="50 min"') +
+    champ('fin', 'Fin (calculée depuis la durée)', e.fin, 'time') +
+    champ('duree', 'Durée (ou calculée depuis la fin)', e.duree, 'text', 'placeholder="50 min"') +
     champ('age', 'Âge', e.age, 'text', 'placeholder="Dès 6 ans, tout public…"') +
     champ('lieu', 'Lieu', e.lieu) +
     champ('adresse', 'Adresse', e.adresse) +
     champ('tarif', 'Tarif (texte)', e.tarif, 'text', 'placeholder="Prix libre, paiement sur place"') +
     champ('places', 'Nombre de places (vide = illimité)', e.places, 'number', 'min="0"') +
+    '<div><label>Quand c\'est complet</label><label class="coche"><input type="checkbox" name="attente" value="Oui"' + (e.attente === 'Oui' ? ' checked' : '') + '> ouvrir une liste d\'attente</label><p class="aide">Le site affiche « Complet » et bloque les réservations ; avec la liste d\'attente, les gens peuvent s\'inscrire et vous les confirmez ici quand une place se libère.</p></div>' +
     (droit('publier') ? '<div><label for="f-statut">Statut</label><select id="f-statut" name="statut">' +
       D.statuts.map(function (s) { return '<option' + (s === e.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
       '<p class="aide">Ouvert : réservable. Fermé : affiché sans réservation. Brouillon et Annulé : cachés du site.</p></div>'
       : '<div><label>Statut</label><p><span class="badge ' + esc(e.statut) + '">' + esc(e.statut || 'Brouillon') + '</span></p><p class="aide">Seul un compte avec le droit « Publier » peut le changer.</p></div>') +
-    '<div class="large"><label>Photos affichées sur le site (la 1re est celle du programme ; sur la fiche, toutes défilent dans l\'ordre)</label>' +
-    '<div class="photos" id="photos"></div><textarea id="f-image" name="image" hidden>' + esc(e.image) + '</textarea>' +
-    '<p class="aide">← → changent l\'ordre, « Recadrer » refait le cadrage 3:2. « Ajouter » prend une photo de l\'ordinateur ou du téléphone ; vous pouvez aussi <button type="button" class="btn petit" id="urlPhoto">coller une adresse</button>. Pensez à enregistrer l\'événement ensuite.</p>' +
+    '<div class="large"><h3 class="section">Visuels</h3>' +
+    '<div class="zones"><div class="zone"><label>Visuel principal</label><div class="photos" id="photoPrincipale"></div><p class="aide">Programme et accueil (format 3:2), haut de la fiche (plus large, recadré au centre) et miniature.</p></div>' +
+    '<div class="zone"><label>Galerie de la fiche (dans l\'ordre)</label><div class="photos" id="photos"></div><p class="aide">Vignettes sous le grand visuel de la fiche. ← → pour l\'ordre, ★ pour en faire le visuel principal.</p></div></div>' +
+    '<textarea id="f-image" name="image" hidden>' + esc(e.image) + '</textarea>' +
+    '<p class="aide">« Ajouter » prend un visuel sur l\'ordinateur ou le téléphone et le cadre ; vous pouvez aussi <button type="button" class="btn petit" id="urlPhoto">coller une adresse</button>. Les visuels déjà dans l\'appli sont juste en dessous.</p>' +
     '<div class="galerie" id="galerie"></div></div>' +
-    champ('description', 'Description', e.description, 'textarea') +
+    '<div class="large"><h3 class="section">Textes</h3></div>' +
+    champTexte('description', 'Accroche (programme, accueil, haut de la fiche)', e.description, 'Une à trois phrases. Si vide, le site garde le texte déjà écrit dans ses fiches.') +
+    champTexte('long', 'Texte long (fiche, derrière « Lire la suite »)', e.long, 'Paragraphes séparés par une ligne vide ; **gras**, *italique*, « ## » pour un sous-titre, « > » pour une citation, « - » pour une liste.') +
+    champTexte('distribution', 'Distribution et crédits (bas de la fiche)', e.distribution, 'Ex. : De et avec … Mise en scène : … Photos : …') +
     '</div>' + (peutModifier ? '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button>' +
     (nouveau ? '' : '<button class="btn" type="button" id="dupliquer">Dupliquer (autre date)</button><button class="btn danger" type="button" id="supprimer">Supprimer</button>') +
     '</div>' : '<p class="aide">Votre compte peut consulter cet événement, pas le modifier.</p>') + '</form>';
 
-  if (!nouveau) h += apercuSite(e);
+  var actives = [];
   if (!nouveau) {
     var resas = D.reservations.filter(function (r) { return r.evenement === e.id; });
-    var actives = resas.filter(function (r) { return r.statut !== 'Annulée'; });
+    actives = resas.filter(function (r) { return r.statut !== 'Annulée' && r.statut !== 'Liste d\'attente'; });
+    var enAttente = resas.filter(function (r) { return r.statut === 'Liste d\'attente'; });
     var total = actives.reduce(function (s, r) { return s + r.places; }, 0);
     var arrivees = actives.filter(function (r) { return r.arrivee; }).reduce(function (s, r) { return s + r.places; }, 0);
-    h += '<h2>Réservations · ' + total + (Number(e.places) ? ' / ' + e.places : '') + ' places' + (arrivees ? ' · ' + arrivees + ' arrivée' + (arrivees > 1 ? 's' : '') : '') + '</h2><div class="panneau">';
+    h += '<h2>Réservations · ' + total + (Number(e.places) ? ' / ' + e.places : '') + ' places' + (arrivees ? ' · ' + arrivees + ' arrivée' + (arrivees > 1 ? 's' : '') : '') + (enAttente.length ? ' · ' + enAttente.length + ' en liste d\'attente' : '') + '</h2><div class="panneau">';
     if (!peutResa) h += '<p class="aide">' + total + ' place' + (total > 1 ? 's' : '') + ' réservée' + (total > 1 ? 's' : '') + '. Votre compte ne voit pas le détail des réservations.</p></div>';
     else if (!resas.length) h += '<p class="vide">Pas encore de réservation.</p>';
     else h += '<div class="tableau"><table><tr><th>Arrivé·e</th><th>Nom</th><th>Places</th><th>Contact</th><th>Message</th><th>Reçue</th><th></th></tr>' +
       resas.map(function (r) {
-        return '<tr class="' + (r.statut === 'Annulée' ? 'annulee' : (r.arrivee ? 'arrivee' : '')) + '"><td>' + (r.statut === 'Annulée' ? '' : '<input type="checkbox" class="arrivee" data-pointer="' + esc(r.id) + '"' + (r.arrivee ? ' checked' : '') + ' aria-label="Arrivé·e">') + '</td><td>' + esc(r.nom) + '</td><td>' + r.places + '</td><td>' +
+        var att = r.statut === 'Liste d\'attente', ann = r.statut === 'Annulée';
+        return '<tr class="' + (ann ? 'annulee' : (r.arrivee ? 'arrivee' : '')) + (att ? ' attente' : '') + '"><td>' + (ann || att ? (att ? '<span class="badge">Liste d\'attente</span>' : '') : '<input type="checkbox" class="arrivee" data-pointer="' + esc(r.id) + '"' + (r.arrivee ? ' checked' : '') + ' aria-label="Arrivé·e">') + '</td><td>' + esc(r.nom) + '</td><td>' + r.places + '</td><td>' +
           (r.email ? '<a style="color:var(--lav2)" href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>' : '') + (r.telephone ? '<br>' + esc(r.telephone) : '') +
           '</td><td>' + esc(r.message) + '</td><td>' + esc(r.recue) + '</td><td>' +
-          (r.statut === 'Annulée' ? 'Annulée' : '<button class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler</button>') + '</td></tr>';
+          (ann ? 'Annulée' : (att ? '<button class="btn petit plein" data-confirmer="' + esc(r.id) + '">Confirmer</button> ' : '') + '<button class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler</button>') + '</td></tr>';
       }).join('') + '</table></div>';
     if (peutResa) h += '<div class="actions">' + (actives.length ? '<button class="btn" id="copier">Copier les e-mails</button>' : '') + '</div>';
     if (peutResa) h += '<h2>Ajouter une réservation à la main</h2><form id="ajout"><div class="grille">' +
@@ -281,18 +394,36 @@ function afficherEvenement(id) {
       '<div><label><input type="checkbox" name="envoyerMail" style="width:auto"> envoyer l\'e-mail de confirmation</label></div>' +
       '</div><div class="actions"><button class="btn plein" type="submit">Ajouter</button></div></form></div>';
   }
+  h += '</div>'; // .colonne
+  if (siteUrl()) h += '<aside class="voletApercu" id="voletApercu" hidden>' + apercuSite(e, nouveau) + '</aside>';
+  h += '</div>'; // .editeur
   $('#vue').innerHTML = h;
-  $('#retour').onclick = function () { ouvert = null; afficher(); };
-  if (peutModifier) photosInit();
-  else { $('#form').querySelectorAll('input,select,textarea').forEach(function (x) { x.disabled = true; }); $('#photos').innerHTML = listePhotos().map(function (u) { return '<div class="photo"><img src="' + esc(u) + '" alt=""></div>'; }).join('') || '<p class="aide">Pas de photo.</p>'; $('#galerie').remove(); }
-  if (!nouveau) apercuInit(e);
+  $('#retour').onclick = function () { if (MODIFIE && !confirm('Des modifications ne sont pas enregistrées. Quitter quand même ?')) return; MODIFIE = false; ouvert = null; afficher(); };
+  if (peutModifier) { photosInit(); miseEnFormeInit(); }
+  else { $('#form').querySelectorAll('input,select,textarea').forEach(function (x) { x.disabled = true; }); photosAfficher(true); $('#galerie').remove(); document.querySelectorAll('.barreTexte').forEach(function (b) { b.remove(); }); }
+  apercuInit(e, nouveau);
   document.querySelectorAll('[data-pointer]').forEach(function (c) { c.onchange = function () { appel('adminPointer', [c.dataset.pointer, c.checked], function (res) { recharger(res); }); }; });
+  // Fin ↔ durée, et suivi des modifications
+  var fDebut = $('#f-debut'), fFin = $('#f-fin'), fDuree = $('#f-duree'), finAuto = !e.fin, dureeAuto = !e.duree;
+  function majFin() { var m = minutesDe(fDuree.value); if (fDebut.value && m && (finAuto || !fFin.value)) { fFin.value = heurePlus(fDebut.value, m); finAuto = true; } }
+  function majDuree() { var m = ecartMinutes(fDebut.value, fFin.value); if (fDebut.value && fFin.value && m && (dureeAuto || !fDuree.value)) { fDuree.value = texteDuree(m); dureeAuto = true; } }
+  fDuree.addEventListener('input', function () { dureeAuto = !fDuree.value; majFin(); });
+  fFin.addEventListener('input', function () { finAuto = !fFin.value; majDuree(); });
+  fDebut.addEventListener('input', function () { if (finAuto || !fFin.value) majFin(); else majDuree(); });
+  $('#form').addEventListener('input', function () { MODIFIE = true; envoyerBrouillon(e, nouveau); });
+  $('#form').addEventListener('change', function () { MODIFIE = true; envoyerBrouillon(e, nouveau); });
   if (!peutModifier) return;
   $('#form').onsubmit = function (ev) {
     ev.preventDefault();
-    var o = { id: nouveau ? '' : e.id };
+    var o = { id: nouveau ? '' : e.id, attente: '' };
     new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
-    appel('adminEnregistrerEvenement', [o], function (res) { recharger(res); ouvert = null; afficher(); toast('Enregistré'); });
+    appel('adminEnregistrerEvenement', [o], function (res) {
+      MODIFIE = false; var etaitNouveau = nouveau;
+      recharger(res);
+      if (etaitNouveau) { var cree = res.evenements.filter(function (x) { return x.titre === o.titre && x.date === o.date && x.debut === o.debut; }).pop(); ouvert = cree ? cree.id : null; afficher(); }
+      else { afficher(); }
+      toast('Enregistré');
+    });
   };
   if (nouveau) return;
   if (!peutResa && $('#ajout')) $('#ajout').remove();
@@ -302,7 +433,7 @@ function afficherEvenement(id) {
   };
   $('#supprimer').onclick = function () {
     if (!confirm('Supprimer « ' + e.titre + ' » ?')) return;
-    appel('adminSupprimerEvenement', [e.id], function (res) { ouvert = null; recharger(res); toast('Supprimé'); });
+    appel('adminSupprimerEvenement', [e.id], function (res) { ouvert = null; MODIFIE = false; recharger(res); toast('Supprimé'); });
   };
   document.querySelectorAll('[data-annuler]').forEach(function (b) {
     b.onclick = function () {
@@ -311,12 +442,19 @@ function afficherEvenement(id) {
       appel('adminAnnulerReservation', [b.dataset.annuler, prevenir], function (res) { recharger(res); toast('Réservation annulée'); });
     };
   });
+  document.querySelectorAll('[data-confirmer]').forEach(function (b) {
+    b.onclick = function () {
+      var prevenir = confirm('Confirmer cette réservation (liste d\'attente → confirmée) et envoyer l\'e-mail de confirmation ?\n\nOK : confirmer et envoyer l\'e-mail. Annuler : ne rien faire.');
+      if (!prevenir) return;
+      appel('adminConfirmerReservation', [b.dataset.confirmer, true], function (res) { recharger(res); toast('Réservation confirmée'); });
+    };
+  });
   var cp = $('#copier');
   if (cp) cp.onclick = function () {
     var mails = actives.map(function (r) { return r.email; }).filter(Boolean).join(', ');
     (navigator.clipboard ? navigator.clipboard.writeText(mails) : Promise.reject()).then(function () { toast('E-mails copiés'); }, function () { prompt('E-mails :', mails); });
   };
-  $('#ajout').onsubmit = function (ev) {
+  if ($('#ajout')) $('#ajout').onsubmit = function (ev) {
     ev.preventDefault();
     var o = { evenement: e.id };
     new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
@@ -335,6 +473,8 @@ function afficherReglages() {
     champ('message', 'Message de confirmation', r.message, 'textarea') +
     champ('sujetAnnulation', 'Sujet de l\'annulation', r.sujetAnnulation) +
     champ('messageAnnulation', 'Message d\'annulation', r.messageAnnulation, 'textarea') +
+    champ('sujetAttente', 'Sujet de la liste d\'attente', r.sujetAttente || '') +
+    champ('messageAttente', 'Message de liste d\'attente (quand l\'événement est complet)', r.messageAttente || '', 'textarea') +
     '</div><p class="aide">Remplacés automatiquement : {nom} {places} {titre} {date} {heure} {lieu} {tarif} {festival}</p>' +
     '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="essai">M\'envoyer un essai</button></div></form>';
   if (droit('comptes')) h += '<h2 id="comptes">Comptes et codes PIN</h2><div class="panneau" id="zoneComptes"><p class="vide">Chargement…</p></div>' +
@@ -423,43 +563,50 @@ function partager(c, pin, lien) {
   $('#fermerPartage').onclick = function () { $('#formCompte').innerHTML = ''; };
 }
 
-// ---------- Photos d'un événement : liste, ordre, recadrage ----------
+// ---------- Visuels d'un événement : principal + galerie, ordre, recadrage ----------
 function listePhotos() { return $('#f-image').value.split(/\s*[\n,]\s*/).filter(Boolean); }
-function ecrirePhotos(l) { $('#f-image').value = l.join('\n'); photosAfficher(); galerieAfficher(); }
-function photosAfficher() {
-  var l = listePhotos();
-  $('#photos').innerHTML = l.map(function (u, i) {
-    return '<div class="photo"><img src="' + esc(u) + '" alt="" loading="lazy"><span class="num">' + (i + 1) + '</span><div class="outils">' +
-      '<button type="button" data-bouger="' + i + ',-1" title="Avancer"' + (i ? '' : ' disabled') + '>←</button>' +
-      '<button type="button" data-bouger="' + i + ',1" title="Reculer"' + (i < l.length - 1 ? '' : ' disabled') + '>→</button>' +
+function ecrirePhotos(l) { $('#f-image').value = l.join('\n'); MODIFIE = true; photosAfficher(); galerieAfficher(); $('#f-image').dispatchEvent(new Event('input', { bubbles: true })); }
+function photosAfficher(lectureSeule) {
+  var l = listePhotos(), zp = $('#photoPrincipale'), zg = $('#photos');
+  function carte(u, i) {
+    if (lectureSeule) return '<div class="photo"><img src="' + esc(u) + '" alt=""></div>';
+    return '<div class="photo' + (i ? '' : ' principale') + '"><img src="' + esc(u) + '" alt="" loading="lazy">' + (i ? '<span class="num">' + i + '</span>' : '') + '<div class="outils">' +
+      (i ? '<button type="button" data-bouger="' + i + ',-1" title="Avancer"' + (i > 1 ? '' : ' disabled') + '>←</button><button type="button" data-bouger="' + i + ',1" title="Reculer"' + (i < l.length - 1 ? '' : ' disabled') + '>→</button><button type="button" data-premiere="' + i + '" title="En faire le visuel principal">★</button>' : '') +
       '<button type="button" data-recadrer="' + esc(u) + '" data-index="' + i + '">Recadrer</button>' +
       '<button type="button" data-retirer="' + i + '">Retirer</button></div></div>';
-  }).join('') + '<button type="button" class="ajout" id="ajoutPhoto">+ Ajouter</button>';
-  $('#photos').querySelectorAll('[data-retirer]').forEach(function (b) { b.onclick = function () { var l = listePhotos(); l.splice(+b.dataset.retirer, 1); ecrirePhotos(l); }; });
-  $('#photos').querySelectorAll('[data-bouger]').forEach(function (b) { b.onclick = function () {
-    var a = b.dataset.bouger.split(','), i = +a[0], j = i + (+a[1]), l = listePhotos(); if (j < 0 || j >= l.length) return;
+  }
+  zp.innerHTML = l.length ? carte(l[0], 0) : (lectureSeule ? '<p class="aide">Pas de visuel.</p>' : '<button type="button" class="ajout" id="ajoutPrincipale">+ Ajouter</button>');
+  zg.innerHTML = l.slice(1).map(function (u, i) { return carte(u, i + 1); }).join('') + (lectureSeule ? '' : '<button type="button" class="ajout" id="ajoutPhoto">+ Ajouter</button>');
+  if (lectureSeule) return;
+  var z = $('#form');
+  z.querySelectorAll('[data-retirer]').forEach(function (b) { b.onclick = function () { var l = listePhotos(); l.splice(+b.dataset.retirer, 1); ecrirePhotos(l); }; });
+  z.querySelectorAll('[data-premiere]').forEach(function (b) { b.onclick = function () { var l = listePhotos(); l.unshift(l.splice(+b.dataset.premiere, 1)[0]); ecrirePhotos(l); }; });
+  z.querySelectorAll('[data-bouger]').forEach(function (b) { b.onclick = function () {
+    var a = b.dataset.bouger.split(','), i = +a[0], j = i + (+a[1]), l = listePhotos(); if (j < 1 || j >= l.length) return;
     var x = l[i]; l[i] = l[j]; l[j] = x; ecrirePhotos(l);
   }; });
-  $('#photos').querySelectorAll('[data-recadrer]').forEach(function (b) { b.onclick = function () {
+  z.querySelectorAll('[data-recadrer]').forEach(function (b) { b.onclick = function () {
     var i = +b.dataset.index;
-    recadrerUrl(b.dataset.recadrer, ($('#f-titre').value || 'photo'), function (url) { var l = listePhotos(); l[i] = url; ecrirePhotos(l); toast('Photo recadrée : pensez à enregistrer l\'événement'); });
+    recadrerUrl(b.dataset.recadrer, ($('#f-titre').value || 'photo'), function (url) { var l = listePhotos(); l[i] = url; ecrirePhotos(l); toast('Visuel recadré : pensez à enregistrer'); });
   }; });
-  $('#ajoutPhoto').onclick = function () { $('#fichierPhoto').value = ''; $('#fichierPhoto').click(); };
+  ['#ajoutPhoto', '#ajoutPrincipale'].forEach(function (s) { if ($(s)) $(s).onclick = function () { $('#fichierPhoto').value = ''; $('#fichierPhoto').click(); }; });
 }
 
-// ---------- Galerie : toutes les photos (fichier du site + dossier Drive), par spectacle ----------
-var PHOTOS_DRIVE = null;
+// ---------- Visuels : tous (fichiers du site + dossier Drive), classés par spectacle ----------
+var PHOTOS_DRIVE = null, INFOS_VISUELS = {};
 function chargerSite(ok) {
   if (window.SPECTACLES || !siteUrl()) return ok();
   var sc = document.createElement('script'); sc.src = siteUrl() + 'festival.js?' + Date.now(); sc.onload = ok; sc.onerror = function () { ok(); }; document.head.appendChild(sc);
 }
 function chargerDrive(ok, force) {
   if (PHOTOS_DRIVE && !force) return ok();
-  appel('adminListerPhotos', [], function (l) { PHOTOS_DRIVE = l || []; ok(); });
+  appel('adminListerPhotos', [], function (r) { PHOTOS_DRIVE = (r && r.photos) || []; INFOS_VISUELS = (r && r.infos) || {}; ok(); });
 }
 function normTitre(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
 function titresConnus() {
-  var l = Object.keys(window.SPECTACLES || {}); (D.spectacles || []).forEach(function (s) { if (!l.some(function (k) { return normTitre(k) === normTitre(s); })) l.push(s); }); return l;
+  var l = Object.keys(window.SPECTACLES || {}); (D.spectacles || []).forEach(function (s) { if (!l.some(function (k) { return normTitre(k) === normTitre(s); })) l.push(s); });
+  D.evenements.forEach(function (e) { var s = e.spectacle || e.titre; if (s && !l.some(function (k) { return normTitre(k) === normTitre(s); })) l.push(s); });
+  return l.sort(function (a, b) { return a.localeCompare(b, 'fr'); });
 }
 function titreDe(nom) { // « Titre · 3 » ou « Titre 3 » → titre connu
   var n = normTitre(String(nom).split(' · ')[0]), l = titresConnus().slice().sort(function (a, b) { return b.length - a.length; });
@@ -467,22 +614,23 @@ function titreDe(nom) { // « Titre · 3 » ou « Titre 3 » → titre connu
   return '';
 }
 function idDrive(u) { var m = /drive\.google\.com\/(?:thumbnail\?id=|uc\?id=|file\/d\/)([\w-]+)/.exec(u || ''); return m ? m[1] : ''; }
-// Toutes les photos connues : { titre, url, credit, origine: 'site'|'drive', id, surSite }
+function cleVisuel(p) { return p.origine === 'drive' ? p.id : p.url.split('/').pop(); }
+// Tous les visuels connus : { cle, titre, url, credit, legende, origine: 'site'|'drive', id, surSite }
 function toutesPhotos() {
   var l = [], SP = window.SPECTACLES || {}, utilisees = {};
   D.evenements.forEach(function (e) { String(e.image || '').split(/\s*[\n,]\s*/).forEach(function (u) { if (u) utilisees[u.split('/').pop()] = true; }); });
+  function infos(p) { var v = INFOS_VISUELS[cleVisuel(p)]; if (v) { if (v.spectacle) p.titre = v.spectacle; if (v.credit) p.credit = v.credit; p.legende = v.legende || ''; } return p; }
   Object.keys(SP).forEach(function (k) {
     var s = SP[k], aff = (s.photos || (s.photo ? [{ src: s.photo, credit: s.credit }] : []));
-    aff.forEach(function (p) { l.push({ titre: k, url: siteUrl() + p.src, credit: p.credit || '', origine: 'site', surSite: true }); });
-    (s.banque || []).forEach(function (p) { l.push({ titre: k, url: siteUrl() + p.src, credit: p.credit || '', origine: 'site', surSite: false }); });
+    aff.forEach(function (p) { l.push(infos({ titre: k, url: siteUrl() + p.src, credit: p.credit || '', origine: 'site', surSite: true })); });
+    (s.banque || []).forEach(function (p) { l.push(infos({ titre: k, url: siteUrl() + p.src, credit: p.credit || '', origine: 'site', surSite: false })); });
   });
-  (PHOTOS_DRIVE || []).forEach(function (f) { l.push({ titre: titreDe(f.nom), nom: f.nom, url: f.url, credit: '', origine: 'drive', id: f.id, surSite: !!utilisees[f.url.split('/').pop()] }); });
+  (PHOTOS_DRIVE || []).forEach(function (f) { l.push(infos({ titre: f.spectacle || titreDe(f.nom), nom: f.nom, url: f.url, credit: f.credit || '', legende: f.legende || '', origine: 'drive', id: f.id, surSite: !!utilisees[f.url.split('/').pop()] })); });
   return l;
 }
 function cartePhoto(p, boutons) {
-  var portrait = /affiche|visuel|gerard-[1-6]\b|-z[15]\.|facteur-cheval-[245]\.|ma-vie-3|hans-boude|hans-pepite|gaza-/.test(p.url);
-  return '<div class="photo' + (portrait ? ' portrait' : '') + '" title="' + esc(p.credit || p.nom || '') + '"><img src="' + esc(p.url) + '" alt="" loading="lazy">' +
-    (p.surSite ? '<span class="etiquette">Sur le site</span>' : (p.origine === 'drive' ? '<span class="etiquette drive">Drive</span>' : '')) +
+  return '<div class="photo" title="' + esc([p.legende, p.credit].filter(Boolean).join(' · ') || p.nom || '') + '"><img src="' + esc(p.url) + '" alt="" loading="lazy">' +
+    (p.surSite ? '<span class="etiquette">Sur le site</span>' : '') + (p.legende ? '<span class="legende">' + esc(p.legende) + '</span>' : '') +
     '<div class="outils">' + boutons + '</div></div>';
 }
 function galerieAfficher() {
@@ -492,105 +640,160 @@ function galerieAfficher() {
     var toutes = toutesPhotos(), pour = toutes.filter(function (p) { return normTitre(p.titre) === cible; }), autres = toutes.filter(function (p) { return normTitre(p.titre) !== cible; });
     function boutons(p) {
       var deja = prises.some(function (u) { return u === p.url || u.split('/').pop() === p.url.split('/').pop(); });
-      return (deja ? '<span style="color:var(--vert);font-size:12px;padding:3px 5px">✓ Utilisée</span>' : '<button type="button" data-utiliser="' + esc(p.url) + '">+ Utiliser</button>') +
+      return (deja ? '<span style="color:var(--vert);font-size:12px;padding:3px 5px">✓ Utilisé</span>' : '<button type="button" data-utiliser="' + esc(p.url) + '">+ Utiliser</button>') +
         '<button type="button" data-recadrer-g="' + esc(p.url) + '">Recadrer</button>';
     }
-    var h = '<h4>Galerie · pour « ' + esc($('#f-spectacle').value || $('#f-titre').value) + ' » (' + pour.length + ')</h4>';
+    var h = '<h4>Visuels disponibles pour « ' + esc($('#f-spectacle').value || $('#f-titre').value) + ' » (' + pour.length + ')</h4>';
     h += pour.length ? '<div class="photos">' + pour.map(function (p) { return cartePhoto(p, boutons(p)); }).join('') + '</div>'
-      : '<p class="aide">Aucune photo dans la galerie pour ce titre. Ajoutez-en dans l\'onglet Photos, ou vérifiez l\'orthographe du titre.</p>';
-    var groupes = {}; autres.forEach(function (p) { (groupes[p.titre || 'Sans spectacle'] = groupes[p.titre || 'Sans spectacle'] || []).push(p); });
-    h += '<details><summary>Toutes les autres photos de la galerie (' + autres.length + ')</summary>' + Object.keys(groupes).sort().map(function (k) {
+      : '<p class="aide">Aucun visuel classé sous ce titre. Ajoutez-en dans l\'onglet Visuels (ou classez-y ceux qui existent).</p>';
+    var groupes = {}; autres.forEach(function (p) { (groupes[p.titre || 'À classer'] = groupes[p.titre || 'À classer'] || []).push(p); });
+    h += '<details><summary>Les visuels des autres spectacles (' + autres.length + ')</summary>' + Object.keys(groupes).sort().map(function (k) {
       return '<h4>' + esc(k) + '</h4><div class="photos">' + groupes[k].map(function (p) { return cartePhoto(p, boutons(p)); }).join('') + '</div>';
     }).join('') + '</details>';
     z.innerHTML = h;
     z.querySelectorAll('[data-utiliser]').forEach(function (b) { b.onclick = function () { ecrirePhotos(listePhotos().concat([b.dataset.utiliser])); }; });
     z.querySelectorAll('[data-recadrer-g]').forEach(function (b) { b.onclick = function () {
-      recadrerUrl(b.dataset.recadrerG, ($('#f-titre').value || 'photo'), function (url) { ecrirePhotos(listePhotos().concat([url])); toast('Photo recadrée et ajoutée : pensez à enregistrer'); });
+      recadrerUrl(b.dataset.recadrerG, ($('#f-titre').value || 'photo'), function (url) { ecrirePhotos(listePhotos().concat([url])); toast('Visuel recadré et ajouté : pensez à enregistrer'); });
     }; });
   }); });
 }
 function photosInit() {
   if (!$('#photos')) return;
   photosAfficher(); galerieAfficher();
-  $('#f-titre').onchange = $('#f-spectacle').onchange = galerieAfficher;
+  $('#f-titre').addEventListener('change', galerieAfficher); $('#f-spectacle').addEventListener('change', galerieAfficher);
   $('#urlPhoto').onclick = function () { var u = prompt('Adresse de l\'image (https://…) :'); if (u && /^https?:\/\//.test(u.trim())) ecrirePhotos(listePhotos().concat([u.trim()])); };
   $('#fichierPhoto').onchange = function () { var f = this.files[0]; if (f) recadrer(f, function (base64) {
-    envoyerImage(($('#f-titre').value || 'photo'), base64, function (r) { ecrirePhotos(listePhotos().concat([r.url])); toast('Photo ajoutée : pensez à enregistrer l\'événement'); });
+    envoyerImage(($('#f-spectacle').value || $('#f-titre').value || 'photo'), base64, function (r) { ecrirePhotos(listePhotos().concat([r.url])); toast('Visuel ajouté : pensez à enregistrer'); });
   }); };
 }
-function envoyerImage(titre, base64, ok) {
-  toast('Envoi de la photo…');
-  appel('adminEnregistrerImage', [{ nom: titre + ' · ' + new Date().toISOString().slice(0, 16).replace('T', ' '), base64: base64 }], function (r) { PHOTOS_DRIVE = null; ok(r); });
+function envoyerImage(titre, base64, ok, extra) {
+  toast('Envoi du visuel…');
+  var d = { nom: titre + ' · ' + new Date().toISOString().slice(0, 16).replace('T', ' '), base64: base64, spectacle: titre };
+  if (extra) Object.keys(extra).forEach(function (k) { d[k] = extra[k]; });
+  appel('adminEnregistrerImage', [d], function (r) { PHOTOS_DRIVE = null; ok(r); });
 }
-// Récupère une photo existante (site ou Drive) pour la recadrer, puis l'enregistre comme nouvelle photo.
+// Récupère un visuel existant (site ou Drive) pour le recadrer, puis l'enregistre comme nouveau fichier.
 function recadrerUrl(url, titre, ok) {
   var id = idDrive(url);
   function suite(blob) { recadrer(blob, function (base64) { envoyerImage(titre, base64, function (r) { ok(r.url); }); }); }
-  function rate() { toast('Impossible de lire cette photo pour la recadrer.', true); }
+  function rate() { toast('Impossible de lire ce visuel pour le recadrer.', true); }
   if (id) appel('adminLireImage', [id], function (r) { fetch(r.base64).then(function (x) { return x.blob(); }).then(suite).catch(rate); });
   else fetch(url, { mode: 'cors' }).then(function (x) { if (!x.ok) throw 0; return x.blob(); }).then(suite).catch(rate);
 }
-// Réduit une photo (max 1600 px) sans la recadrer, pour la galerie.
+// Réduit un visuel (max 1600 px) sans le recadrer, pour la bibliothèque.
 function reduire(fichier, ok) {
   var charge = window.createImageBitmap ? createImageBitmap(fichier, { imageOrientation: 'from-image' }) : Promise.reject();
   charge.catch(function () { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = URL.createObjectURL(fichier); }); })
     .then(function (im) {
       var k = Math.min(1, 1600 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
       c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.85));
-    }).catch(function () { toast('Photo illisible : ' + fichier.name, true); });
+    }).catch(function () { toast('Visuel illisible : ' + fichier.name, true); });
 }
 
-// ---------- Onglet Photos : la galerie complète ----------
+// ---------- Onglet Visuels : la bibliothèque complète, classable à la main ----------
+var FILTRE_VISUELS = '';
 function afficherPhotos() {
-  $('#vue').innerHTML = '<p class="vide">Chargement de la galerie…</p>';
+  $('#vue').innerHTML = '<p class="vide">Chargement des visuels…</p>';
   chargerSite(function () { chargerDrive(function () {
     var toutes = toutesPhotos(), groupes = {}, titres = titresConnus();
-    toutes.forEach(function (p) { (groupes[p.titre || 'Sans spectacle'] = groupes[p.titre || 'Sans spectacle'] || []).push(p); });
-    var h = '<div class="panneau"><div class="grille"><div><label for="g-titre">Spectacle</label><select id="g-titre">' + titres.map(function (s) { return '<option>' + esc(s) + '</option>'; }).join('') + '<option value="">Sans spectacle</option></select></div>' +
-      '<div><label>&nbsp;</label><button type="button" class="btn plein" id="ajoutGalerie">+ Ajouter des photos à la galerie</button></div></div>' +
-      '<p class="aide">Les photos ajoutées ici sont rangées dans le Drive du festival (dossier « ' + esc('Petit Festival · photos du site') + ' »), sans recadrage. On choisit ensuite, dans chaque événement, lesquelles afficher, dans quel ordre, et on les recadre si besoin. Les photos marquées « Sur le site » sont déjà affichées.</p></div>';
-    Object.keys(groupes).sort(function (a, b) { return a.localeCompare(b, 'fr'); }).forEach(function (k) {
-      h += '<div class="groupe"><h3>' + esc(k) + ' <span class="badge">' + groupes[k].length + '</span></h3><div class="photos">' + groupes[k].map(function (p) {
-        return cartePhoto(p, '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" style="color:var(--texte);font:600 12px Barlow,sans-serif;padding:3px 5px;text-decoration:none">Voir</a>' +
-          (p.origine === 'drive' ? '<button type="button" data-suppr="' + esc(p.id) + '">Supprimer</button>' : '<span style="font-size:11px;color:var(--doux);padding:3px 5px">fichier du site</span>'));
+    toutes.forEach(function (p) { (groupes[p.titre || 'À classer'] = groupes[p.titre || 'À classer'] || []).push(p); });
+    var options = function (choisi) { return '<option value=""' + (!choisi ? ' selected' : '') + '>— à classer —</option>' + titres.map(function (s) { return '<option' + (s === choisi ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join(''); };
+    var h = '<h2>Visuels</h2><div class="panneau"><p>Photos, affiches, dessins : tout ce qui peut illustrer un spectacle. <b>1.</b> Choisissez le spectacle, <b>2.</b> ajoutez les fichiers. Ensuite, dans chaque événement, vous choisissez lesquels afficher et dans quel ordre.</p>' +
+      '<div class="grille"><div><label for="g-titre">1. Spectacle</label><select id="g-titre">' + options($('#g-titre') ? $('#g-titre').value : '') + '</select></div>' +
+      '<div><label>2. Fichiers</label><button type="button" class="btn plein" id="ajoutGalerie" style="width:100%">+ Ajouter des visuels</button></div>' +
+      '<div><label for="g-filtre">Afficher</label><select id="g-filtre"><option value="">Tous les spectacles</option>' + Object.keys(groupes).sort(function (a, b) { return a.localeCompare(b, 'fr'); }).map(function (k) { return '<option' + (k === FILTRE_VISUELS ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select></div></div>' +
+      '<p class="aide">Sur chaque visuel : « Classer » pour changer de spectacle ou ajouter une légende et un crédit, « Supprimer » pour le retirer de la bibliothèque. « Sur le site » = déjà affiché quelque part.</p></div>';
+    var cles = Object.keys(groupes).sort(function (a, b) { return a === 'À classer' ? -1 : b === 'À classer' ? 1 : a.localeCompare(b, 'fr'); });
+    cles.forEach(function (k) {
+      if (FILTRE_VISUELS && k !== FILTRE_VISUELS) return;
+      h += '<div class="groupe' + (k === 'À classer' ? ' aClasser' : '') + '"><h3>' + esc(k) + ' <span class="badge">' + groupes[k].length + '</span></h3><div class="photos">' + groupes[k].map(function (p) {
+        return cartePhoto(p, '<button type="button" data-classer="' + esc(cleVisuel(p)) + '">Classer</button>' +
+          '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">Voir</a>' +
+          (p.origine === 'drive' ? '<button type="button" data-suppr="' + esc(p.id) + '">Supprimer</button>' : ''));
       }).join('') + '</div></div>';
     });
-    if (!toutes.length) h += '<p class="vide">Aucune photo pour l\'instant.</p>';
+    if (!toutes.length) h += '<p class="vide">Aucun visuel pour l\'instant.</p>';
+    h += '<div id="classement"></div>';
     $('#vue').innerHTML = h;
-    $('#ajoutGalerie').onclick = function () { $('#fichiersGalerie').value = ''; $('#fichiersGalerie').click(); };
+    $('#g-filtre').onchange = function () { FILTRE_VISUELS = this.value; afficherPhotos(); };
+    $('#ajoutGalerie').onclick = function () { if (!$('#g-titre').value && !confirm('Aucun spectacle choisi : les visuels iront dans « À classer ». Continuer ?')) return; $('#fichiersGalerie').value = ''; $('#fichiersGalerie').click(); };
     $('#fichiersGalerie').onchange = function () {
-      var fichiers = Array.prototype.slice.call(this.files), titre = $('#g-titre').value || 'photo', n = 0;
+      var fichiers = Array.prototype.slice.call(this.files), titre = $('#g-titre').value, n = 0;
       if (!fichiers.length) return;
+      toast('Envoi de ' + fichiers.length + ' visuel' + (fichiers.length > 1 ? 's' : '') + '…');
       (function suivant() {
-        if (n >= fichiers.length) { toast(fichiers.length + ' photo' + (fichiers.length > 1 ? 's' : '') + ' ajoutée' + (fichiers.length > 1 ? 's' : '')); return chargerDrive(afficherPhotos, true); }
-        reduire(fichiers[n++], function (base64) { appel('adminEnregistrerImage', [{ nom: titre + ' · ' + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' ' + n, base64: base64 }], suivant); });
+        if (n >= fichiers.length) { toast(fichiers.length + ' visuel' + (fichiers.length > 1 ? 's' : '') + ' ajouté' + (fichiers.length > 1 ? 's' : '')); return chargerDrive(afficherPhotos, true); }
+        var f = fichiers[n++];
+        reduire(f, function (base64) { appel('adminEnregistrerImage', [{ nom: (titre || 'visuel') + ' · ' + f.name.replace(/\.[a-z0-9]+$/i, '').slice(0, 40), base64: base64, spectacle: titre }], suivant); });
       })();
     };
     document.querySelectorAll('[data-suppr]').forEach(function (b) { b.onclick = function () {
-      if (!confirm('Supprimer cette photo du Drive ? Si un événement l\'affiche, elle disparaîtra du site.')) return;
-      appel('adminSupprimerPhoto', [b.dataset.suppr], function () { toast('Photo supprimée'); chargerDrive(afficherPhotos, true); });
+      if (!confirm('Supprimer ce visuel de la bibliothèque ? S\'il est affiché sur un événement, il disparaîtra du site.')) return;
+      appel('adminSupprimerPhoto', [b.dataset.suppr], function () { toast('Visuel supprimé'); chargerDrive(afficherPhotos, true); });
+    }; });
+    document.querySelectorAll('[data-classer]').forEach(function (b) { b.onclick = function () {
+      var p = toutes.filter(function (x) { return cleVisuel(x) === b.dataset.classer; })[0]; if (!p) return;
+      var z = $('#classement');
+      z.innerHTML = '<div class="panneau" id="boiteClasser"><h3 style="margin:0 0 10px">Classer ce visuel</h3><div class="classer"><img src="' + esc(p.url) + '" alt=""><form id="fClasser"><div class="grille">' +
+        '<div><label for="c-spectacle">Spectacle</label><select id="c-spectacle">' + options(p.titre) + '</select></div>' +
+        '<div><label for="c-legende">Légende (facultatif)</label><input id="c-legende" value="' + esc(p.legende || '') + '" placeholder="Ex. : Scène finale, 2025"></div>' +
+        '<div><label for="c-credit">Crédit</label><input id="c-credit" value="' + esc(p.credit || '') + '" placeholder="Photo : Prénom Nom"></div></div>' +
+        '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="fermerClasser">Annuler</button></div></form></div></div>';
+      z.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      $('#fermerClasser').onclick = function () { z.innerHTML = ''; };
+      $('#fClasser').onsubmit = function (ev) {
+        ev.preventDefault();
+        appel('adminEnregistrerVisuel', [{ cle: cleVisuel(p), spectacle: $('#c-spectacle').value, legende: $('#c-legende').value, credit: $('#c-credit').value }], function (r) {
+          PHOTOS_DRIVE = (r && r.photos) || []; INFOS_VISUELS = (r && r.infos) || {}; toast('Visuel classé'); afficherPhotos();
+        });
+      };
     }; });
   }); });
 }
 
-// Recadrage : la photo se déplace au doigt ou à la souris, le curseur zoome ; le cadre est au format 3:2 du site.
+// ---------- Recadrage : cadre 3:2 du site, repères pour les autres emplacements, zoom, rotation ----------
 function recadrer(fichier, ok) {
-  var boite = $('#recadrage'), cv = $('#cv'), ctx = cv.getContext('2d'), zoom = $('#zoom');
-  var img, base, s, ox, oy, W = 900, H = 600;
+  var boite = $('#recadrage'), cv = $('#cv'), ctx = cv.getContext('2d'), zoom = $('#zoom'), reperes = $('#reperes');
+  var img, base, s, ox, oy, W = 900, H = 600, rotation = 0;
   cv.width = W; cv.height = H;
   var charge = window.createImageBitmap ? createImageBitmap(fichier, { imageOrientation: 'from-image' }).catch(function () { return chargerImage(fichier); }) : chargerImage(fichier);
-  charge.then(function (im) {
-    img = im; base = Math.max(W / im.width, H / im.height); s = base; zoom.value = 1;
-    ox = (W - im.width * s) / 2; oy = (H - im.height * s) / 2; dessiner(); boite.classList.add('ouvert');
-  });
+  charge.then(function (im) { img = im; recentrer(); boite.classList.add('ouvert'); });
   function chargerImage(f) { return new Promise(function (res, rej) { var u = URL.createObjectURL(f), i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = u; }); }
+  function recentrer() { base = Math.max(W / img.width, H / img.height); s = base; zoom.value = 1; ox = (W - img.width * s) / 2; oy = (H - img.height * s) / 2; dessiner(); }
+  function tourner() { // 90° : on redessine l'image dans un canevas pivoté, puis on recentre
+    var c = document.createElement('canvas'); c.width = img.height; c.height = img.width;
+    var x = c.getContext('2d'); x.translate(c.width / 2, c.height / 2); x.rotate(Math.PI / 2); x.drawImage(img, -img.width / 2, -img.height / 2);
+    img = c; recentrer();
+  }
   function borner() { ox = Math.min(0, Math.max(W - img.width * s, ox)); oy = Math.min(0, Math.max(H - img.height * s, oy)); }
-  function dessiner() { borner(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.drawImage(img, ox, oy, img.width * s, img.height * s); }
+  function dessiner() {
+    borner(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.drawImage(img, ox, oy, img.width * s, img.height * s);
+    if (!reperes.checked) return;
+    ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.setLineDash([10, 8]); ctx.lineWidth = 2;
+    ctx.strokeRect(1, H * 0.125, W - 2, H * 0.75); // haut de fiche (2:1), bande centrale
+    ctx.strokeRect((W - H) / 2, 1, H, H - 2); // miniature carrée (liste)
+    ctx.restore();
+    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.font = '600 15px Barlow, sans-serif';
+    ctx.fillRect(8, 8, 150, 22); ctx.fillStyle = '#fff'; ctx.fillText('Cadre : programme', 14, 24);
+    ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(8, H * 0.125 + 8, 160, 22); ctx.fillStyle = '#fff'; ctx.fillText('— — haut de fiche', 14, H * 0.125 + 24);
+    ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect((W - H) / 2 + 8, H - 30, 110, 22); ctx.fillStyle = '#fff'; ctx.fillText('— — miniature', (W - H) / 2 + 14, H - 14);
+    ctx.restore();
+  }
   zoom.oninput = function () { var ns = base * zoom.value, cx = W / 2, cy = H / 2; ox = cx - (cx - ox) * ns / s; oy = cy - (cy - oy) * ns / s; s = ns; dessiner(); };
-  var drag = null;
-  cv.onpointerdown = function (ev) { drag = { x: ev.clientX, y: ev.clientY, ox: ox, oy: oy }; cv.setPointerCapture(ev.pointerId); };
-  cv.onpointermove = function (ev) { if (!drag) return; var k = W / cv.clientWidth; ox = drag.ox + (ev.clientX - drag.x) * k; oy = drag.oy + (ev.clientY - drag.y) * k; dessiner(); };
-  cv.onpointerup = cv.onpointercancel = function () { drag = null; };
+  reperes.onchange = dessiner;
+  $('#tourner').onclick = tourner; $('#recentrer').onclick = recentrer;
+  var doigts = {}, pince = null;
+  cv.onpointerdown = function (ev) { doigts[ev.pointerId] = { x: ev.clientX, y: ev.clientY }; cv.setPointerCapture(ev.pointerId); var l = Object.keys(doigts); if (l.length === 1) pince = { x: ev.clientX, y: ev.clientY, ox: ox, oy: oy }; else pince = null; };
+  cv.onpointermove = function (ev) {
+    if (!doigts[ev.pointerId]) return;
+    var avant = doigts[ev.pointerId]; doigts[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+    var l = Object.keys(doigts), k = W / cv.clientWidth;
+    if (l.length >= 2) { // pincement : zoom
+      var a = doigts[l[0]], b = doigts[l[1]], autre = l[0] === String(ev.pointerId) ? b : a, dAvant = Math.hypot(avant.x - autre.x, avant.y - autre.y), dApres = Math.hypot(ev.clientX - autre.x, ev.clientY - autre.y);
+      if (dAvant > 0) { var z = Math.min(4, Math.max(1, zoom.value * dApres / dAvant)); zoom.value = z; zoom.oninput(); }
+    } else if (pince) { ox = pince.ox + (ev.clientX - pince.x) * k; oy = pince.oy + (ev.clientY - pince.y) * k; dessiner(); }
+  };
+  cv.onpointerup = cv.onpointercancel = function (ev) { delete doigts[ev.pointerId]; pince = null; };
   $('#recadrerOk').onclick = function () {
     var out = document.createElement('canvas'), f = 1600 / W; out.width = 1600; out.height = 1067;
     var c = out.getContext('2d'); c.fillStyle = '#000'; c.fillRect(0, 0, out.width, out.height); c.drawImage(img, ox * f, oy * f, img.width * s * f, img.height * s * f);
@@ -599,30 +802,56 @@ function recadrer(fichier, ok) {
   $('#recadrerNon').onclick = function () { boite.classList.remove('ouvert'); };
 }
 
-// ---------- Aperçu du site ----------
+// ---------- Aperçu du site, en volet à côté de l'édition, qui suit les modifications ----------
 function siteUrl() { var u = (D.reglages.siteUrl || '').trim(); return u ? u.replace(/\/?$/, '/') : ''; }
-function apercuSite(e) {
-  if (!siteUrl()) return '<h2>Aperçu sur le site</h2><div class="panneau"><p class="aide">Indiquez l\'adresse du site dans les réglages pour voir les aperçus ici.</p></div>';
-  return '<h2>Aperçu sur le site</h2><div class="panneau apercu" id="apercu"><div class="onglets">' +
-    '<button type="button" class="btn petit on" data-page="programme.html#' + esc(e.id) + '">Fiche du spectacle</button>' +
-    '<button type="button" class="btn petit" data-page="programme.html#jour-' + esc(e.date) + '">Journée du ' + esc(e.date.split('-').reverse().join('.')) + '</button>' +
-    '<button type="button" class="btn petit" data-page="programme.html">Programme</button>' +
-    '<button type="button" class="btn petit" data-page="">Accueil</button>' +
+function idApercu(e, nouveau) { return nouveau ? 'brouillon' : e.id; }
+function apercuSite(e, nouveau) {
+  var id = idApercu(e, nouveau), date = e.date || aujourdhui();
+  return '<div class="apercu" id="apercu"><div class="onglets">' +
+    '<button type="button" class="btn petit on" data-page="programme.html?frais=1#' + esc(id) + '">Fiche</button>' +
+    '<button type="button" class="btn petit" data-page="programme.html?frais=1#jour-' + esc(date) + '">Journée</button>' +
+    '<button type="button" class="btn petit" data-page="programme.html?frais=1">Programme</button>' +
+    '<button type="button" class="btn petit" data-page="?frais=1">Accueil</button>' +
     '<button type="button" class="btn petit" id="tel">Téléphone</button>' +
-    '<a class="btn petit" id="ouvrirSite" href="' + esc(siteUrl() + 'programme.html#' + e.id) + '" target="_blank" rel="noopener">Ouvrir dans un onglet</a></div>' +
-    '<p class="aide">' + (e.statut === 'Ouvert' || e.statut === 'Fermé' ? 'L\'aperçu montre ce qui est enregistré : après une modification, enregistrez puis rechargez l\'aperçu.' : 'Cet événement est « ' + esc(e.statut) + ' » : il n\'apparaît pas sur le site tant qu\'il n\'est pas Ouvert ou Fermé.') + '</p>' +
-    '<div class="cadre"><iframe id="cadreSite" src="' + esc(siteUrl() + 'programme.html#' + e.id) + '" title="Aperçu du site" loading="lazy"></iframe></div></div>';
+    '<a class="btn petit" id="ouvrirSite" href="' + esc(siteUrl() + 'programme.html#' + e.id) + '" target="_blank" rel="noopener">Ouvrir</a>' +
+    '<button type="button" class="btn petit discret" id="fermerApercu" title="Fermer l\'aperçu">×</button></div>' +
+    '<p class="aide" id="aideApercu">L\'aperçu suit ce que vous tapez, même avant d\'enregistrer' + (e.statut === 'Ouvert' || e.statut === 'Fermé' || nouveau ? '.' : '. Cet événement est « ' + esc(e.statut) + ' » : les visiteurs ne le voient pas tant qu\'il n\'est pas Ouvert ou Fermé.') + '</p>' +
+    '<div class="cadre"><iframe id="cadreSite" title="Aperçu du site"></iframe></div></div>';
 }
-function apercuInit(e) {
-  var a = $('#apercu'); if (!a) return;
+var ENVOI_BROUILLON = null;
+function brouillonActuel(e, nouveau) {
+  var f = $('#form'); if (!f) return null;
+  var o = { id: idApercu(e, nouveau), attente: '' }; new FormData(f).forEach(function (v, k) { o[k] = v; });
+  if (!o.statut) o.statut = e.statut || 'Brouillon';
+  o.compagnie = o.compagnie || ''; o.prises = e.prises || 0;
+  return o;
+}
+function envoyerBrouillon(e, nouveau) {
+  var f = $('#cadreSite'); if (!f || $('#voletApercu').hidden) return;
+  clearTimeout(ENVOI_BROUILLON);
+  ENVOI_BROUILLON = setTimeout(function () {
+    var b = brouillonActuel(e, nouveau); if (!b || !f.contentWindow) return;
+    try { f.contentWindow.postMessage({ type: 'pf-brouillon', evenement: b }, '*'); } catch (err) {}
+  }, 350);
+}
+function apercuInit(e, nouveau) {
+  var a = $('#apercu'), volet = $('#voletApercu'), bouton = $('#voirApercu'); if (!a || !bouton) return;
+  var cadre = $('#cadreSite'), editeur = $('#editeur');
+  function charger(page) { cadre.src = 'about:blank'; setTimeout(function () { cadre.src = siteUrl() + page; }, 30); }
+  cadre.onload = function () { if (cadre.src !== 'about:blank') setTimeout(function () { envoyerBrouillon(e, nouveau); }, 400); };
+  function ouvrir() { volet.hidden = false; editeur.classList.add('avecApercu'); bouton.classList.add('on'); garderLocal('apercu', '1'); if (!cadre.src || cadre.src === 'about:blank') charger(a.querySelector('[data-page].on').dataset.page); }
+  function fermer() { volet.hidden = true; editeur.classList.remove('avecApercu'); bouton.classList.remove('on'); garderLocal('apercu', ''); }
+  bouton.onclick = function () { volet.hidden ? ouvrir() : fermer(); };
+  $('#fermerApercu').onclick = fermer;
   a.querySelectorAll('[data-page]').forEach(function (b) {
     b.onclick = function () {
       a.querySelectorAll('[data-page]').forEach(function (x) { x.classList.toggle('on', x === b); });
-      var u = siteUrl() + b.dataset.page; $('#ouvrirSite').href = u;
-      var f = $('#cadreSite'); f.src = 'about:blank'; setTimeout(function () { f.src = u; }, 50);
+      $('#ouvrirSite').href = siteUrl() + b.dataset.page.replace('?frais=1', '');
+      charger(b.dataset.page);
     };
   });
   $('#tel').onclick = function () { a.classList.toggle('tel'); $('#tel').classList.toggle('on'); };
+  if (lireLocal('apercu') === '1' && window.innerWidth > 960) ouvrir();
 }
 
 appel('adminCharger', [], recharger);

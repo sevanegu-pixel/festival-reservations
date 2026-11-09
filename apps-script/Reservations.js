@@ -25,9 +25,9 @@ var RESA = {
 };
 
 var COL_EV = ['id', 'Titre', 'Spectacle', 'Compagnie', 'Date', 'Début', 'Fin', 'Durée', 'Âge', 'Lieu', 'Adresse',
-  'Description', 'Tarif', 'Places', 'Statut', 'Image', 'Créé le'];
+  'Description', 'Tarif', 'Places', 'Statut', 'Image', 'Créé le', 'Liste d\'attente', 'Texte long', 'Distribution'];
 var CHAMPS_EV = ['id', 'titre', 'spectacle', 'compagnie', 'date', 'debut', 'fin', 'duree', 'age', 'lieu', 'adresse',
-  'description', 'tarif', 'places', 'statut', 'image', 'cree'];
+  'description', 'tarif', 'places', 'statut', 'image', 'cree', 'attente', 'long', 'distribution'];
 
 // Adresse de l'appli de gestion (page GitHub installable comme une icône, ordinateur et téléphone)
 var GESTION_URL = 'https://sevanegu-pixel.github.io/festival-reservations/';
@@ -47,6 +47,9 @@ var REGLAGES_DEFAUT = {
     'Pour annuler ou changer votre réservation, répondez simplement à cet e-mail.\n\nÀ bientôt !\n{festival}',
   sujetAnnulation: 'Réservation annulée : {titre}',
   messageAnnulation: 'Bonjour {nom},\n\nVotre réservation pour « {titre} » du {date} a été annulée.\n\n{festival}',
+  sujetAttente: 'Liste d\'attente : {titre}',
+  messageAttente: 'Bonjour {nom},\n\nC\'est complet pour « {titre} » le {date} à {heure}, mais vous êtes sur la liste d\'attente pour {places} place(s). ' +
+    'Dès qu\'une place se libère, nous vous écrivons pour confirmer.\n\n{festival}',
 };
 
 // ---------- Point d'entrée web ----------
@@ -129,9 +132,9 @@ var DROITS = [
 var FONCTION_DROIT = {
   adminCharger: null,
   adminEnregistrerEvenement: 'evenements', adminSupprimerEvenement: 'evenements',
-  adminAjouterReservation: 'reservations', adminAnnulerReservation: 'reservations', adminPointer: 'reservations',
+  adminAjouterReservation: 'reservations', adminAnnulerReservation: 'reservations', adminPointer: 'reservations', adminConfirmerReservation: 'reservations',
   adminEnregistrerReglages: 'reglages', adminEssaiMail: 'reglages',
-  adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminSupprimerPhoto: 'photos',
+  adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminSupprimerPhoto: 'photos', adminEnregistrerVisuel: 'photos',
   adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes', adminMettreAJour: 'comptes',
   adminListerAppareils: 'comptes', adminDeconnecterAppareil: 'comptes', adminQuitterAppareil: null
 };
@@ -284,10 +287,11 @@ function versPublic_(ev, prises) {
   return {
     id: ev.id, titre: ev.titre, spectacle: ev.spectacle, date: ev.date, debut: ev.debut, fin: ev.fin,
     compagnie: ev.compagnie, duree: ev.duree, age: ev.age,
-    lieu: ev.lieu, adresse: ev.adresse, description: ev.description, tarif: ev.tarif, image: ev.image,
+    lieu: ev.lieu, adresse: ev.adresse, description: ev.description, long: ev.long, distribution: ev.distribution, tarif: ev.tarif, image: ev.image,
     reservable: ev.statut === 'Ouvert' && (places === 0 || prises < places),
     complet: places > 0 && prises >= places,
     restantes: places > 0 ? Math.max(0, places - prises) : null,
+    attente: ev.statut === 'Ouvert' && ev.attente === 'Oui',
   };
 }
 
@@ -312,13 +316,15 @@ function reserver_(d) {
     if (!ev || ev.statut !== 'Ouvert') return { ok: false, erreur: 'Cet événement n\'est pas ouvert à la réservation.' };
     var max = Number(ev.places) || 0;
     var prises = placesPrises_()[ev.id] || 0;
+    var attente = false;
     if (max > 0 && prises + places > max) {
       var reste = Math.max(0, max - prises);
-      return { ok: false, erreur: reste ? 'Il ne reste que ' + reste + ' place(s).' : 'Désolé, c\'est complet.', restantes: reste };
+      if (d.attente && ev.attente === 'Oui') attente = true; // complet, mais liste d'attente ouverte
+      else return { ok: false, erreur: reste ? 'Il ne reste que ' + reste + ' place(s).' : 'Désolé, c\'est complet.', restantes: reste, attente: ev.attente === 'Oui' };
     }
     var resa = {
       id: nouvelId_('R'), evenement: ev.id, titreEvenement: ev.titre, recue: maintenant_(),
-      nom: nom, email: email, telephone: telephone, places: places, message: message, statut: 'Confirmée',
+      nom: nom, email: email, telephone: telephone, places: places, message: message, statut: attente ? 'Liste d\'attente' : 'Confirmée',
     };
     ajouterLigne_(onglet_(RESA.ongletReservations, COL_RES), CHAMPS_RES, resa);
     SpreadsheetApp.flush();
@@ -327,11 +333,12 @@ function reserver_(d) {
   }
   var mailEnvoye = true;
   try {
-    envoyerConfirmation_(ev, resa);
+    if (attente) envoyerAttente_(ev, resa); else envoyerConfirmation_(ev, resa);
   } catch (err) { // quota d'e-mails dépassé… la réservation est quand même enregistrée
     mailEnvoye = false;
     console.error('E-mail non envoyé pour ' + resa.id + ' : ' + err);
   }
+  if (attente) return { ok: true, id: resa.id, attente: true, mailEnvoye: mailEnvoye, restantes: 0 };
   return { ok: true, id: resa.id, mailEnvoye: mailEnvoye, restantes: max > 0 ? max - prises - places : null };
 }
 
@@ -370,6 +377,31 @@ function envoyerAnnulation_(ev, resa) {
     to: resa.email, subject: remplir_(r.sujetAnnulation, valeurs), body: texte, htmlBody: texteVersHtml_(texte),
     name: r.nomFestival, replyTo: r.copieA || undefined,
   });
+}
+
+function envoyerAttente_(ev, resa) {
+  var r = reglages_();
+  var valeurs = valeursMail_(ev, resa);
+  var texte = remplir_(r.messageAttente || REGLAGES_DEFAUT.messageAttente, valeurs);
+  MailApp.sendEmail({
+    to: resa.email, subject: remplir_(r.sujetAttente || REGLAGES_DEFAUT.sujetAttente, valeurs), body: texte, htmlBody: texteVersHtml_(texte),
+    name: r.nomFestival, replyTo: r.copieA || undefined,
+  });
+  if (r.copieA) MailApp.sendEmail({ to: r.copieA, subject: '[Liste d\'attente] ' + ev.titre + ' : ' + resa.nom + ' (' + resa.places + ')', body: texte, name: r.nomFestival });
+}
+
+/** Une place s'est libérée : la personne en liste d'attente passe en « Confirmée » (e-mail de confirmation si demandé). */
+function adminConfirmerReservation(cle, id, prevenir) {
+  verifierCle_(cle);
+  var feuille = onglet_(RESA.ongletReservations, COL_RES);
+  var n = ligneDe_(feuille, id);
+  if (!n) throw new Error('Réservation introuvable.');
+  var resa = objetDeLigne_(feuille.getRange(n, 1, 1, COL_RES.length).getValues()[0], CHAMPS_RES);
+  resa.places = Number(resa.places) || 1;
+  feuille.getRange(n, CHAMPS_RES.indexOf('statut') + 1).setValue('Confirmée');
+  var ev = lireEvenements_().filter(function (x) { return x.id === resa.evenement; })[0];
+  if (prevenir && ev && resa.email) envoyerConfirmation_(ev, resa);
+  return adminCharger(cle);
 }
 
 function valeursMail_(ev, resa) {
@@ -492,20 +524,35 @@ function adminEnregistrerImage(cle, d) {
   var blob = Utilities.newBlob(Utilities.base64Decode(base64), 'image/jpeg', nom + '.jpg');
   var fichier = dossierPhotos_().createFile(blob);
   fichier.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  if (d.spectacle || d.credit || d.legende) adminEnregistrerVisuel(cle, { cle: fichier.getId(), spectacle: d.spectacle, credit: d.credit, legende: d.legende });
   return { url: 'https://drive.google.com/thumbnail?id=' + fichier.getId() + '&sz=w1600', id: fichier.getId(), nom: fichier.getName() };
 }
 
-// Galerie de l'appli : toutes les photos du dossier Drive, les plus récentes d'abord.
+// Galerie de l'appli : toutes les photos du dossier Drive, les plus récentes d'abord, avec leurs infos (spectacle, légende, crédit).
 function adminListerPhotos(cle) {
   verifierCle_(cle);
-  var it = dossierPhotos_().getFiles(), l = [];
+  var it = dossierPhotos_().getFiles(), l = [], infos = visuels_();
   while (it.hasNext()) {
     var f = it.next();
     if (String(f.getMimeType()).indexOf('image/') !== 0) continue;
-    l.push({ id: f.getId(), nom: f.getName().replace(/\.[a-z]+$/i, ''), url: 'https://drive.google.com/thumbnail?id=' + f.getId() + '&sz=w1600', date: f.getDateCreated().getTime() });
+    var id = f.getId(), v = infos[id] || {};
+    l.push({ id: id, nom: f.getName().replace(/\.[a-z]+$/i, ''), url: 'https://drive.google.com/thumbnail?id=' + id + '&sz=w1600', date: f.getDateCreated().getTime(),
+      spectacle: v.spectacle || '', legende: v.legende || '', credit: v.credit || '' });
   }
   l.sort(function (a, b) { return b.date - a.date; });
-  return l;
+  return { photos: l, infos: infos };
+}
+// Infos d'un visuel (fichier Drive par id, ou fichier du site par nom de fichier) : spectacle, légende, crédit.
+function visuels_() {
+  try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('RESA_VISUELS') || '{}') || {}; } catch (e) { return {}; }
+}
+function adminEnregistrerVisuel(cle, d) {
+  verifierCle_(cle);
+  var infos = visuels_(), k = String(d.cle || '').slice(0, 120);
+  if (!k) throw new Error('Visuel inconnu.');
+  infos[k] = { spectacle: String(d.spectacle || '').slice(0, 120), legende: String(d.legende || '').slice(0, 200), credit: String(d.credit || '').slice(0, 120) };
+  PropertiesService.getScriptProperties().setProperty('RESA_VISUELS', JSON.stringify(infos));
+  return adminListerPhotos(cle);
 }
 
 // Renvoie une photo du Drive en base64 pour la recadrer dans l'appli (le navigateur ne peut pas la lire directement).
@@ -630,7 +677,7 @@ function lireReservations_() {
 function placesPrises_() {
   var pris = {};
   lireReservations_().forEach(function (r) {
-    if (r.statut !== 'Annulée') pris[r.evenement] = (pris[r.evenement] || 0) + r.places;
+    if (r.statut !== 'Annulée' && r.statut !== 'Liste d\'attente') pris[r.evenement] = (pris[r.evenement] || 0) + r.places;
   });
   return pris;
 }
