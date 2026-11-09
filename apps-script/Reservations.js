@@ -25,14 +25,49 @@ var RESA = {
 };
 
 var COL_EV = ['id', 'Titre', 'Spectacle', 'Compagnie', 'Date', 'Début', 'Fin', 'Durée', 'Âge', 'Lieu', 'Adresse',
-  'Description', 'Tarif', 'Places', 'Statut', 'Image', 'Créé le', 'Liste d\'attente', 'Texte long', 'Distribution', 'Vidéo'];
+  'Description', 'Tarif', 'Places', 'Statut', 'Image', 'Créé le', 'Liste d\'attente', 'Texte long', 'Distribution', 'Vidéo',
+  'Réservations envoyées à', 'Copie au festival', 'Réponses à cette adresse', 'Options de réservation', 'E-mails (exceptions)'];
 var CHAMPS_EV = ['id', 'titre', 'spectacle', 'compagnie', 'date', 'debut', 'fin', 'duree', 'age', 'lieu', 'adresse',
-  'description', 'tarif', 'places', 'statut', 'image', 'cree', 'attente', 'long', 'distribution', 'video'];
+  'description', 'tarif', 'places', 'statut', 'image', 'cree', 'attente', 'long', 'distribution', 'video',
+  'renvoi', 'renvoiCopie', 'renvoiReponses', 'options', 'mailsEv'];
 
 // Adresse de l'appli de gestion (page GitHub installable comme une icône, ordinateur et téléphone)
 var GESTION_URL = 'https://sevanegu-pixel.github.io/festival-reservations/';
-var COL_RES = ['id', 'Événement (id)', 'Événement', 'Reçue le', 'Nom', 'E-mail', 'Téléphone', 'Places', 'Message', 'Statut', 'Arrivée'];
-var CHAMPS_RES = ['id', 'evenement', 'titreEvenement', 'recue', 'nom', 'email', 'telephone', 'places', 'message', 'statut', 'arrivee'];
+var COL_RES = ['id', 'Événement (id)', 'Événement', 'Reçue le', 'Nom', 'E-mail', 'Téléphone', 'Places', 'Message', 'Statut', 'Arrivée', 'Options'];
+var CHAMPS_RES = ['id', 'evenement', 'titreEvenement', 'recue', 'nom', 'email', 'telephone', 'places', 'message', 'statut', 'arrivee', 'options'];
+
+// ----- Options de réservation, créées par événement dans l'appli -----
+// case : case à cocher en plus (ex. « Billet + livre ») ; contingent : places réservées à un groupe (ex. « Société des écrivains »).
+function optionsEv_(ev) {
+  var l = [];
+  try { l = JSON.parse((ev && ev.options) || '[]') || []; } catch (e) { l = []; }
+  if (!Array.isArray(l)) return [];
+  return l.map(function (o) {
+    return { id: String(o.id || '').replace(/[^\w-]/g, '').slice(0, 20), type: o.type === 'contingent' ? 'contingent' : 'case',
+      nom: String(o.nom || '').trim().slice(0, 80), aide: String(o.aide || '').trim().slice(0, 300), places: Math.max(0, Math.floor(Number(o.places) || 0)) };
+  }).filter(function (o) { return o.id && o.nom; });
+}
+function nomsOptions_(r) { return String((r && r.options) || '').split(' · ').map(function (x) { return x.trim(); }).filter(String); }
+/** Places prises par option (contingents) pour chaque événement : { evId: { nomOption: places } }. */
+function prisesParOption_(resas) {
+  var p = {};
+  (resas || lireReservations_()).forEach(function (r) {
+    if (r.statut === 'Annulée' || r.statut === 'Liste d\'attente') return;
+    nomsOptions_(r).forEach(function (n) { p[r.evenement] = p[r.evenement] || {}; p[r.evenement][n] = (p[r.evenement][n] || 0) + r.places; });
+  });
+  return p;
+}
+/** Places libres pour le public (sans contingent) et pour chaque contingent. */
+function disponibilites_(ev, prises, parOption) {
+  var max = Number(ev.places) || 0, opts = optionsEv_(ev), reserve = 0, c = {};
+  opts.forEach(function (o) {
+    if (o.type !== 'contingent') return;
+    var pris = (parOption && parOption[o.nom]) || 0;
+    reserve += Math.max(0, o.places - pris);
+    c[o.id] = Math.max(0, Math.min(o.places - pris, max > 0 ? max - prises : 1e9));
+  });
+  return { publiques: max > 0 ? Math.max(0, max - prises - reserve) : null, contingents: c, max: max };
+}
 
 // Statuts d'un événement : Ouvert (réservable), Fermé (affiché, sans réservation), Brouillon (caché), Annulé (caché)
 var STATUTS_EV = ['Ouvert', 'Fermé', 'Brouillon', 'Annulé'];
@@ -302,16 +337,29 @@ function json_(objet) {
 
 function evenementsPublics_() {
   var aujourdhui = Utilities.formatDate(new Date(), 'Europe/Zurich', 'yyyy-MM-dd');
-  var pris = placesPrises_();
+  var pris = placesPrises_(), parOption = prisesParOption_();
   return lireEvenements_()
     .filter(function (ev) { return (ev.statut === 'Ouvert' || ev.statut === 'Fermé') && ev.date >= aujourdhui; })
-    .map(function (ev) { return versPublic_(ev, pris[ev.id] || 0); })
+    .map(function (ev) { return versPublic_(ev, pris[ev.id] || 0, parOption[ev.id] || {}); })
     .sort(function (a, b) { return (a.date + a.debut) < (b.date + b.debut) ? -1 : 1; });
 }
 
-function versPublic_(ev, prises) {
-  var places = Number(ev.places) || 0;
+function versPublic_(ev, prises, parOption) {
+  var places = Number(ev.places) || 0, dispo = disponibilites_(ev, prises, parOption || {});
+  var opts = optionsEv_(ev).map(function (o) { var x = { id: o.id, type: o.type, nom: o.nom, aide: o.aide }; if (o.type === 'contingent') x.restantes = dispo.contingents[o.id]; return x; });
+  var contingentLibre = opts.some(function (o) { return o.type === 'contingent' && o.restantes > 0; });
+  if (opts.length && places > 0) return {
+    id: ev.id, titre: ev.titre, spectacle: ev.spectacle, date: ev.date, debut: ev.debut, fin: ev.fin,
+    compagnie: ev.compagnie, duree: ev.duree, age: ev.age,
+    lieu: ev.lieu, adresse: ev.adresse, description: ev.description, long: ev.long, distribution: ev.distribution, video: ev.video, tarif: ev.tarif, image: ev.image,
+    reservable: ev.statut === 'Ouvert' && (dispo.publiques > 0 || contingentLibre),
+    complet: dispo.publiques <= 0 && !contingentLibre,
+    restantes: dispo.publiques,
+    attente: ev.statut === 'Ouvert' && ev.attente === 'Oui',
+    options: opts
+  };
   return {
+    options: opts,
     id: ev.id, titre: ev.titre, spectacle: ev.spectacle, date: ev.date, debut: ev.debut, fin: ev.fin,
     compagnie: ev.compagnie, duree: ev.duree, age: ev.age,
     lieu: ev.lieu, adresse: ev.adresse, description: ev.description, long: ev.long, distribution: ev.distribution, video: ev.video, tarif: ev.tarif, image: ev.image,
@@ -342,16 +390,24 @@ function reserver_(d) {
     var ev = lireEvenements_().filter(function (x) { return x.id === d.evenement; })[0];
     if (!ev || ev.statut !== 'Ouvert') return { ok: false, erreur: 'Cet événement n\'est pas ouvert à la réservation.' };
     var max = Number(ev.places) || 0;
-    var prises = placesPrises_()[ev.id] || 0;
+    var resasTout = lireReservations_(), prises = 0;
+    resasTout.forEach(function (r) { if (r.evenement === ev.id && r.statut !== 'Annulée' && r.statut !== 'Liste d\'attente') prises += r.places; });
+    var opts = optionsEv_(ev), ids = Array.isArray(d.options) ? d.options.map(String) : [];
+    var choisies = opts.filter(function (o) { return ids.indexOf(o.id) >= 0; });
+    var contingent = choisies.filter(function (o) { return o.type === 'contingent'; })[0];
+    var dispo = disponibilites_(ev, prises, prisesParOption_(resasTout)[ev.id] || {});
+    var libres = max > 0 ? (contingent ? dispo.contingents[contingent.id] : dispo.publiques) : null;
     var attente = false;
-    if (max > 0 && prises + places > max) {
-      var reste = Math.max(0, max - prises);
+    if (contingent && max > 0 && places > libres) return { ok: false, erreur: libres ? 'Il ne reste que ' + libres + ' place(s) « ' + contingent.nom + ' ».' : 'Les places « ' + contingent.nom + ' » sont toutes prises.', restantes: dispo.publiques };
+    if (max > 0 && places > libres) {
+      var reste = Math.max(0, libres);
       if (d.attente && ev.attente === 'Oui') attente = true; // complet, mais liste d'attente ouverte
       else return { ok: false, erreur: reste ? 'Il ne reste que ' + reste + ' place(s).' : 'Désolé, c\'est complet.', restantes: reste, attente: ev.attente === 'Oui' };
     }
     var resa = {
       id: nouvelId_('R'), evenement: ev.id, titreEvenement: ev.titre, recue: maintenant_(),
       nom: nom, email: email, telephone: telephone, places: places, message: message, statut: attente ? 'Liste d\'attente' : 'Confirmée',
+      options: choisies.map(function (o) { return o.nom; }).join(' · '),
     };
     ajouterLigne_(onglet_(RESA.ongletReservations, COL_RES), CHAMPS_RES, resa);
     SpreadsheetApp.flush();
@@ -366,31 +422,50 @@ function reserver_(d) {
     console.error('E-mail non envoyé pour ' + resa.id + ' : ' + err);
   }
   if (attente) return { ok: true, id: resa.id, attente: true, mailEnvoye: mailEnvoye, restantes: 0 };
-  return { ok: true, id: resa.id, mailEnvoye: mailEnvoye, restantes: max > 0 ? max - prises - places : null };
+  return { ok: true, id: resa.id, mailEnvoye: mailEnvoye, restantes: max > 0 ? Math.max(0, contingent ? dispo.publiques : libres - places) : null };
 }
 
 // ---------- E-mails ----------
 
+/** Exceptions d'un événement pour ses e-mails : { types: { confirmation: 'non', … }, ajout: 'texte ajouté' }. */
+function mailsEv_(ev) {
+  var o = {}; try { o = JSON.parse((ev && ev.mailsEv) || '{}') || {}; } catch (e) { o = {}; }
+  return { types: o.types && typeof o.types === 'object' ? o.types : {}, ajout: String(o.ajout || '').slice(0, 2000) };
+}
 function envoyerType_(type, ev, resa, r) {
   r = r || reglages_();
-  var valeurs = valeursMail_(ev, resa), m = MAIL.composer(type, r, valeurs);
-  MailApp.sendEmail({ to: resa.email, subject: m.sujet, body: m.texte, htmlBody: m.html, name: r.nomFestival, replyTo: r.copieA || undefined });
+  var valeurs = valeursMail_(ev, resa), x = mailsEv_(ev), t = MAIL.TYPES[type];
+  if (x.types[type] === 'non') return valeurs; // cet événement n'envoie pas ce mail-là
+  if (x.ajout.trim() && t) { var r2 = {}; Object.keys(r).forEach(function (k) { r2[k] = r[k]; }); r2[t.message] = String(r[t.message] || '').replace(/\s+$/, '') + '\n\n' + x.ajout.trim(); r = r2; }
+  var m = MAIL.composer(type, r, valeurs);
+  var repondreA = renvoi_(ev) && ev.renvoiReponses === 'Oui' ? renvoi_(ev) : r.copieA;
+  MailApp.sendEmail({ to: resa.email, subject: m.sujet, body: m.texte, htmlBody: m.html, name: r.nomFestival, replyTo: repondreA || undefined });
   return valeurs;
+}
+/** Adresse qui reçoit les réservations de cet événement à la place (ou en plus) de celle du festival. */
+function renvoi_(ev) { var a = String((ev && ev.renvoi) || '').trim(); return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(a) ? a : ''; }
+/** Destinataires des avis « nouvelle réservation » pour cet événement. */
+function destinatairesAvis_(ev, r) {
+  var l = [], autre = renvoi_(ev);
+  if (autre) l.push(autre);
+  if (r.copieA && (!autre || ev.renvoiCopie !== 'Non') && l.indexOf(r.copieA) < 0) l.push(r.copieA);
+  return l;
 }
 function envoyerConfirmation_(ev, resa) {
   var r = reglages_();
   var valeurs = envoyerType_('confirmation', ev, resa, r);
-  if (r.copieA) {
+  destinatairesAvis_(ev, r).forEach(function (a) {
     MailApp.sendEmail({
-      to: r.copieA,
+      to: a,
       subject: 'Nouvelle réservation : ' + ev.titre + ' (' + resa.places + ' pl.)',
       body: resa.nom + ' · ' + resa.email + (resa.telephone ? ' · ' + resa.telephone : '') + '\n' +
         resa.places + ' place(s) pour « ' + ev.titre + ' », ' + valeurs.date + ' à ' + valeurs.heure + '\n' +
+        (resa.options ? 'Options : ' + resa.options + '\n' : '') +
         (resa.message ? '\nMessage : ' + resa.message + '\n' : ''),
       name: 'Réservations · ' + r.nomFestival,
       replyTo: resa.email,
     });
-  }
+  });
 }
 
 function envoyerAnnulation_(ev, resa) { envoyerType_('annulation', ev, resa); }
@@ -398,7 +473,7 @@ function envoyerAnnulation_(ev, resa) { envoyerType_('annulation', ev, resa); }
 function envoyerAttente_(ev, resa) {
   var r = reglages_();
   envoyerType_('attente', ev, resa, r);
-  if (r.copieA) MailApp.sendEmail({ to: r.copieA, subject: '[Liste d\'attente] ' + ev.titre + ' : ' + resa.nom + ' (' + resa.places + ')', body: resa.nom + ' · ' + resa.email + ' · ' + resa.places + ' place(s)', name: r.nomFestival });
+  destinatairesAvis_(ev, r).forEach(function (a) { MailApp.sendEmail({ to: a, subject: '[Liste d\'attente] ' + ev.titre + ' : ' + resa.nom + ' (' + resa.places + ')', body: resa.nom + ' · ' + resa.email + ' · ' + resa.places + ' place(s)', name: r.nomFestival, replyTo: resa.email || undefined }); });
 }
 
 /** Une place s'est libérée : la personne en liste d'attente passe en « Confirmée » (e-mail de confirmation si demandé). */
@@ -420,7 +495,7 @@ function valeursMail_(ev, resa) {
   return {
     nom: nom, prenom: nom.split(/\s+/)[0] || '', places: resa.places, titre: ev.titre, date: dateLongue_(ev.date),
     heure: ev.debut || '', lieu: [ev.lieu, ev.adresse].filter(String).join(', '), adresse: ev.adresse || '', tarif: ev.tarif || '',
-    numero: resa.id || '', email: resa.email || '', telephone: resa.telephone || '', message: resa.message || '',
+    numero: resa.id || '', email: resa.email || '', telephone: resa.telephone || '', message: resa.message || '', options: resa.options || '',
     festival: r.nomFestival, site: String(r.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, ''),
     lien: ev.id ? String(r.siteUrl || '').replace(/\/?$/, '/') + 'programme.html#' + encodeURIComponent(ev.id) : String(r.siteUrl || ''),
     image: ev.image || '',
@@ -495,6 +570,16 @@ function adminEnregistrerEvenement(cle, ev) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(ev.date || '')) throw new Error('La date manque.');
   if (STATUTS_EV.indexOf(ev.statut) < 0) ev.statut = 'Brouillon';
   ev.places = Math.max(0, Math.floor(Number(ev.places) || 0));
+  ev.renvoi = String(ev.renvoi || '').trim();
+  if (ev.renvoi && !renvoi_(ev)) throw new Error('L\'adresse qui reçoit les réservations n\'est pas une adresse e-mail valable.');
+  ev.renvoiCopie = ev.renvoiCopie === 'Non' ? 'Non' : 'Oui';
+  ev.renvoiReponses = ev.renvoiReponses === 'Oui' ? 'Oui' : '';
+  var opts = optionsEv_(ev);
+  if (opts.filter(function (o) { return o.type === 'contingent'; }).length > 1) throw new Error('Une seule option « places réservées à un groupe » par événement.');
+  ev.options = opts.length ? JSON.stringify(opts) : '';
+  var mx = mailsEv_(ev), types = {};
+  Object.keys(MAIL.TYPES).forEach(function (k) { if (mx.types[k] === 'non') types[k] = 'non'; });
+  ev.mailsEv = Object.keys(types).length || mx.ajout.trim() ? JSON.stringify({ types: types, ajout: mx.ajout.trim() }) : '';
   var feuille = onglet_(RESA.ongletEvenements, COL_EV);
   var verrou = LockService.getScriptLock();
   verrou.waitLock(20000);
@@ -536,6 +621,7 @@ function adminAjouterReservation(cle, d) {
     id: nouvelId_('R'), evenement: ev.id, titreEvenement: ev.titre, recue: maintenant_(),
     nom: String(d.nom).trim(), email: String(d.email || '').trim(), telephone: String(d.telephone || '').trim(),
     places: Math.max(1, Math.floor(Number(d.places) || 1)), message: String(d.message || '').trim(), statut: 'Confirmée',
+    options: optionsEv_(ev).filter(function (o) { return (Array.isArray(d.options) ? d.options : []).indexOf(o.id) >= 0; }).map(function (o) { return o.nom; }).join(' · '),
   };
   ajouterLigne_(onglet_(RESA.ongletReservations, COL_RES), CHAMPS_RES, resa);
   if (d.envoyerMail && resa.email) envoyerConfirmation_(ev, resa);

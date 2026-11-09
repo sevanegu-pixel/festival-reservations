@@ -7,7 +7,7 @@ var MAIL = (function () {
     ['lieu', 'Lieu et adresse', 'Théâtricul, Rue de Genève 64, Chêne-Bourg'], ['adresse', 'Adresse seule', 'Rue de Genève 64, Chêne-Bourg'],
     ['tarif', 'Tarif', 'Prix libre, 10 francs conseillés'], ['numero', 'Numéro de réservation', 'R-7F3K2'], ['email', 'E-mail de la personne', 'camille@example.ch'],
     ['telephone', 'Téléphone de la personne', '079 000 00 00'], ['message', 'Message laissé', ''], ['festival', 'Nom du festival', 'Le Petit Festival au Théâtricul'],
-    ['site', 'Adresse du site', 'https://petit-festival.ch'], ['lien', 'Page du spectacle sur le site', 'https://petit-festival.ch/apercu/programme.html#ev1']
+    ['options', 'Options choisies (ex. billet + livre)', ''], ['site', 'Adresse du site', 'https://petit-festival.ch'], ['lien', 'Page du spectacle sur le site', 'https://petit-festival.ch/apercu/programme.html#ev1']
   ];
   // Un modèle par cas de figure. auto : envoyé tout seul ; sinon envoyé depuis la page de l'événement, à la demande.
   var TYPES = {
@@ -39,7 +39,7 @@ var MAIL = (function () {
     ['bord', 'Cadres et bandeaux'], ['sur', 'Texte sur les bandeaux'], ['billet', 'Fond du billet'], ['filet', 'Filets du billet']
   ];
   var PIEDS = { simple: 'Simple (filet)', encadre: 'Encadré', bandeau: 'Bandeau de couleur' };
-  var OPTIONS_DEFAUT = { theme: 'festival', couleurs: null, ombre: true, visuel: true, entete: true, bouton: '', lienBouton: 'lien', billet: null, separateur: 'etoiles' };
+  var OPTIONS_DEFAUT = { theme: 'festival', couleurs: null, ombre: true, visuel: true, entete: true, bouton: '', lienBouton: 'lien', billet: null, billetModele: 'classique', separateur: 'etoiles' };
 
   function echapper(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function urlSure(u) { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? u : ''; }
@@ -88,23 +88,52 @@ var MAIL = (function () {
   }
   function police() { return 'Georgia,\'Times New Roman\',serif'; }
   function sans() { return 'Arial,Helvetica,sans-serif'; }
-  // Billet : récapitulatif encadré, à présenter à l'entrée.
-  function billetHtml(v, p) {
-    p = p || THEMES.festival;
-    var lignes = [['Date', v.date], ['Heure', v.heure], ['Lieu', v.lieu], ['Au nom de', v.nom], ['Places', v.places]].concat(v.tarif ? [['Tarif', v.tarif]] : []).concat([['N°', v.numero]]).filter(function (x) { return x[1]; });
-    var filet = 'border-bottom:1px solid ' + p.filet;
-    var rangs = lignes.map(function (x) {
-      return '<tr><td style="padding:8px 12px 8px 0;' + filet + ';color:' + p.doux + ';font:13px/1.4 ' + sans() + ';text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;vertical-align:top">' + x[0] + '</td>' +
-        '<td style="padding:7px 0;' + filet + ';font-size:16px;line-height:1.4;vertical-align:top;color:' + p.texte + '">' + echapper(x[1]) + '</td></tr>';
-    }).join('');
-    var carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.billet + '" style="border-collapse:collapse;width:100%;border:2px solid ' + p.bord + ';background:' + p.billet + '">' +
-      '<tr><td bgcolor="' + p.bord + '" style="background:' + p.bord + ';padding:10px 16px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>' +
-      '<td style="font:700 13px/1.4 ' + sans() + ';text-transform:uppercase;letter-spacing:.14em;color:' + p.sur + '">' + echapper(v.festival || 'Billet') + '</td>' +
-      '<td align="right" valign="top" style="font:700 13px/1.4 ' + sans() + ';text-transform:uppercase;letter-spacing:.14em;color:' + p.accent + ';white-space:nowrap;padding-left:10px">Billet</td></tr></table></td></tr>' +
-      '<tr><td style="padding:16px 18px"><div style="font:700 24px/1.15 ' + police() + ';margin:0 0 10px;color:' + p.texte + '">' + echapper(v.titre || '') + '</div>' +
-      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%">' + rangs + '</table>' +
-      '<p style="margin:12px 0 0;font:13px/1.4 ' + sans() + ';color:' + p.doux + '">Présentez ce billet (sur votre téléphone, c\'est parfait) à l\'entrée. Paiement sur place.</p></td></tr></table>';
-    return '<div style="margin:20px 0">' + ombre(carte, p.ombre === false ? '' : p.accent2, 5, '100%', p.papier) + '</div>';
+  // Billets : plusieurs modèles, tous en tableaux (Gmail) et lisibles dès 320 px de large.
+  var BILLETS = { classique: 'Classique (cadre et lignes)', compact: 'Compact (une carte resserrée)', affiche: 'Affiche (grand titre en couleur)', minimal: 'Minimal (sans cadre)' };
+  function lignesBillet(v) {
+    return [['Date', v.date], ['Heure', v.heure], ['Lieu', v.lieu], ['Au nom de', v.nom], ['Places', v.places]].concat(v.tarif ? [['Tarif', v.tarif]] : [])
+      .concat(v.options ? [['Options', v.options]] : []).concat([['N°', v.numero]]).filter(function (x) { return x[1]; });
+  }
+  function tableLignes(v, p, filet) {
+    return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%">' + lignesBillet(v).map(function (x, i, l) {
+      var b = filet && i < l.length - 1 ? 'border-bottom:1px solid ' + p.filet + ';' : '';
+      return '<tr><td width="84" valign="top" style="width:84px;padding:7px 10px 7px 0;' + b + 'color:' + p.doux + ';font:700 11px/1.5 ' + sans() + ';text-transform:uppercase;letter-spacing:.06em">' + x[0] + '</td>' +
+        '<td valign="top" style="padding:6px 0;' + b + 'font:15px/1.4 ' + police() + ';color:' + p.texte + ';word-break:break-word">' + echapper(x[1]) + '</td></tr>';
+    }).join('') + '</table>';
+  }
+  var MENTION = 'Présentez ce billet (sur votre téléphone, c\'est parfait) à l\'entrée. Paiement sur place.';
+  function billetHtml(v, p, modele) {
+    p = p || THEMES.festival; modele = BILLETS[modele] ? modele : 'classique';
+    var avecOmbre = p.ombre === false ? '' : p.accent2, carte;
+    var titre = function (taille, couleur) { return '<div style="font:700 ' + taille + 'px/1.2 ' + police() + ';margin:0 0 8px;color:' + (couleur || p.texte) + '">' + echapper(v.titre || '') + '</div>'; };
+    var mention = '<p style="margin:10px 0 0;font:12px/1.45 ' + sans() + ';color:' + p.doux + '">' + MENTION + '</p>';
+    var tete = '<tr><td bgcolor="' + p.bord + '" style="background:' + p.bord + ';padding:8px 14px"><div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.14em;text-transform:uppercase;color:' + p.accent + '">Billet</div>' +
+      '<div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.08em;text-transform:uppercase;color:' + p.sur + '">' + echapper(v.festival || '') + '</div></td></tr>';
+    if (modele === 'minimal') {
+      return '<div style="margin:22px 0;padding:14px 0;border-top:2px solid ' + p.bord + ';border-bottom:2px solid ' + p.bord + '"><div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.14em;text-transform:uppercase;color:' + p.accent + ';margin-bottom:6px">Votre billet</div>' +
+        titre(19) + tableLignes(v, p, false) + mention + '</div>';
+    }
+    if (modele === 'compact') {
+      var quand = [v.date, v.heure].filter(Boolean).join(' · ');
+      carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.billet + '" style="border-collapse:collapse;width:100%;border:2px solid ' + p.bord + ';background:' + p.billet + '"><tr><td style="padding:14px 16px">' +
+        '<div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.14em;text-transform:uppercase;color:' + p.accent + '">Billet · ' + echapper(v.numero || '') + '</div>' + titre(18) +
+        '<div style="font:15px/1.45 ' + police() + ';color:' + p.texte + '">' + echapper(quand) + '<br>' + echapper(v.lieu || '') + '</div>' +
+        '<div style="margin-top:8px;padding-top:8px;border-top:1px solid ' + p.filet + ';font:14px/1.45 ' + police() + ';color:' + p.texte + '"><b>' + echapper(v.places || '') + ' place' + (Number(v.places) > 1 ? 's' : '') + '</b> au nom de ' + echapper(v.nom || '') +
+        (v.tarif ? '<br><span style="color:' + p.doux + '">' + echapper(v.tarif) + '</span>' : '') + (v.options ? '<br>' + echapper(v.options) : '') + '</div>' + mention + '</td></tr></table>';
+      return '<div style="margin:20px 0">' + ombre(carte, avecOmbre, 4, '100%', p.papier) + '</div>';
+    }
+    if (modele === 'affiche') {
+      carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.billet + '" style="border-collapse:collapse;width:100%;border:2px solid ' + p.bord + ';background:' + p.billet + '">' +
+        '<tr><td bgcolor="' + p.accent + '" style="background:' + p.accent + ';padding:16px">' +
+        '<div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.14em;text-transform:uppercase;color:' + p.boutonTexte + '">' + echapper(v.festival || '') + ' · Billet</div>' +
+        '<div style="font:700 24px/1.15 ' + police() + ';color:' + p.boutonTexte + ';margin-top:6px">' + echapper(v.titre || '') + '</div>' +
+        '<div style="font:15px/1.4 ' + police() + ';color:' + p.boutonTexte + ';margin-top:6px">' + echapper([v.date, v.heure].filter(Boolean).join(' · ')) + '</div></td></tr>' +
+        '<tr><td style="padding:12px 16px">' + tableLignes({ lieu: v.lieu, nom: v.nom, places: v.places, tarif: v.tarif, options: v.options, numero: v.numero }, p, true) + mention + '</td></tr></table>';
+      return '<div style="margin:20px 0">' + ombre(carte, avecOmbre, 5, '100%', p.papier) + '</div>';
+    }
+    carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.billet + '" style="border-collapse:collapse;width:100%;border:2px solid ' + p.bord + ';background:' + p.billet + '">' + tete +
+      '<tr><td style="padding:14px 16px">' + titre(20) + tableLignes(v, p, true) + mention + '</td></tr></table>';
+    return '<div style="margin:20px 0">' + ombre(carte, avecOmbre, 5, '100%', p.papier) + '</div>';
   }
   function separateurHtml(style, p) {
     if (style === 'ligne') return '<div style="border-top:2px solid ' + p.accent + ';margin:18px auto;width:80px;font-size:0;line-height:0">&nbsp;</div>';
@@ -139,17 +168,17 @@ var MAIL = (function () {
     var sujet = remplir(r[t.sujet] || '', v), corps = remplir(r[t.message] || '', v), pied = remplir(r.piedDePage || '', v);
     var avecBillet = !!o.billet, image = o.visuel && urlSure(v.image), lienBouton = o.lienBouton === 'site' ? v.site : v.lien;
     var c = '';
-    if (o.entete) c += '<div style="padding:10px 22px;border-bottom:2px solid ' + p.bord + ';font:700 12px/1.4 ' + sans() + ';text-transform:uppercase;letter-spacing:.16em;color:' + p.texte + '">' + echapper(v.festival || '') + '</div>';
+    if (o.entete) c += '<div style="padding:10px 18px;border-bottom:2px solid ' + p.bord + ';font:700 12px/1.4 ' + sans() + ';text-transform:uppercase;letter-spacing:.16em;color:' + p.texte + '">' + echapper(v.festival || '') + '</div>';
     if (image) c += '<img src="' + echapper(image) + '" alt="' + echapper(v.titre || '') + '" width="600" style="display:block;width:100%;max-width:100%;height:auto;max-height:340px;object-fit:cover;border:0;border-bottom:2px solid ' + p.bord + '">';
-    c += '<div style="padding:24px 22px 8px">' + texteVersHtml(corps, p) + (avecBillet ? billetHtml(v, p) : '') + boutonHtml(remplir(o.bouton || '', v), lienBouton, p) + separateurHtml(o.separateur, p) + piedHtml(pied, r, p) + '</div>';
+    c += '<div style="padding:22px 18px 8px">' + texteVersHtml(corps, p) + (avecBillet ? billetHtml(v, p, o.billetModele) : '') + boutonHtml(remplir(o.bouton || '', v), lienBouton, p) + separateurHtml(o.separateur, p) + piedHtml(pied, r, p) + '</div>';
     // Carte du mail : tableau (fond, cadre) + ombre en dur ; mêmes techniques que celles que Gmail affiche.
     var carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.papier + '" style="border-collapse:collapse;width:100%;background:' + p.papier + ';border:2px solid ' + p.bord + '"><tr><td style="padding:0;color:' + p.texte + ';font-family:' + police() + ';font-size:16px;line-height:1.55">' + c + '</td></tr></table>';
-    var h = '<div style="background:' + p.fond + ';padding:24px 12px;font-family:' + police() + '"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.fond + '" style="border-collapse:collapse;background:' + p.fond + '"><tr><td align="center" style="padding:0">' +
+    var h = '<div style="background:' + p.fond + ';padding:18px 8px;font-family:' + police() + '"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.fond + '" style="border-collapse:collapse;background:' + p.fond + '"><tr><td align="center" style="padding:0">' +
       '<div style="max-width:606px;margin:0 auto;text-align:left">' + ombre(carte, p.ombre === false ? '' : p.accent2, 6, '100%', p.fond) + '</div></td></tr></table></div>';
     var texte = corps + (avecBillet ? '\n\n— Billet —\n' + [v.titre, v.date + (v.heure ? ' à ' + v.heure : ''), v.lieu, 'Au nom de ' + v.nom + ' · ' + v.places + ' place(s)', 'N° ' + v.numero].filter(Boolean).join('\n') : '') +
       (o.bouton && urlSure(lienBouton) ? '\n\n' + remplir(o.bouton, v) + ' : ' + lienBouton : '') + (pied.trim() ? '\n\n--\n' + pied : '');
     return { sujet: sujet, texte: texte, html: h };
   }
   function exemple() { var v = {}; VARIABLES.forEach(function (x) { v[x[0]] = x[2]; }); v.image = ''; return v; }
-  return { VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
+  return { VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
 })();

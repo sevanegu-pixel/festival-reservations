@@ -222,10 +222,30 @@ nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .reponseFil textarea{min-height:160px;margin:6px 0 8px}
 .filBoite #retourBoite{display:none}
 @media (max-width:1100px){.boite{grid-template-columns:minmax(0,1fr)}.filsBoite{position:static;max-height:none}.boite.avecFil .filsBoite{display:none}.boite:not(.avecFil) .filBoite{display:none}.filBoite #retourBoite{display:inline-block}}
+.renvoi #renvoiDetail{margin:8px 0 0 26px;display:grid;gap:6px;max-width:560px}
+.resumeEv .grandeDate{font:700 20px "Bricolage Grotesque",sans-serif}.resumeEv p{margin:6px 0 0;color:var(--doux)}
+#bandeauVoir{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--lav);color:#0b0a10;padding:8px 16px;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+#bandeauVoir[hidden]{display:none}
+#bandeauVoir .btn{background:#0b0a10;color:var(--lav);border-color:#0b0a10}
+body.voir main{padding-bottom:120px}
+.fenetre{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:44;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+.fenetre[hidden]{display:none}
+.fenetre .boite{background:var(--carte);border:1px solid var(--ligne);border-radius:14px;padding:18px;width:min(96vw,620px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.fenetre h4{margin:16px 0 6px;font:700 15px "Bricolage Grotesque",sans-serif}
+.titreFenetre{display:flex;gap:10px;align-items:center;justify-content:space-between}.titreFenetre h3{margin:0;font:700 18px "Bricolage Grotesque",sans-serif}
+.retrait{margin:8px 0 0 26px;display:grid;gap:6px}
+.typesMailsEv{display:grid;gap:4px}
+.fenetre textarea{min-height:90px}
+.optionResa{display:grid;grid-template-columns:auto 1fr 1.4fr auto auto;gap:8px 10px;align-items:end;background:#100e17;border:1px solid var(--ligne);border-radius:10px;padding:10px;margin-bottom:8px}
+.optionResa .badge{align-self:center}.optionResa label{font-size:13px;color:var(--doux)}
+#ajoutOption{width:auto;max-width:100%}
+.optsResa{display:block;font-size:12px;color:var(--lav2)}
+@media (max-width:760px){.optionResa{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div id="charge"></div>
+<div id="bandeauVoir" hidden>👁 Vous voyez l'appli comme <b></b>. C'est un aperçu : vos actions restent réelles. <button type="button" class="btn petit plein" id="finVoir">Revenir à mon compte</button></div>
 <header>
   <h1><small id="nomFestival">Festival</small>Réservations</h1>
   <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="mails" data-droit="reglages">E-mails</button> <button data-vue="boite" data-droit="boite">Boîte</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
@@ -253,7 +273,19 @@ var APPAREIL = (function () {
   var appli = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   return { id: id, nom: os + (nav ? ' · ' + nav : '') + (appli ? ' · appli installée' : '') };
 })();
-function droit(k) { return !COMPTE || !!COMPTE.droits[k]; }
+// « Voir l'appli comme… » : aperçu de l'appli d'un compte aux droits limités (seulement l'affichage ; le script garde vos droits).
+var VOIR_COMME = null;
+function vraiDroit(k) { return !COMPTE || !!COMPTE.droits[k]; }
+function droit(k) { return VOIR_COMME ? !!VOIR_COMME.droits[k] : vraiDroit(k); }
+function voirComme(nom, droits) {
+  VOIR_COMME = droits ? { nom: nom, droits: droits } : null;
+  var b = $('#bandeauVoir');
+  b.hidden = !VOIR_COMME; document.body.classList.toggle('voir', !!VOIR_COMME);
+  if (VOIR_COMME) b.querySelector('b').textContent = nom;
+  vue = VOIR_COMME ? 'evenements' : 'reglages'; ouvert = null;
+  document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); });
+  recharger(D); scrollTo(0, 0);
+}
 function deconnexion() { garderLocal('pin', ''); garderLocal('cle', ''); garderLocal('jeton', ''); PIN = ''; JETON = ''; COMPTE = null; D = null; location.reload(); }
 // Écran d'entrée par code PIN (appli GitHub Pages ; l'écran Apps Script, lui, s'ouvre par le lien personnel).
 function ecranPin(message) {
@@ -307,6 +339,7 @@ function recharger(res) {
   afficher();
 }
 
+$('#finVoir').onclick = function () { voirComme(null); };
 $('#quitter').onclick = function () { confirmer('Quitter ce compte sur cet appareil ? Il faudra redonner le code PIN.', function () { if (JETON) appel('adminQuitterAppareil', [], deconnexion); else deconnexion(); }, { oui: 'Quitter' }); };
 document.querySelectorAll('nav button[data-vue]').forEach(function (b) {
   b.onclick = function () { vue = b.dataset.vue; ouvert = null; document.querySelectorAll('nav button').forEach(function (x) { x.classList.toggle('on', x === b); }); afficher(); };
@@ -547,9 +580,16 @@ function afficherEvenement(id) {
   var e = id === 'nouveau' ? { statut: 'Brouillon', places: '45', lieu: 'Théâtricul', adresse: 'Chêne-Bourg' } : (id === 'copie' ? afficherEvenement.copie : D.evenements.filter(function (x) { return x.id === id; })[0]);
   if (!e) { ouvert = null; return afficher(); }
   if (nouveau && !droit('evenements')) { ouvert = null; return afficher(); }
-  var peutModifier = droit('evenements'), peutResa = droit('reservations');
+  var peutModifier = droit('evenements'), peutResa = droit('reservations'), simple = !peutModifier && !nouveau;
   MODIFIE = false;
-  var h = '<div class="barreEv"><button class="btn" id="retour">← Tous les événements</button><h2>' + (nouveau ? 'Nouvel événement' : 'Modifier · ' + esc(e.titre)) + '</h2>' +
+  var h = '';
+  if (simple) { // appli simple : seulement les réservations, sans rien changer aux pages du site
+    var d0 = e.date ? e.date.split('-').reverse().join('.') : '';
+    h = '<div class="barreEv"><button class="btn" id="retour">← Tous les événements</button><h2>' + esc(e.titre) + '</h2></div>' +
+      '<div class="editeur"><div class="colonne"><div class="panneau resumeEv"><div class="grandeDate">' + esc(dateLongueFr(e.date) || d0) + (e.debut ? ' · ' + esc(e.debut) : '') + '</div>' +
+      '<p>' + [e.lieu, e.adresse].filter(Boolean).map(esc).join(', ') + (e.tarif ? ' · ' + esc(e.tarif) : '') + '</p><p><span class="badge ' + esc(e.statut) + '">' + esc(e.statut || 'Brouillon') + '</span>' + (e.attente === 'Oui' ? ' <span class="badge">liste d\'attente ouverte</span>' : '') + '</p></div>';
+  } else {
+  h = '<div class="barreEv"><button class="btn" id="retour">← Tous les événements</button><h2>' + (nouveau ? 'Nouvel événement' : 'Modifier · ' + esc(e.titre)) + '</h2>' +
     (peutModifier ? '<button class="btn plein" type="submit" form="form" id="enregistrerHaut">Enregistrer</button>' : '') +
     (siteUrl() ? '<button class="btn" type="button" id="voirApercu">Aperçu</button>' : '') + '</div>';
   h += '<div class="editeur" id="editeur"><div class="colonne">';
@@ -568,6 +608,11 @@ function afficherEvenement(id) {
     champ('tarif', 'Tarif (texte)', e.tarif, 'text', 'placeholder="Prix libre, paiement sur place"') +
     champ('places', 'Nombre de places (vide = illimité)', e.places, 'number', 'min="0"') +
     '<div><label>Quand c\'est complet</label><label class="coche"><input type="checkbox" name="attente" value="Oui"' + (e.attente === 'Oui' ? ' checked' : '') + '> ouvrir une liste d\'attente</label><p class="aide">Le site affiche « Complet » et bloque les réservations ; avec la liste d\'attente, les gens peuvent s\'inscrire et vous les confirmez ici quand une place se libère.</p></div>' +
+    '<div class="large"><h3 class="section">Options de réservation</h3><p class="aide">Elles s\'ajoutent au formulaire de réservation du site pour cet événement : une case en plus (ex. « Billet + livre »), ou des places réservées à un groupe (ex. « Société des écrivains »), que le public ne peut pas prendre.</p>' +
+    '<div id="optionsResa"></div><select id="ajoutOption" aria-label="Ajouter une option"></select><input type="hidden" name="options" id="f-options" value="' + esc(e.options || '') + '"></div>' +
+    '<div class="large"><h3 class="section">E-mails de cet événement</h3><p class="aide" id="resumeMailsEv"></p><button type="button" class="btn" id="ouvrirMailsEv">Paramètres des mails de cet événement…</button>' +
+    '<input type="hidden" name="mailsEv" id="f-mailsEv" value="' + esc(e.mailsEv || '') + '"></div>' +
+    fenetreMailsEv(e) +
     (droit('publier') ? '<div><label for="f-statut">Statut</label><select id="f-statut" name="statut">' +
       D.statuts.map(function (s) { return '<option' + (s === e.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
       '<p class="aide">Ouvert : réservable. Fermé : affiché sans réservation. Brouillon et Annulé : cachés du site.</p></div>'
@@ -586,6 +631,7 @@ function afficherEvenement(id) {
     '</div>' + (peutModifier ? '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button>' +
     (nouveau ? '' : '<button class="btn" type="button" id="dupliquer">Dupliquer (autre date)</button><button class="btn danger" type="button" id="supprimer">Supprimer</button>') +
     '</div>' : '<p class="aide">Votre compte peut consulter cet événement, pas le modifier.</p>') + '</form>';
+  }
 
   var actives = [];
   if (!nouveau) {
@@ -600,7 +646,7 @@ function afficherEvenement(id) {
     else h += '<div class="tableau"><table><tr><th>Arrivé·e</th><th>Nom</th><th>Places</th><th>Contact</th><th>Message</th><th>Reçue</th><th></th></tr>' +
       resas.map(function (r) {
         var att = r.statut === 'Liste d\'attente', ann = r.statut === 'Annulée';
-        return '<tr class="' + (ann ? 'annulee' : (r.arrivee ? 'arrivee' : '')) + (att ? ' attente' : '') + '"><td>' + (ann || att ? (att ? '<span class="badge">Liste d\'attente</span>' : '') : '<input type="checkbox" class="arrivee" data-pointer="' + esc(r.id) + '"' + (r.arrivee ? ' checked' : '') + ' aria-label="Arrivé·e">') + '</td><td>' + esc(r.nom) + '</td><td>' + r.places + '</td><td>' +
+        return '<tr class="' + (ann ? 'annulee' : (r.arrivee ? 'arrivee' : '')) + (att ? ' attente' : '') + '"><td>' + (ann || att ? (att ? '<span class="badge">Liste d\'attente</span>' : '') : '<input type="checkbox" class="arrivee" data-pointer="' + esc(r.id) + '"' + (r.arrivee ? ' checked' : '') + ' aria-label="Arrivé·e">') + '</td><td>' + esc(r.nom) + (r.options ? '<span class="optsResa">' + esc(r.options) + '</span>' : '') + '</td><td>' + r.places + (ann ? '' : ' <button type="button" class="btn petit" data-nbplaces="' + esc(r.id) + '" data-n="' + r.places + '" title="Changer le nombre de places">✎</button>') + '</td><td>' +
           (r.email ? '<a style="color:var(--lav2)" href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>' : '') + (r.telephone ? '<br>' + esc(r.telephone) : '') +
           '</td><td>' + esc(r.message) + '</td><td>' + esc(r.recue) + '</td><td>' +
           (ann ? 'Annulée' : (att ? '<button class="btn petit plein" data-confirmer="' + esc(r.id) + '">Confirmer</button> ' : '') + '<button class="btn petit danger" data-annuler="' + esc(r.id) + '">Annuler</button>') + '</td></tr>';
@@ -609,20 +655,22 @@ function afficherEvenement(id) {
     if (peutResa) h += '<h2>Ajouter une réservation à la main</h2><form id="ajout"><div class="grille">' +
       (champ('nom', 'Nom', '', 'text', 'required') + champ('email', 'E-mail', '', 'email') + champ('telephone', 'Téléphone', '') +
       champ('places', 'Places', '1', 'number', 'min="1"')).replace(/(id|for)="f-/g, '$1="a-') +
+      (optionsDe(e).length ? '<div class="large">' + optionsDe(e).map(function (o) { return '<label class="coche"><input type="checkbox" name="opt" value="' + esc(o.id) + '"> ' + esc(o.nom) + '</label>'; }).join('') + '</div>' : '') +
       '<div><label><input type="checkbox" name="envoyerMail" style="width:auto"> envoyer l\'e-mail de confirmation</label></div>' +
       '</div><div class="actions"><button class="btn plein" type="submit">Ajouter</button></div></form></div>';
   }
   h += '</div>'; // .colonne
-  if (siteUrl()) h += '<aside class="voletApercu" id="voletApercu" hidden>' + apercuSite(e, nouveau) + '</aside>';
+  if (siteUrl() && !simple) h += '<aside class="voletApercu" id="voletApercu" hidden>' + apercuSite(e, nouveau) + '</aside>';
   h += '</div>'; // .editeur
   $('#vue').innerHTML = h;
   $('#retour').onclick = function () { function partir() { MODIFIE = false; ouvert = null; afficher(); } if (MODIFIE) confirmer('Des modifications ne sont pas enregistrées. Quitter quand même ?', partir, { oui: 'Quitter sans enregistrer', non: 'Rester' }); else partir(); };
+  if (simple) { activerReservations(e, actives); return; }
   function apercuVideo() { var u = $('#f-video').value.trim(), m = /(?:youtu\.be\/|v=|\/shorts\/|\/embed\/)([\w-]{11})/.exec(u), z = $('#apercuVideo'); if (!z) return; z.innerHTML = m ? '<img src="https://i.ytimg.com/vi/' + m[1] + '/mqdefault.jpg" alt="" style="width:120px;border-radius:8px">' : (/vimeo\.com\/\d+/.test(u) ? '<span class="aide">Vimeo ✓</span>' : (u ? '<span class="aide alerte">Lien non reconnu (YouTube ou Vimeo attendu)</span>' : '')); }
   $('#f-video').addEventListener('input', apercuVideo); apercuVideo();
+  if (peutModifier) { initFenetreMails(e); initOptionsResa(e); }
   if (peutModifier) { photosInit(); miseEnFormeInit(); }
   else { $('#form').querySelectorAll('input,select,textarea').forEach(function (x) { x.disabled = true; }); photosAfficher(true); $('#galerie').remove(); document.querySelectorAll('.barreTexte').forEach(function (b) { b.remove(); }); document.querySelectorAll('.editeurTexte').forEach(function (x) { x.contentEditable = 'false'; }); }
   apercuInit(e, nouveau);
-  document.querySelectorAll('[data-pointer]').forEach(function (c) { c.onchange = function () { appel('adminPointer', [c.dataset.pointer, c.checked], function (res) { recharger(res); }); }; });
   // Fin ↔ durée, et suivi des modifications
   var fDebut = $('#f-debut'), fFin = $('#f-fin'), fDuree = $('#f-duree'), finAuto = !e.fin, dureeAuto = !e.duree;
   function majFin() { var m = minutesDe(fDuree.value); if (fDebut.value && m && (finAuto || !fFin.value)) { fFin.value = heurePlus(fDebut.value, m); finAuto = true; } }
@@ -637,6 +685,8 @@ function afficherEvenement(id) {
     ev.preventDefault();
     var o = { id: nouveau ? '' : e.id, attente: '' };
     new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
+    var mr = lireFenetreMails(); o.renvoi = mr.renvoi; o.renvoiCopie = mr.renvoiCopie; o.renvoiReponses = mr.renvoiReponses;
+    if (mr.erreur) { toast(mr.erreur, true); $('#ouvrirMailsEv').click(); return; }
     if (!o.titre || !o.date) { toast(!o.titre ? 'Donnez un titre à l\'événement.' : 'Donnez une date à l\'événement : sans date, il n\'apparaît nulle part.', true); (!o.titre ? $('#f-titre') : $('#f-date')).focus(); return; }
     var boutons = [$('#enregistrerHaut'), $('#form button[type=submit]')].filter(Boolean);
     boutons.forEach(function (b) { b.disabled = true; b.dataset.texte = b.textContent; b.textContent = 'Enregistrement…'; });
@@ -650,7 +700,7 @@ function afficherEvenement(id) {
     });
   };
   if (nouveau) return;
-  if (!peutResa && $('#ajout')) $('#ajout').remove();
+  activerReservations(e, actives);
   $('#dupliquer').onclick = function () {
     var c = {}; Object.keys(e).forEach(function (k) { c[k] = e[k]; }); c.id = ''; c.date = '';
     afficherEvenement.copie = c; ouvert = 'copie'; afficher(); toast('Copie : choisissez la nouvelle date');
@@ -660,7 +710,19 @@ function afficherEvenement(id) {
       appel('adminSupprimerEvenement', [e.id], function (res) { ouvert = null; MODIFIE = false; recharger(res); toast('Supprimé'); });
     }, { oui: 'Supprimer', danger: true });
   };
-  document.querySelectorAll('[data-annuler]').forEach(function (b) {
+}
+// Boutons des réservations d'un événement (appli complète et appli simple)
+function activerReservations(e, actives) {
+  document.querySelectorAll('[data-pointer]').forEach(function (c) { c.onchange = function () { appel('adminPointer', [c.dataset.pointer, c.checked], function (res) { recharger(res); }); }; });
+  document.querySelectorAll('[data-nbplaces]').forEach(function (b) {
+    b.onclick = function () {
+      demander('Nouveau nombre de places :', function (v) {
+        if (!(Number(v) >= 1)) return toast('Indiquez un nombre de places (1 ou plus).', true);
+        appel('adminModifierPlaces', [b.dataset.nbplaces, Number(v)], function (res) { recharger(res); toast('Places changées : ' + v + ' (aucun e-mail envoyé)'); });
+      }, { titre: 'Changer les places', defaut: String(b.dataset.n), oui: 'Changer' });
+    };
+  });
+  document.querySelectorAll('#vue [data-annuler]').forEach(function (b) {
     b.onclick = function () {
       function faire(prevenir) { appel('adminAnnulerReservation', [b.dataset.annuler, prevenir], function (res) { recharger(res); toast('Réservation annulée'); }); }
       dialogue({ titre: 'Annuler cette réservation ?', texte: 'La personne peut être prévenue par e-mail.', oui: 'Annuler et prévenir', non: 'Annuler sans e-mail', ok: function () { faire(true); }, annuler: function () { confirmer('Annuler la réservation sans prévenir la personne ?', function () { faire(false); }, { oui: 'Oui, annuler', non: 'Ne rien faire' }); } });
@@ -694,13 +756,93 @@ function afficherEvenement(id) {
   };
   if ($('#ajout')) $('#ajout').onsubmit = function (ev) {
     ev.preventDefault();
-    var o = { evenement: e.id };
-    new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
+    var o = { evenement: e.id, options: [] };
+    new FormData(ev.target).forEach(function (v, k) { if (k === 'opt') o.options.push(v); else o[k] = v; });
     o.envoyerMail = !!o.envoyerMail;
     appel('adminAjouterReservation', [o], function (res) { recharger(res); toast('Réservation ajoutée'); });
   };
 }
 
+// ---------- Paramètres des mails propres à un événement (exceptions aux réglages de l'onglet E-mails) ----------
+function mailsEvDe(e) { var o = {}; try { o = JSON.parse(e.mailsEv || '{}') || {}; } catch (x) { o = {}; } return { types: o.types || {}, ajout: o.ajout || '' }; }
+function fenetreMailsEv(e) {
+  var m = mailsEvDe(e), auto = Object.keys(MAIL.TYPES).filter(function (k) { return MAIL.TYPES[k].auto; });
+  return '<div class="fenetre" id="fenetreMailsEv" hidden role="dialog" aria-modal="true" aria-labelledby="titreMailsEv"><div class="boite large">' +
+    '<div class="titreFenetre"><h3 id="titreMailsEv">Paramètres des mails · ' + esc(e.titre || 'nouvel événement') + '</h3><button type="button" class="btn petit" id="fermerMailsEv" aria-label="Fermer">✕</button></div>' +
+    '<p class="aide">Ce qui n\'est pas réglé ici suit l\'onglet E-mails (modèles et présentation).</p>' +
+    '<h4>Réservations reçues</h4>' +
+    '<label class="coche"><input type="checkbox" id="renvoiOn"' + (e.renvoi ? ' checked' : '') + '> Envoyer les réservations de cet événement à une autre adresse</label>' +
+    '<div id="renvoiDetail" class="retrait"' + (e.renvoi ? '' : ' hidden') + '><input type="email" id="f-renvoi" value="' + esc(e.renvoi || '') + '" placeholder="Ex. organisation@exemple.ch" aria-label="Adresse qui reçoit les réservations">' +
+    '<label class="coche"><input type="checkbox" id="renvoiCopie"' + (e.renvoiCopie === 'Non' ? '' : ' checked') + '> garder aussi une copie à l\'adresse du festival</label>' +
+    '<label class="coche"><input type="checkbox" id="renvoiReponses"' + (e.renvoiReponses === 'Oui' ? ' checked' : '') + '> les réponses des spectateurs vont à cette adresse (sinon : Boîte du festival)</label>' +
+    '<p class="aide">Un avis part à cette adresse à chaque réservation et inscription en liste d\'attente.</p></div>' +
+    '<h4>E-mails automatiques envoyés au public</h4><div class="typesMailsEv">' + auto.map(function (k) {
+      return '<label class="coche"><input type="checkbox" data-typemail="' + k + '"' + (m.types[k] === 'non' ? '' : ' checked') + '> ' + esc(MAIL.TYPES[k].nom) + '</label>';
+    }).join('') + '</div><p class="aide">Décochez un e-mail pour ne pas l\'envoyer pour cet événement (ex. réservations gérées ailleurs).</p>' +
+    '<h4>Texte ajouté pour cet événement</h4><textarea id="ajoutMailsEv" placeholder="Ex. Le livre se retire à l\'entrée, le soir même.">' + esc(m.ajout) + '</textarea>' +
+    '<p class="aide">Ajouté à la fin du message de chacun de ses e-mails (confirmation, rappel…), avant la signature du pied de page.</p>' +
+    '<div class="actions"><button type="button" class="btn plein" id="okMailsEv">OK</button></div><p class="aide">Pensez ensuite à « Enregistrer » l\'événement.</p></div></div>';
+}
+function lireFenetreMails() {
+  var on = $('#renvoiOn') && $('#renvoiOn').checked, a = on ? $('#f-renvoi').value.trim() : '';
+  return { renvoi: a, renvoiCopie: on && !$('#renvoiCopie').checked ? 'Non' : 'Oui', renvoiReponses: on && $('#renvoiReponses').checked ? 'Oui' : '',
+    erreur: on && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(a) ? 'Indiquez l\'adresse qui reçoit les réservations (ou décochez la case).' : '' };
+}
+function initFenetreMails(e) {
+  var f = $('#fenetreMailsEv'); if (!f) return;
+  function resume() {
+    var r = lireFenetreMails(), types = {}, coupes = [];
+    document.querySelectorAll('[data-typemail]').forEach(function (c) { if (!c.checked) { types[c.dataset.typemail] = 'non'; coupes.push(MAIL.TYPES[c.dataset.typemail].nom.toLowerCase()); } });
+    var ajout = $('#ajoutMailsEv').value.trim();
+    $('#f-mailsEv').value = Object.keys(types).length || ajout ? JSON.stringify({ types: types, ajout: ajout }) : '';
+    var l = [];
+    if (r.renvoi) l.push('réservations envoyées à ' + r.renvoi + (r.renvoiCopie === 'Non' ? ' (sans copie au festival)' : ' (copie au festival)'));
+    if (coupes.length) l.push('pas d\'e-mail : ' + coupes.join(', '));
+    if (ajout) l.push('texte ajouté aux e-mails');
+    $('#resumeMailsEv').textContent = l.length ? 'Exceptions : ' + l.join(' · ') + '.' : 'Aucune exception : cet événement suit les réglages de l\'onglet E-mails.';
+  }
+  function fermer() { f.hidden = true; resume(); $('#form').dispatchEvent(new Event('change', { bubbles: true })); $('#ouvrirMailsEv').focus(); }
+  $('#ouvrirMailsEv').onclick = function () { f.hidden = false; $('#fermerMailsEv').focus(); };
+  $('#fermerMailsEv').onclick = fermer; $('#okMailsEv').onclick = fermer;
+  $('#renvoiOn').onchange = function () { $('#renvoiDetail').hidden = !this.checked; if (this.checked) $('#f-renvoi').focus(); };
+  f.addEventListener('input', resume); f.addEventListener('change', resume);
+  resume();
+}
+// ---------- Options de réservation d'un événement ----------
+function optionsDe(e) { try { var l = JSON.parse(e.options || '[]'); return Array.isArray(l) ? l : []; } catch (x) { return []; } }
+function initOptionsResa(e) {
+  var liste = optionsDe(e), z = $('#optionsResa'), sel = $('#ajoutOption'), champ = $('#f-options');
+  if (!z) return;
+  // options déjà créées sur d'autres événements, pour les reprendre
+  var vues = {}, autres = [];
+  D.evenements.forEach(function (x) { if (x.id === e.id) return; optionsDe(x).forEach(function (o) { var k = o.type + '|' + o.nom; if (!vues[k]) { vues[k] = 1; autres.push({ o: o, titre: x.titre }); } }); });
+  sel.innerHTML = '<option value="">+ Ajouter une option…</option><option value="case">Case à cocher (ex. billet + livre)</option><option value="contingent">Places réservées à un groupe (ex. Société des écrivains)</option>' +
+    (autres.length ? '<optgroup label="Reprendre une option déjà créée">' + autres.map(function (a, i) { return '<option value="r' + i + '">' + esc(a.o.nom) + ' (' + esc(a.titre) + ')</option>'; }).join('') + '</optgroup>' : '');
+  function ecrire() { champ.value = liste.length ? JSON.stringify(liste) : ''; champ.dispatchEvent(new Event('input', { bubbles: true })); }
+  function dessiner() {
+    z.innerHTML = liste.length ? liste.map(function (o, i) {
+      var c = o.type === 'contingent';
+      return '<div class="optionResa" data-i="' + i + '"><span class="badge">' + (c ? 'Places réservées' : 'Case à cocher') + '</span>' +
+        '<label>Nom affiché<input type="text" data-k="nom" value="' + esc(o.nom || '') + '" placeholder="' + (c ? 'Ex. Membre de la Société des écrivains' : 'Ex. Billet + livre') + '"></label>' +
+        '<label>Précision (facultatif)<input type="text" data-k="aide" value="' + esc(o.aide || '') + '" placeholder="' + (c ? 'Ex. places réservées aux membres' : 'Ex. 40 francs au lieu de 20, livre remis sur place') + '"></label>' +
+        (c ? '<label>Nombre de places réservées<input type="number" min="0" data-k="places" value="' + (Number(o.places) || 0) + '"></label>' : '') +
+        '<button type="button" class="btn petit danger" data-retirer="' + i + '">Retirer</button></div>';
+    }).join('') : '<p class="vide">Aucune option : le formulaire du site reste simple.</p>';
+    z.querySelectorAll('input[data-k]').forEach(function (inp) {
+      inp.oninput = function () { var o = liste[+inp.closest('.optionResa').dataset.i]; o[inp.dataset.k] = inp.dataset.k === 'places' ? Math.max(0, Math.floor(Number(inp.value) || 0)) : inp.value; ecrire(); };
+    });
+    z.querySelectorAll('[data-retirer]').forEach(function (b) { b.onclick = function () { liste.splice(+b.dataset.retirer, 1); ecrire(); dessiner(); }; });
+  }
+  sel.onchange = function () {
+    var v = sel.value; sel.value = ''; if (!v) return;
+    var o = v[0] === 'r' ? Object.assign({}, autres[+v.slice(1)].o) : { type: v, nom: '', aide: '', places: v === 'contingent' ? 10 : 0 };
+    if (o.type === 'contingent' && liste.some(function (x) { return x.type === 'contingent'; })) return toast('Une seule option « places réservées » par événement.', true);
+    o.id = 'o' + Math.random().toString(36).slice(2, 8);
+    liste.push(o); ecrire(); dessiner();
+    var champs = z.querySelectorAll('.optionResa'); var der = champs[champs.length - 1]; if (der) der.querySelector('input').focus();
+  };
+  dessiner();
+}
 function pucesVariables(pour) {
   return '<div class="puces" data-pour="' + pour + '"><span>Insérer :</span>' + MAIL.VARIABLES.map(function (v) { return '<button type="button" data-var="' + v[0] + '" title="' + esc(v[1]) + '">' + v[0] + '</button>'; }).join('') + '</div>';
 }
@@ -711,7 +853,7 @@ function optionsDuFormulaire(f) {
   var o = {}; try { o = JSON.parse(D.reglages.optionsMail || '{}') || {}; } catch (e) { o = {}; }
   Object.keys(MAIL.TYPES).forEach(function (k) {
     var t = o[k] || {}; o[k] = t;
-    ['theme', 'bouton', 'lienBouton', 'separateur'].forEach(function (c) { var el = f.querySelector('[name="opt_' + k + '_' + c + '"]'); if (el) t[c] = el.value; });
+    ['theme', 'bouton', 'lienBouton', 'separateur', 'billetModele'].forEach(function (c) { var el = f.querySelector('[name="opt_' + k + '_' + c + '"]'); if (el) t[c] = el.value; });
     ['entete', 'visuel', 'billet', 'ombre'].forEach(function (c) { var el = f.querySelector('[name="opt_' + k + '_' + c + '"]'); if (el) t[c] = el.checked; });
     var th = MAIL.THEMES[t.theme] || MAIL.THEMES.festival, cs = {}; // on ne garde que les couleurs qui diffèrent du thème
     MAIL.COULEURS.forEach(function (c) { var el = f.querySelector('[name="opt_' + k + '_c_' + c[0] + '"]'); if (el && el.value.toLowerCase() !== th[c[0]]) cs[c[0]] = el.value.toLowerCase(); });
@@ -762,6 +904,7 @@ function afficherMails() {
         coche('opt_' + k + '_entete', 'Nom du festival en en-tête', d.entete) +
         coche('opt_' + k + '_visuel', 'Visuel du spectacle en haut', d.visuel) +
         (t.billet ? coche('opt_' + k + '_billet', 'Billet récapitulatif', d.billet) : '') +
+        (t.billet ? sel('opt_' + k + '_billetModele', 'Modèle de billet', d.billetModele || 'classique', Object.keys(MAIL.BILLETS).map(function (b) { return [b, MAIL.BILLETS[b]]; })) : '') +
         '<label>Texte du bouton (vide = pas de bouton)<input type="text" name="opt_' + k + '_bouton" value="' + esc(d.bouton || '') + '" placeholder="Ex. Voir le spectacle"></label>' +
         sel('opt_' + k + '_lienBouton', 'Le bouton mène vers', d.lienBouton, [['lien', 'La page du spectacle'], ['site', 'L\'accueil du site']]) +
         sel('opt_' + k + '_separateur', 'Avant le pied de page', d.separateur, [['etoiles', 'Trois étoiles'], ['ligne', 'Petite ligne'], ['aucun', 'Rien']]) +
@@ -1019,9 +1162,9 @@ function comptesAfficher(res) {
   res.comptes.forEach(function (c) {
     var dr = res.droits.filter(function (d) { return c.droits && c.droits[d[0]]; }).map(function (d) { return d[1].split(' :')[0]; });
     h += '<div class="compte"><div class="qui"><b>' + esc(c.nom) + '</b><p>' + (dr.length === res.droits.length ? 'Tous les droits' : (dr.join(', ') || 'Aucun droit')) + '</p></div>' +
-      '<div class="actions"><button type="button" class="btn petit plein" data-partager="' + esc(c.id) + '">Partager l\'appli</button><button type="button" class="btn petit" data-modifier="' + esc(c.id) + '">Modifier</button><button type="button" class="btn petit danger" data-supprimer="' + esc(c.id) + '">Supprimer</button></div></div>';
+      '<div class="actions"><button type="button" class="btn petit plein" data-partager="' + esc(c.id) + '">Partager l\'appli</button><button type="button" class="btn petit" data-modifier="' + esc(c.id) + '">Modifier</button><button type="button" class="btn petit" data-voir="' + esc(c.id) + '">Voir comme</button><button type="button" class="btn petit danger" data-supprimer="' + esc(c.id) + '">Supprimer</button></div></div>';
   });
-  h += '<div class="actions"><button type="button" class="btn plein" id="nouveauCompte">+ Nouveau compte</button></div><div id="formCompte"></div>';
+  h += '<div class="actions"><button type="button" class="btn plein" id="nouveauCompte">+ Nouveau compte</button><button type="button" class="btn" id="voirBenevole">Voir l\'appli comme un·e bénévole (réservations seulement)</button></div><div id="formCompte"></div>';
   z.innerHTML = h;
   function formulaire(c) {
     c = c || { nom: '', droits: {} };
@@ -1044,6 +1187,8 @@ function comptesAfficher(res) {
     $('#formCompte').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
   $('#nouveauCompte').onclick = function () { formulaire(); };
+  $('#voirBenevole').onclick = function () { voirComme('un·e bénévole (réservations seulement)', { reservations: true }); };
+  z.querySelectorAll('[data-voir]').forEach(function (b) { b.onclick = function () { var c = res.comptes.filter(function (x) { return x.id === b.dataset.voir; })[0]; if (c) voirComme(c.nom, c.droits || {}); }; });
   z.querySelectorAll('[data-modifier]').forEach(function (b) { b.onclick = function () { formulaire(res.comptes.filter(function (x) { return x.id === b.dataset.modifier; })[0]); }; });
   z.querySelectorAll('[data-supprimer]').forEach(function (b) { b.onclick = function () {
     var c = res.comptes.filter(function (x) { return x.id === b.dataset.supprimer; })[0];
