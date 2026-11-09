@@ -50,6 +50,8 @@ var REGLAGES_DEFAUT = {
   sujetAttente: 'Liste d\'attente : {titre}',
   messageAttente: 'Bonjour {nom},\n\nC\'est complet pour « {titre} » le {date} à {heure}, mais vous êtes sur la liste d\'attente pour {places} place(s). ' +
     'Dès qu\'une place se libère, nous vous écrivons pour confirmer.\n\n{festival}',
+  piedDePage: '{festival}\n{adresse}\n{site}\nPour toute question, répondez simplement à cet e-mail.',
+  billet: 'Oui',
 };
 
 // ---------- Point d'entrée web ----------
@@ -344,18 +346,15 @@ function reserver_(d) {
 
 // ---------- E-mails ----------
 
+function envoyerType_(type, ev, resa, r) {
+  r = r || reglages_();
+  var valeurs = valeursMail_(ev, resa), m = MAIL.composer(type, r, valeurs);
+  MailApp.sendEmail({ to: resa.email, subject: m.sujet, body: m.texte, htmlBody: m.html, name: r.nomFestival, replyTo: r.copieA || undefined });
+  return valeurs;
+}
 function envoyerConfirmation_(ev, resa) {
   var r = reglages_();
-  var valeurs = valeursMail_(ev, resa);
-  var texte = remplir_(r.message, valeurs);
-  MailApp.sendEmail({
-    to: resa.email,
-    subject: remplir_(r.sujet, valeurs),
-    body: texte,
-    htmlBody: texteVersHtml_(texte),
-    name: r.nomFestival,
-    replyTo: r.copieA || undefined,
-  });
+  var valeurs = envoyerType_('confirmation', ev, resa, r);
   if (r.copieA) {
     MailApp.sendEmail({
       to: r.copieA,
@@ -369,25 +368,12 @@ function envoyerConfirmation_(ev, resa) {
   }
 }
 
-function envoyerAnnulation_(ev, resa) {
-  var r = reglages_();
-  var valeurs = valeursMail_(ev, resa);
-  var texte = remplir_(r.messageAnnulation, valeurs);
-  MailApp.sendEmail({
-    to: resa.email, subject: remplir_(r.sujetAnnulation, valeurs), body: texte, htmlBody: texteVersHtml_(texte),
-    name: r.nomFestival, replyTo: r.copieA || undefined,
-  });
-}
+function envoyerAnnulation_(ev, resa) { envoyerType_('annulation', ev, resa); }
 
 function envoyerAttente_(ev, resa) {
   var r = reglages_();
-  var valeurs = valeursMail_(ev, resa);
-  var texte = remplir_(r.messageAttente || REGLAGES_DEFAUT.messageAttente, valeurs);
-  MailApp.sendEmail({
-    to: resa.email, subject: remplir_(r.sujetAttente || REGLAGES_DEFAUT.sujetAttente, valeurs), body: texte, htmlBody: texteVersHtml_(texte),
-    name: r.nomFestival, replyTo: r.copieA || undefined,
-  });
-  if (r.copieA) MailApp.sendEmail({ to: r.copieA, subject: '[Liste d\'attente] ' + ev.titre + ' : ' + resa.nom + ' (' + resa.places + ')', body: texte, name: r.nomFestival });
+  envoyerType_('attente', ev, resa, r);
+  if (r.copieA) MailApp.sendEmail({ to: r.copieA, subject: '[Liste d\'attente] ' + ev.titre + ' : ' + resa.nom + ' (' + resa.places + ')', body: resa.nom + ' · ' + resa.email + ' · ' + resa.places + ' place(s)', name: r.nomFestival });
 }
 
 /** Une place s'est libérée : la personne en liste d'attente passe en « Confirmée » (e-mail de confirmation si demandé). */
@@ -405,16 +391,16 @@ function adminConfirmerReservation(cle, id, prevenir) {
 }
 
 function valeursMail_(ev, resa) {
+  var r = reglages_(), nom = String(resa.nom || '').trim();
   return {
-    nom: resa.nom, places: resa.places, titre: ev.titre, date: dateLongue_(ev.date),
-    heure: ev.debut || '', lieu: [ev.lieu, ev.adresse].filter(String).join(', '), tarif: ev.tarif || '',
-    festival: reglages_().nomFestival,
+    nom: nom, prenom: nom.split(/\s+/)[0] || '', places: resa.places, titre: ev.titre, date: dateLongue_(ev.date),
+    heure: ev.debut || '', lieu: [ev.lieu, ev.adresse].filter(String).join(', '), adresse: ev.adresse || '', tarif: ev.tarif || '',
+    numero: resa.id || '', email: resa.email || '', telephone: resa.telephone || '', message: resa.message || '',
+    festival: r.nomFestival, site: String(r.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, ''),
   };
 }
 
-function remplir_(modele, valeurs) {
-  return String(modele).replace(/\{(\w+)\}/g, function (tout, cle) { return cle in valeurs ? valeurs[cle] : tout; });
-}
+function remplir_(modele, valeurs) { return MAIL.remplir(modele, valeurs); }
 
 function texteVersHtml_(texte) {
   var sur = texte.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -589,17 +575,17 @@ function adminEnregistrerReglages(cle, r) {
   return adminCharger(cle);
 }
 
-function adminEssaiMail(cle) {
+function adminEssaiMail(cle, type, brouillon) {
   verifierCle_(cle);
   var r = reglages_();
+  if (brouillon && typeof brouillon === 'object') Object.keys(REGLAGES_DEFAUT).forEach(function (k) { if (k in brouillon) r[k] = String(brouillon[k]); }); // réglages pas encore enregistrés
   if (!r.copieA) throw new Error('Indiquez d\'abord l\'adresse qui reçoit les copies, puis enregistrez.');
-  var ev = { titre: 'Événement d\'essai', date: Utilities.formatDate(new Date(), 'Europe/Zurich', 'yyyy-MM-dd'),
-    debut: '20:00', lieu: 'Théâtricul', adresse: 'Chêne-Bourg', tarif: '' };
-  var resa = { nom: 'Prénom Nom', email: r.copieA, places: 2 };
-  var v = valeursMail_(ev, resa);
-  MailApp.sendEmail({ to: r.copieA, subject: '[Essai] ' + remplir_(r.sujet, v), body: remplir_(r.message, v),
-    htmlBody: texteVersHtml_(remplir_(r.message, v)), name: r.nomFestival });
-  return 'E-mail d\'essai envoyé à ' + r.copieA;
+  var ev = lireEvenements_().filter(function (e) { return e.statut === 'Ouvert' || e.statut === 'Fermé'; })[0] ||
+    { titre: 'Événement d\'essai', date: Utilities.formatDate(new Date(), 'Europe/Zurich', 'yyyy-MM-dd'), debut: '20:00', lieu: 'Théâtricul', adresse: 'Rue de Genève 64, Chêne-Bourg', tarif: '' };
+  var resa = { id: 'R-ESSAI', nom: 'Camille Dupont', email: r.copieA, places: 2, telephone: '' };
+  var m = MAIL.composer(type || 'confirmation', r, valeursMail_(ev, resa));
+  MailApp.sendEmail({ to: r.copieA, subject: '[Essai] ' + m.sujet, body: m.texte, htmlBody: m.html, name: r.nomFestival });
+  return 'E-mail d\'essai (' + (MAIL.TYPES[type || 'confirmation'] || {}).nom + ') envoyé à ' + r.copieA;
 }
 
 // ---------- Clé de l'application ----------

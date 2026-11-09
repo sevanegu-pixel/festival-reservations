@@ -157,6 +157,22 @@ tr.attente td{color:var(--doux)}
 .photo.envoi{display:grid;place-items:center;color:var(--doux);font-size:13px;border-style:dashed}
 .photo.envoi i{display:block;width:22px;height:22px;border:3px solid var(--ligne);border-top-color:var(--lav);border-radius:50%;animation:tourne .8s linear infinite;margin:0 auto 6px}
 @keyframes tourne{to{transform:rotate(360deg)}}
+/* Réglages : e-mails avec variables à insérer et aperçu en direct */
+.ongletsMail{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 10px}
+.ongletsMail button{background:var(--carte);border:1px solid var(--ligne);color:var(--texte);border-radius:999px;padding:7px 14px;font:600 14px Barlow,sans-serif;cursor:pointer}
+.ongletsMail button.on{background:var(--lav);border-color:var(--lav);color:#0b0a10}
+.editeurMail{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,46%);gap:16px;align-items:start}
+.editeurMail textarea{min-height:220px;font-size:15px}
+.puces{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 10px}
+.puces span{font-size:12px;color:var(--doux);align-self:center;margin-right:4px}
+.puces button{font:600 12px Barlow,sans-serif;background:var(--carte);border:1px dashed var(--lav);color:var(--lav2);border-radius:999px;padding:3px 9px;cursor:pointer}
+.puces button:hover{background:var(--lav);color:#0b0a10}
+.apercuMail{border:1px solid var(--ligne);border-radius:12px;overflow:hidden;position:sticky;top:70px}
+.apercuMail .entete{padding:10px 14px;background:var(--carte);border-bottom:1px solid var(--ligne);font-size:13px;color:var(--doux);line-height:1.5}
+.apercuMail .entete b{color:var(--texte)}
+.apercuMail .corps{background:#fff;color:#1b1733;padding:18px;max-height:70vh;overflow:auto}
+.apercuMail .corps a{color:#c81f74}
+@media (max-width:960px){.editeurMail{display:block}.apercuMail{position:static;margin-top:14px}}
 </style>
 </head>
 <body>
@@ -178,7 +194,59 @@ tr.attente td{color:var(--doux)}
 var EXEC = "https://script.google.com/macros/s/AKfycbwWdo5fOb68E1Civ7ToZe5EDYxvq_9GDl97nmEwv7aPYHtQn-vSN_uhZgsjmjZIrLph/exec";
 var CLE = (function () { var q = new URLSearchParams(location.search), c = q.get("cle");
   try { if (c && /^[A-Za-z0-9]{16,64}$/.test(c)) localStorage.setItem("festival_resa_cle", c); return localStorage.getItem("festival_resa_cle") || ""; } catch (e) { return c || ""; } })();
-var VERSION_APPLI = '22eb80949036', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
+// E-mails de réservation : composition partagée entre le script (envoi) et l'appli (aperçu en direct).
+// Aucune dépendance Apps Script ici : ce fichier est aussi inséré dans Admin.html par assembler.py.
+var MAIL = (function () {
+  var VARIABLES = [
+    ['nom', 'Prénom et nom', 'Camille Dupont'], ['prenom', 'Prénom', 'Camille'], ['places', 'Nombre de places', '2'],
+    ['titre', 'Titre du spectacle', 'Hurler sous l\'eau'], ['date', 'Date (en toutes lettres)', 'vendredi 4 décembre 2026'], ['heure', 'Heure', '19:45'],
+    ['lieu', 'Lieu et adresse', 'Théâtricul, Rue de Genève 64, Chêne-Bourg'], ['adresse', 'Adresse seule', 'Rue de Genève 64, Chêne-Bourg'],
+    ['tarif', 'Tarif', 'Prix libre, 10 francs conseillés'], ['numero', 'Numéro de réservation', 'R-7F3K2'], ['email', 'E-mail de la personne', 'camille@example.ch'],
+    ['telephone', 'Téléphone de la personne', '079 000 00 00'], ['message', 'Message laissé', ''], ['festival', 'Nom du festival', 'Le Petit Festival au Théâtricul'], ['site', 'Adresse du site', 'https://petit-festival.ch']
+  ];
+  var TYPES = {
+    confirmation: { nom: 'Confirmation de réservation', sujet: 'sujet', message: 'message', billet: true },
+    annulation: { nom: 'Annulation', sujet: 'sujetAnnulation', message: 'messageAnnulation', billet: false },
+    attente: { nom: 'Liste d\'attente', sujet: 'sujetAttente', message: 'messageAttente', billet: false }
+  };
+  function echapper(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function remplir(modele, valeurs) {
+    return String(modele == null ? '' : modele).replace(/\{(\w+)\}/g, function (tout, cle) { return cle in valeurs ? String(valeurs[cle] == null ? '' : valeurs[cle]) : tout; })
+      .replace(/[ \t]+\n/g, '\n');
+  }
+  // Texte → paragraphes HTML ; **gras**, *italique*, liens cliquables.
+  function enLigne(t) {
+    return echapper(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+?)\*/g, '$1<i>$2</i>')
+      .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#c81f74">$1</a>');
+  }
+  function texteVersHtml(texte) {
+    return String(texte || '').trim().split(/\n\s*\n/).map(function (p) { return '<p style="margin:0 0 14px">' + enLigne(p).replace(/\n/g, '<br>') + '</p>'; }).join('');
+  }
+  var STYLE = 'font-family:Georgia,\'Times New Roman\',serif;font-size:16px;line-height:1.55;color:#1b1733;max-width:600px;margin:0 auto;';
+  // Billet : récapitulatif encadré, à présenter à l'entrée.
+  function billetHtml(v) {
+    var ligne = function (l, t) { return t ? '<tr><td style="padding:4px 12px 4px 0;color:#5b5570;font:13px/1.4 Arial,sans-serif;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;vertical-align:top">' + l + '</td><td style="padding:4px 0;font-size:16px;vertical-align:top">' + echapper(t) + '</td></tr>' : ''; };
+    return '<div style="margin:20px 0;border:2px solid #1b1733;background:#f7f0e1;box-shadow:5px 5px 0 #6b2cff">' +
+      '<div style="background:#1b1733;color:#f7f3ff;padding:10px 16px;font:700 13px/1.4 Arial,sans-serif;text-transform:uppercase;letter-spacing:.14em">' + echapper(v.festival || 'Billet') + ' <span style="float:right;color:#ff1fb4">Billet</span></div>' +
+      '<div style="padding:16px 18px"><div style="font:700 24px/1.15 Georgia,serif;margin:0 0 10px">' + echapper(v.titre || '') + '</div><table style="border-collapse:collapse">' +
+      ligne('Date', v.date) + ligne('Heure', v.heure) + ligne('Lieu', v.lieu) + ligne('Au nom de', v.nom) + ligne('Places', v.places) + (v.tarif ? ligne('Tarif', v.tarif) : '') + ligne('N°', v.numero) +
+      '</table><p style="margin:12px 0 0;font:13px/1.4 Arial,sans-serif;color:#5b5570">Présentez ce billet (sur votre téléphone, c\'est parfait) à l\'entrée. Paiement sur place.</p></div></div>';
+  }
+  // Mail complet d'un type donné, d'après les réglages r et les valeurs v.
+  function composer(type, r, v) {
+    var t = TYPES[type] || TYPES.confirmation;
+    var sujet = remplir(r[t.sujet] || '', v), corps = remplir(r[t.message] || '', v), pied = remplir(r.piedDePage || '', v);
+    var avecBillet = t.billet && String(r.billet || '') === 'Oui';
+    var html = '<div style="' + STYLE + '">' + texteVersHtml(corps) + (avecBillet ? billetHtml(v) : '') +
+      (pied.trim() ? '<div style="margin-top:28px;padding-top:14px;border-top:1px solid #dccfb4;font-size:13px;line-height:1.5;color:#5b5570">' + texteVersHtml(pied).replace(/margin:0 0 14px/g, 'margin:0 0 6px') + '</div>' : '') + '</div>';
+    var texte = corps + (avecBillet ? '\n\n— Billet —\n' + [v.titre, v.date + (v.heure ? ' à ' + v.heure : ''), v.lieu, 'Au nom de ' + v.nom + ' · ' + v.places + ' place(s)', 'N° ' + v.numero].filter(Boolean).join('\n') : '') + (pied.trim() ? '\n\n--\n' + pied : '');
+    return { sujet: sujet, texte: texte, html: html };
+  }
+  function exemple() { var v = {}; VARIABLES.forEach(function (x) { v[x[0]] = x[2]; }); return v; }
+  return { VARIABLES: VARIABLES, TYPES: TYPES, remplir: remplir, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper };
+})();
+
+var VERSION_APPLI = '4050dafb8eab', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
 function lireLocal(k) { try { return localStorage.getItem('festival_resa_' + k) || ''; } catch (e) { return ''; } }
 function garderLocal(k, v) { try { if (v) localStorage.setItem('festival_resa_' + k, v); else localStorage.removeItem('festival_resa_' + k); } catch (e) {} }
 // Cet appareil : un identifiant gardé dans le navigateur + un nom lisible (pour la liste des appareils connectés).
@@ -346,7 +414,7 @@ function afficher() {
   h += '<div class="barreTri"><select id="triStatut" aria-label="Filtrer par statut"><option value="">Tous les statuts</option>' + D.statuts.map(function (s) { return '<option' + (s === TRI_EV.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '<option value="Complet"' + (TRI_EV.statut === 'Complet' ? ' selected' : '') + '>Complets</option></select>' +
     '<select id="triOrdre" aria-label="Trier"><option value="date">Par date</option><option value="titre"' + (TRI_EV.ordre === 'titre' ? ' selected' : '') + '>Par titre</option><option value="remplissage"' + (TRI_EV.ordre === 'remplissage' ? ' selected' : '') + '>Par remplissage</option><option value="recent"' + (TRI_EV.ordre === 'recent' ? ' selected' : '') + '>Derniers créés</option></select>' +
     '<input id="triQ" type="search" placeholder="Chercher un titre, une compagnie…" value="' + esc(TRI_EV.q) + '"><span class="compte">' + evs.length + ' / ' + D.evenements.length + '</span></div>';
-  if (D.version && VERSION_APPLI !== '22eb80949036' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') n\'est pas celui de l\'appli (' + esc(VERSION_APPLI) + '). <button type="button" class="btn petit plein" id="majScript">Mettre à jour le script</button> <span class="aide" style="display:inline">Ça prend quelques secondes ; sinon, il se met à jour tout seul dans l\'heure.</span></div>';
+  if (D.version && VERSION_APPLI !== '4050dafb8eab' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') n\'est pas celui de l\'appli (' + esc(VERSION_APPLI) + '). <button type="button" class="btn petit plein" id="majScript">Mettre à jour le script</button> <span class="aide" style="display:inline">Ça prend quelques secondes ; sinon, il se met à jour tout seul dans l\'heure.</span></div>';
   if (COMPTE && COMPTE.id === 'cle' && droit('comptes') && !PIN) h += '<div class="bandeau" id="bandeauPin">Vous êtes entrée avec le lien personnel. Créez votre code PIN et ceux des bénévoles dans <a href="#" id="versComptes">Réglages → Comptes</a> : ensuite l\'appli s\'ouvre avec le code, sur n\'importe quel appareil.</div>';
   h += parDate ? '<h2>À venir</h2>' + liste(avenir) + '<h2>Passés</h2>' + liste(passes) : liste(avenir);
   $('#vue').innerHTML = h;
@@ -624,30 +692,66 @@ function afficherEvenement(id) {
   };
 }
 
+function pucesVariables(pour) {
+  return '<div class="puces" data-pour="' + pour + '"><span>Insérer :</span>' + MAIL.VARIABLES.map(function (v) { return '<button type="button" data-var="' + v[0] + '" title="' + esc(v[1]) + '">' + v[0] + '</button>'; }).join('') + '</div>';
+}
+function dateLongueFr(iso) { if (!iso) return ''; var p = iso.split('-'), d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); return ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][d.getUTCDay()] + ' ' + Number(p[2]) + ' ' + ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'][+p[1] - 1] + ' ' + p[0]; }
 function afficherReglages() {
   var r = D.reglages, h = '';
   if (droit('reglages')) h += '<h2>Réglages</h2><form id="regl" class="panneau"><div class="grille">' +
     champ('nomFestival', 'Nom du festival (signature des e-mails)', r.nomFestival) +
     champ('siteUrl', 'Adresse du site (pour les aperçus)', r.siteUrl, 'url') +
-    champ('copieA', 'Adresse qui reçoit une copie de chaque réservation', r.copieA, 'email') +
-    champ('sujet', 'Sujet de la confirmation', r.sujet) +
-    champ('message', 'Message de confirmation', r.message, 'textarea') +
-    champ('sujetAnnulation', 'Sujet de l\'annulation', r.sujetAnnulation) +
-    champ('messageAnnulation', 'Message d\'annulation', r.messageAnnulation, 'textarea') +
-    champ('sujetAttente', 'Sujet de la liste d\'attente', r.sujetAttente || '') +
-    champ('messageAttente', 'Message de liste d\'attente (quand l\'événement est complet)', r.messageAttente || '', 'textarea') +
-    '</div><p class="aide">Remplacés automatiquement : {nom} {places} {titre} {date} {heure} {lieu} {tarif} {festival}</p>' +
-    '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="essai">M\'envoyer un essai</button></div></form>';
+    champ('copieA', 'Adresse qui reçoit une copie de chaque réservation', r.copieA, 'email') + '</div>' +
+    '<h3 class="section">E-mails envoyés au public</h3><p class="aide">Trois e-mails automatiques, un pied de page commun et un billet dans la confirmation. Cliquez une variable pour l\'insérer là où est le curseur ; l\'aperçu à droite se met à jour en direct avec des données d\'exemple.</p>' +
+    '<div class="ongletsMail" id="ongletsMail">' + Object.keys(MAIL.TYPES).map(function (k, i) { return '<button type="button" data-type="' + k + '"' + (i ? '' : ' class="on"') + '>' + MAIL.TYPES[k].nom + '</button>'; }).join('') + '<button type="button" data-type="pied">Pied de page</button><button type="button" data-type="billet">Billet</button></div>' +
+    '<div class="editeurMail"><div id="volMail">' +
+    Object.keys(MAIL.TYPES).map(function (k) { var t = MAIL.TYPES[k]; return '<div data-panneau="' + k + '"' + (k === 'confirmation' ? '' : ' hidden') + '>' + champ(t.sujet, 'Sujet', r[t.sujet] || '') + '<div class="large" style="margin-top:10px"><label for="f-' + t.message + '">Message</label>' + pucesVariables('f-' + t.message) + '<textarea id="f-' + t.message + '" name="' + t.message + '">' + esc(r[t.message] || '') + '</textarea></div>' +
+      (k === 'confirmation' ? '<p class="aide">Envoyé à la réservation, quand vous confirmez une inscription en liste d\'attente, et à une réservation ajoutée à la main si la case est cochée.</p>' : k === 'annulation' ? '<p class="aide">Envoyé quand vous annulez une réservation en choisissant « prévenir ».</p>' : '<p class="aide">Envoyé quand quelqu\'un s\'inscrit sur la liste d\'attente d\'un événement complet.</p>') + '</div>'; }).join('') +
+    '<div data-panneau="pied" hidden><div class="large"><label for="f-piedDePage">Pied de page (sous chaque e-mail)</label>' + pucesVariables('f-piedDePage') + '<textarea id="f-piedDePage" name="piedDePage">' + esc(r.piedDePage || '') + '</textarea></div><p class="aide">Signature, adresse, lien du site… Laissez vide pour aucun pied de page.</p></div>' +
+    '<div data-panneau="billet" hidden><label class="coche"><input type="checkbox" name="billet" value="Oui"' + (String(r.billet || '') === 'Oui' ? ' checked' : '') + '> Joindre un billet récapitulatif dans l\'e-mail de confirmation</label><p class="aide">Un encadré aux couleurs du site : spectacle, date, heure, lieu, nom, places, numéro de réservation. Les gens le montrent sur leur téléphone à l\'entrée. Il reprend automatiquement vos textes et le tarif de l\'événement.</p></div>' +
+    '</div><div class="apercuMail" id="apercuMail"></div></div>' +
+    '<p class="aide" style="margin-top:12px">Le texte accepte **gras** et *italique* ; les adresses https:// deviennent des liens. Variables : ' + MAIL.VARIABLES.map(function (v) { return '{' + v[0] + '}'; }).join(' ') + '</p>' +
+    '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button><button class="btn" type="button" id="essai">M\'envoyer cet e-mail en essai</button></div></form>';
   if (droit('comptes')) h += '<h2 id="comptes">Comptes et codes PIN</h2><div class="panneau" id="zoneComptes"><p class="vide">Chargement…</p></div>' +
     '<h2>Appareils connectés</h2><div class="panneau" id="zoneAppareils"><p class="vide">Chargement…</p></div>';
   $('#vue').innerHTML = h;
   if ($('#regl')) {
     $('#regl').onsubmit = function (ev) {
       ev.preventDefault();
-      var o = {}; new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
-      appel('adminEnregistrerReglages', [o], function (res) { recharger(res); toast('Enregistré'); });
+      var o = {}; new FormData(ev.target).forEach(function (v, k) { o[k] = v; }); if (!o.billet) o.billet = '';
+      appel('adminEnregistrerReglages', [o], function (res) { recharger(res); toast('Réglages enregistrés ✓'); });
     };
-    $('#essai').onclick = function () { appel('adminEssaiMail', [], function (t) { toast(t); }); };
+    var typeMail = 'confirmation', typeVu = 'confirmation';
+    function brouillonReglages() { var o = {}; new FormData($('#regl')).forEach(function (v, k) { o[k] = v; }); if (!o.billet) o.billet = ''; return o; }
+    function rendreMail() {
+      var o = brouillonReglages(), t = typeVu === 'pied' || typeVu === 'billet' ? 'confirmation' : typeVu, v = MAIL.exemple();
+      var ev = (D.evenements || []).filter(function (e) { return e.statut === 'Ouvert' || e.statut === 'Fermé'; })[0];
+      if (ev) { v.titre = ev.titre; v.date = dateLongueFr(ev.date); v.heure = ev.debut || ''; v.lieu = [ev.lieu, ev.adresse].filter(Boolean).join(', '); v.adresse = ev.adresse || ''; v.tarif = ev.tarif || ''; }
+      v.festival = o.nomFestival || v.festival; v.site = String(o.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, '') || v.site;
+      if (typeVu === 'billet') o.billet = 'Oui';
+      var m = MAIL.composer(t, o, v);
+      $('#apercuMail').innerHTML = '<div class="entete"><b>De :</b> ' + esc(o.nomFestival || '') + ' &lt;réservations&gt;<br><b>À :</b> ' + esc(v.email) + '<br><b>Objet :</b> <b>' + esc(m.sujet) + '</b></div><div class="corps">' + m.html + '</div>';
+    }
+    function pucesInit() {
+      document.querySelectorAll('.puces button').forEach(function (b) {
+        b.onmousedown = function (ev) { ev.preventDefault(); };
+        b.onclick = function () {
+          var ta = $('#' + b.parentNode.dataset.pour), v = '{' + b.dataset.var + '}', d = ta.selectionStart || 0, f = ta.selectionEnd || 0;
+          ta.value = ta.value.slice(0, d) + v + ta.value.slice(f); ta.selectionStart = ta.selectionEnd = d + v.length; ta.focus(); rendreMail();
+        };
+      });
+    }
+    document.querySelectorAll('#ongletsMail button').forEach(function (b) {
+      b.onclick = function () {
+        typeVu = b.dataset.type; typeMail = MAIL.TYPES[typeVu] ? typeVu : 'confirmation';
+        document.querySelectorAll('#ongletsMail button').forEach(function (x) { x.classList.toggle('on', x === b); });
+        document.querySelectorAll('#volMail [data-panneau]').forEach(function (p) { p.hidden = p.dataset.panneau !== typeVu; });
+        rendreMail();
+      };
+    });
+    $('#regl').addEventListener('input', rendreMail); $('#regl').addEventListener('change', rendreMail);
+    pucesInit(); rendreMail();
+    $('#essai').onclick = function () { $('#essai').disabled = true; appel('adminEssaiMail', [typeMail, brouillonReglages()], function (t) { $('#essai').disabled = false; toast(t); }); };
   }
   if ($('#zoneComptes')) appel('adminListerComptes', [], function (r) { comptesAfficher(r); appel('adminListerAppareils', [], appareilsAfficher); });
 }
@@ -883,7 +987,7 @@ function afficherPhotos() {
       sel.onfocus = function () { if (sel.value !== '__nouveau__') sel.dataset.avant = sel.value; };
     }
     var h = '<h2>Visuels</h2>';
-    if (D.version && VERSION_APPLI !== '22eb80949036' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
+    if (D.version && VERSION_APPLI !== '4050dafb8eab' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
     h += '<div class="panneau"><p>Photos, affiches, dessins : tout ce qui peut illustrer un spectacle. <b>1.</b> Choisissez le spectacle, <b>2.</b> ajoutez les fichiers. Ensuite, dans chaque événement, vous choisissez lesquels afficher et dans quel ordre.</p>' +
       '<div class="grille"><div><label for="g-titre">1. Spectacle</label><select id="g-titre">' + options($('#g-titre') ? $('#g-titre').value : '') + '</select></div>' +
       '<div><label>2. Fichiers</label><button type="button" class="btn plein" id="ajoutGalerie" style="width:100%">+ Ajouter des visuels</button></div>' +

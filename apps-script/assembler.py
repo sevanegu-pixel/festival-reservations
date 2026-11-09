@@ -3,7 +3,7 @@
 
     python3 assembler.py
 
-Code.js + Reservations.js + l'écran Admin.html (mis dans la variable ADMIN_HTML).
+Code.js + Reservations.js + Mail.js + MiseAJour.js + l'écran Admin.html (mis dans la variable ADMIN_HTML).
 appsscript.json (autorisations) est à coller une fois ; ensuite MiseAJour.js met le script à jour depuis GitHub.
 """
 import json, os, hashlib
@@ -21,8 +21,9 @@ morceaux = [
     "// pour changer le code, modifier ces fichiers-là puis relancer l'assemblage.\n",
     lire("Code.js"),
     lire("Reservations.js"),
+    lire("Mail.js"),
     lire("MiseAJour.js"),
-    "var ADMIN_HTML = " + json.dumps(lire("Admin.html"), ensure_ascii=False) + ";\n",
+    "var ADMIN_HTML = " + json.dumps(lire("Admin.html").replace("/*__MAIL_JS__*/", lire("Mail.js")), ensure_ascii=False) + ";\n",
 ]
 # Numéro de version = empreinte des sources (le script en ligne se compare à celui du dépôt grâce à lui)
 VERSION = hashlib.sha1("\n".join(morceaux).encode("utf-8")).hexdigest()[:12]
@@ -35,7 +36,7 @@ print("a-coller.gs :", sum(len(m) for m in morceaux), "caractères")
 import re
 index = open(os.path.join(ICI, "..", "index.html"), encoding="utf-8").read()
 exec_defaut = re.search(r'var EXEC_DEFAUT = "([^"]*)"', index).group(1)
-g = lire("Admin.html").replace("__VERSION__", VERSION)
+g = lire("Admin.html").replace("/*__MAIL_JS__*/", lire("Mail.js")).replace("__VERSION__", VERSION)
 g = g.replace('<base target="_top">\n<meta charset="utf-8">',
     '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
     '<meta name="robots" content="noindex">\n<title>Réservations</title>\n<link rel="manifest" href="manifest.webmanifest">\n'
