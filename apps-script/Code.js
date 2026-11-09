@@ -4,6 +4,7 @@
  * Menu « Festival » de la feuille :
  *   - Lien de l'appli : affiche l'adresse pour le site et le lien personnel de l'appli de gestion.
  *   - Changer la clé du lien : l'ancien lien personnel ne marche plus.
+ *   - Activer la mise à jour automatique / Mettre à jour maintenant : le code vient de GitHub (voir MiseAJour.js).
  */
 
 var MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août',
@@ -14,6 +15,9 @@ function onOpen() {
     .createMenu('Festival')
     .addItem("Lien de l'appli de gestion", 'lienAppli')
     .addItem('Changer la clé du lien', 'changerCleAppli')
+    .addSeparator()
+    .addItem('Activer la mise à jour automatique', 'activerMiseAJour')
+    .addItem('Mettre à jour le script maintenant', 'mettreAJourMaintenant')
     .addToUi();
 }
 
@@ -22,3 +26,5 @@ function texteDate_(iso) {
   var p = iso.split('-').map(Number);
   return (p[2] === 1 ? '1er' : p[2]) + ' ' + MOIS[p[1] - 1] + ' ' + p[0];
 }
+
+function mettreAJourMaintenant() { SpreadsheetApp.getUi().alert('Mise à jour', verifierMiseAJour(), SpreadsheetApp.getUi().ButtonSet.OK); }

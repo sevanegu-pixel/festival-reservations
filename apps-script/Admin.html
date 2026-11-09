@@ -123,7 +123,7 @@ tr.annulee td:last-child{text-decoration:none}
 
 <script>
 var CLE = <?!= JSON.stringify(cle) ?>;
-var PIN = '', COMPTE = null, D = null, vue = 'evenements', ouvert = null;
+var VERSION_APPLI = '__VERSION__', PIN = '', COMPTE = null, D = null, vue = 'evenements', ouvert = null;
 function droit(k) { return !COMPTE || !!COMPTE.droits[k]; }
 function deconnexion() { try { localStorage.removeItem('festival_resa_pin'); localStorage.removeItem('festival_resa_cle'); } catch (e) {} PIN = ''; COMPTE = null; D = null; location.reload(); }
 // Écran d'entrée par code PIN (appli GitHub Pages ; l'écran Apps Script, lui, s'ouvre par le lien personnel).
@@ -173,10 +173,12 @@ function afficher() {
   var avenir = evs.filter(function (e) { return e.date >= today; });
   var passes = evs.filter(function (e) { return e.date < today; }).reverse();
   var h = droit('evenements') ? '<div class="actions"><button class="btn plein" id="nouveau">+ Nouvel événement</button></div>' : '';
+  if (D.version && VERSION_APPLI !== '__VERSION__' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') n\'est pas celui de l\'appli (' + esc(VERSION_APPLI) + '). <button type="button" class="btn petit plein" id="majScript">Mettre à jour le script</button> <span class="aide" style="display:inline">Ça prend quelques secondes ; sinon, il se met à jour tout seul dans l\'heure.</span></div>';
   if (COMPTE && COMPTE.id === 'cle' && droit('comptes') && !PIN) h += '<div class="bandeau" id="bandeauPin">Vous êtes entrée avec le lien personnel. Créez votre code PIN et ceux des bénévoles dans <a href="#" id="versComptes">Réglages → Comptes</a> : ensuite l\'appli s\'ouvre avec le code, sur n\'importe quel appareil.</div>';
   h += '<h2>À venir</h2>' + liste(avenir) + '<h2>Passés</h2>' + liste(passes);
   $('#vue').innerHTML = h;
   if ($('#nouveau')) $('#nouveau').onclick = function () { ouvert = 'nouveau'; afficher(); };
+  if ($('#majScript')) $('#majScript').onclick = function () { $('#majScript').disabled = true; toast('Mise à jour en cours…'); appel('adminMettreAJour', [], function (t) { toast(t); setTimeout(function () { appel('adminCharger', [], recharger); }, 1500); }); };
   if ($('#versComptes')) $('#versComptes').onclick = function (ev) { ev.preventDefault(); $('nav [data-vue=reglages]').click(); setTimeout(function () { var c = $('#comptes'); if (c) c.scrollIntoView({ behavior: 'smooth' }); }, 300); };
   document.querySelectorAll('.ev').forEach(function (b) { b.onclick = function () { ouvert = b.dataset.id; afficher(); scrollTo(0, 0); }; });
   document.querySelectorAll('.statutRapide').forEach(function (s) {

@@ -4,9 +4,9 @@
     python3 assembler.py
 
 Code.js + Reservations.js + l'écran Admin.html (mis dans la variable ADMIN_HTML).
-Pas besoin de appsscript.json : Google trouve tout seul les autorisations nécessaires.
+appsscript.json (autorisations) est à coller une fois ; ensuite MiseAJour.js met le script à jour depuis GitHub.
 """
-import json, os
+import json, os, hashlib
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 
@@ -21,16 +21,21 @@ morceaux = [
     "// pour changer le code, modifier ces fichiers-là puis relancer l'assemblage.\n",
     lire("Code.js"),
     lire("Reservations.js"),
+    lire("MiseAJour.js"),
     "var ADMIN_HTML = " + json.dumps(lire("Admin.html"), ensure_ascii=False) + ";\n",
 ]
+# Numéro de version = empreinte des sources (le script en ligne se compare à celui du dépôt grâce à lui)
+VERSION = hashlib.sha1("\n".join(morceaux).encode("utf-8")).hexdigest()[:12]
+morceaux = [m.replace("__VERSION__", VERSION) for m in morceaux]
 open(os.path.join(ICI, "a-coller.gs"), "w", encoding="utf-8").write("\n".join(morceaux))
+print("version :", VERSION)
 print("a-coller.gs :", sum(len(m) for m in morceaux), "caractères")
 
 # gestion.html : le même écran, hébergé sur GitHub Pages (pas de bandeau Google), qui parle au script par POST.
 import re
 index = open(os.path.join(ICI, "..", "index.html"), encoding="utf-8").read()
 exec_defaut = re.search(r'var EXEC_DEFAUT = "([^"]*)"', index).group(1)
-g = lire("Admin.html")
+g = lire("Admin.html").replace("__VERSION__", VERSION)
 g = g.replace('<base target="_top">\n<meta charset="utf-8">',
     '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
     '<meta name="robots" content="noindex">\n<title>Réservations</title>\n<link rel="manifest" href="manifest.webmanifest">\n'

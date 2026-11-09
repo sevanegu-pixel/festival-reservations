@@ -130,7 +130,7 @@ var FONCTION_DROIT = {
   adminAjouterReservation: 'reservations', adminAnnulerReservation: 'reservations', adminPointer: 'reservations',
   adminEnregistrerReglages: 'reglages', adminEssaiMail: 'reglages',
   adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminSupprimerPhoto: 'photos',
-  adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes'
+  adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes', adminMettreAJour: 'comptes'
 };
 function adminApi_(d) {
   try {
@@ -143,6 +143,7 @@ function adminApi_(d) {
     var res = globalThis[d.fn].apply(null, [cle].concat(args));
     if (res && res.evenements && res.reglages) { // réponse adminCharger : on y joint le compte, et on cache les contacts à qui n'a pas le droit
       res.compte = { id: compte.id, nom: compte.nom, droits: compte.droits };
+      res.version = VERSION_CODE;
       res.droits = DROITS;
       if (!compte.droits.reservations) res.reservations = res.reservations.map(function (r) { return { id: r.id, evenement: r.evenement, places: r.places, statut: r.statut }; });
       if (!compte.droits.reglages && !compte.droits.comptes) res.reglages = { nomFestival: res.reglages.nomFestival, siteUrl: res.reglages.siteUrl };
