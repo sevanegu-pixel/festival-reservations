@@ -664,10 +664,11 @@ function afficherApparence() {
     '<label style="margin-top:14px">Menu sur ordinateur</label><label class="coche"><input type="checkbox" id="ap-volet"' + (APPARENCE.volet === 'fixe' ? ' checked' : '') + '> Garder le menu ouvert sur grand écran</label>' +
     '<p class="aide">Ces choix sont gardés sur cet appareil seulement.</p></div>';
   $('#vue').innerHTML = h;
-  document.querySelectorAll('[data-mode]').forEach(function (b) { b.onclick = function () { garderApparence({ mode: b.dataset.mode }); afficherApparence(); }; });
-  document.querySelectorAll('[data-skin-choix]').forEach(function (b) { b.onclick = function () { garderApparence({ skin: b.dataset.skinChoix }); afficherApparence(); }; });
+  // Sélecteurs limités à #vue : <html> porte aussi data-menu-tel, et un gestionnaire posé dessus redessinait Apparence à chaque clic dans l'appli.
+  document.querySelectorAll('#vue button[data-mode]').forEach(function (b) { b.onclick = function () { garderApparence({ mode: b.dataset.mode }); afficherApparence(); }; });
+  document.querySelectorAll('#vue button[data-skin-choix]').forEach(function (b) { b.onclick = function () { garderApparence({ skin: b.dataset.skinChoix }); afficherApparence(); }; });
   $('#ap-volet').onchange = function () { garderApparence({ volet: this.checked ? 'fixe' : '' }); };
-  document.querySelectorAll('[data-menu-tel]').forEach(function (b) { b.onclick = function () { garderApparence({ menuTel: b.dataset.menuTel }); afficherApparence(); }; });
+  document.querySelectorAll('#vue button[data-menu-tel]').forEach(function (b) { b.onclick = function () { garderApparence({ menuTel: b.dataset.menuTel }); afficherApparence(); }; });
 }
 
 // ---------- Tableau de bord (page d'accueil) ----------
