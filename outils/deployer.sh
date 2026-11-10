@@ -3,6 +3,9 @@
 #   bash outils/deployer.sh              → assemble, pousse le code, nouvelle version du déploiement de l'appli web
 #   bash outils/deployer.sh connexion    → (une fois) connexion clasp au compte Google du festival : Sévane choisit le compte dans la page Google
 #   bash outils/deployer.sh verifier     → assemble et vérifie, sans rien envoyer
+#   bash outils/deployer.sh pousser      → assemble et pousse le code avec le clasp déjà connecté du Mac (compte compagnie, le script lui est partagé),
+#                                          SANS toucher au déploiement : Sévane fait ensuite « Nouvelle version » avec le compte du festival
+#                                          (un déploiement fait par le compte compagnie enverrait les e-mails depuis l'adresse de la compagnie).
 # La connexion clasp du festival est gardée sous le nom d'utilisateur « festival » : celle des applis Origami (par défaut) n'est jamais touchée.
 # Une fois pour toutes, avec le compte du festival : activer l'API Apps Script sur https://script.google.com/home/usersettings
 set -euo pipefail
@@ -14,6 +17,7 @@ ENVOI="apps-script/envoi"                                                       
 ID_FICHIER="outils/script-id.txt"                                                      # identifiant du script (adresse de l'éditeur : /projects/<ID>/edit)
 LOG="outils/deploy.log"
 C() { clasp --user festival "$@"; }
+[ "${1:-}" = "pousser" ] && C() { clasp "$@"; }
 
 if [ "${1:-}" = "connexion" ]; then
   echo "→ Une page Google s'ouvre : choisir le compte du festival (pas celui de la compagnie)."
@@ -27,7 +31,7 @@ python3 apps-script/assembler.py
 node -e "new Function(require('fs').readFileSync('apps-script/a-coller.gs','utf8'))" && echo "   syntaxe du script : ok"
 VERSION=$(grep -o "var VERSION_CODE = '[0-9a-f]*'" apps-script/a-coller.gs | grep -o "[0-9a-f]\{6,\}")
 [ "${1:-}" = "verifier" ] && { echo "Version $VERSION prête (rien envoyé)."; exit 0; }
-[ -s "$ID_FICHIER" ] || { echo "Il manque l'identifiant du script dans $ID_FICHIER (lancer d'abord : bash outils/deployer.sh connexion, qui liste les scripts)."; exit 1; }
+[ -s "$ID_FICHIER" ] || { echo "Il manque l'identifiant du script dans $ID_FICHIER. Scripts visibles :"; C list-scripts 2>/dev/null || C list 2>/dev/null || true; exit 1; }
 SCRIPT_ID=$(tr -d ' \n\r' < "$ID_FICHIER")
 
 rm -rf "$ENVOI"; mkdir -p "$ENVOI"
@@ -38,6 +42,7 @@ printf '{"scriptId":"%s","rootDir":"%s"}\n' "$SCRIPT_ID" "$ENVOI" > "$ENVOI/.cla
 cd "$ENVOI"
 echo "→ Envoi du code (version $VERSION)"
 C push -f | tee -a "../../$LOG"
+if [ "${1:-}" = "pousser" ]; then cd ../..; rm -rf "$ENVOI"; echo "✓ Code poussé (version $VERSION). À faire avec le compte du festival : Déployer › Gérer les déploiements › crayon › Nouvelle version › Déployer."; exit 0; fi
 echo "→ Nouvelle version du déploiement de l'appli web"
 C create-deployment -i "$DEPLOIEMENT" -d "Version $VERSION ($(date '+%d.%m.%Y %H:%M'))" | tee -a "../../$LOG"
 C list-deployments >> "../../$LOG" 2>&1 || true
