@@ -137,7 +137,7 @@ function brouillonsGmail_() {
     return tous;
   });
 }
-function oublierBrouillons_() { oublierCache_(['gm:brouillons']); }
+function oublierBrouillons_() { oublierCache_(['gm:brouillons', 'gm:dossiers']); }
 /** Brouillons qui sont en fait des mails programmés (ils ne se montrent pas comme brouillons). */
 function brouillonsProgrammes_() {
   var t = {};
@@ -148,6 +148,9 @@ function brouillonsProgrammes_() {
 // ----- Dossiers et compteurs -----
 function adminMailsDossiers(cle) {
   verifierCle_(cle);
+  return enCache_('gm:dossiers', 120, dossiersMails_);
+}
+function dossiersMails_() {
   var t0 = Date.now(), libs = [];
   try { libs = libellesGmail_(); } catch (e) { libs = []; }
   var cles = ['reception', 'suivis', 'brouillons', 'spam'];
@@ -164,6 +167,21 @@ function adminMailsDossiers(cle) {
 /** Compteur de l'onglet Mails : fils non lus dans la boîte de réception (−1 si Gmail est indisponible). */
 function boiteNonLus_() {
   try { return Number(gmailGet_('labels/INBOX').threadsUnread || 0); } catch (e) { return -1; }
+}
+
+/** En-têtes des fils d'une page : gardés dans le cache du script tant que le fil n'a pas bougé (historyId), pour que
+ *  rafraîchir la liste coûte 1 appel Gmail au lieu de 31 (quota UrlFetch : 20 000 appels par jour). */
+function detailsFils_(fils) {
+  if (!fils.length) return [];
+  var cache = CacheService.getScriptCache(), cles = fils.map(function (t) { return 'gm:fil:' + t.id + ':' + (t.historyId || ''); }), connus = {};
+  try { connus = cache.getAll(cles) || {}; } catch (e) { connus = {}; }
+  var champs = '&fields=' + encodeURIComponent('id,messages(id,labelIds,snippet,internalDate,payload(mimeType,headers))');
+  var manquants = fils.filter(function (t, i) { return !connus[cles[i]]; });
+  var lus = gmailParallele_(manquants.map(function (t) { return 'threads/' + t.id + '?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc&metadataHeaders=Subject&metadataHeaders=Auto-Submitted' + champs; }));
+  var parId = {}, aGarder = {};
+  manquants.forEach(function (t, i) { if (lus[i]) { parId[t.id] = lus[i]; aGarder['gm:fil:' + t.id + ':' + (t.historyId || '')] = JSON.stringify(lus[i]); } });
+  if (Object.keys(aGarder).length) { try { cache.putAll(aGarder, 21600); } catch (e) { /* trop gros */ } }
+  return fils.map(function (t, i) { if (parId[t.id]) return parId[t.id]; try { return JSON.parse(connus[cles[i]]); } catch (e) { return null; } });
 }
 
 // ----- Liste des conversations (une page de 30) -----
@@ -183,9 +201,8 @@ function adminMailsListe(cle, o) {
   else chemin = 'threads?maxResults=' + taille + d.ids.map(function (l) { return '&labelIds=' + l; }).join('') + (o.dossier === 'spam' || o.dossier === 'corbeille' ? '&includeSpamTrash=true' : '');
   if (q) chemin = 'threads?maxResults=' + taille + '&q=' + encodeURIComponent(q) + (/\bin:(spam|trash)\b/.test(q) ? '&includeSpamTrash=true' : '');
   if (o.jeton) chemin += '&pageToken=' + encodeURIComponent(String(o.jeton));
-  var page = gmailGet_(chemin + '&fields=' + encodeURIComponent('threads/id,nextPageToken'));
-  var champs = '&fields=' + encodeURIComponent('id,messages(id,labelIds,snippet,internalDate,payload(mimeType,headers))');
-  var details = gmailParallele_((page.threads || []).map(function (t) { return 'threads/' + t.id + '?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc&metadataHeaders=Subject&metadataHeaders=Auto-Submitted' + champs; }));
+  var page = gmailGet_(chemin + '&fields=' + encodeURIComponent('threads(id,historyId),nextPageToken'));
+  var details = detailsFils_(page.threads || []);
   if (details.length && !details.some(function (t) { return t && t.messages && t.messages.length; })) throw new Error('Gmail ne répond pas, réessayez.');
   var moi = monAdresse_(), par = reservationsParEmailCache_(), nomsLib = {}, progs = brouillonsProgrammes_(), parMessageBrouillon = {};
   try { libellesGmail_().forEach(function (l) { nomsLib[l.id] = l.nom; }); } catch (e) { /* sans noms */ }
@@ -328,6 +345,7 @@ function adminMailsPiece(cle, messageId, pieceId) {
 /** action : archiver, corbeille, restaurer, lu, nonLu, suivre, nePlusSuivre, boiteReception, spam, nonSpam, libeller, retirerLibelle, deplacer, traite, nonTraite, creerLibelle, etiquette (param : clé d'étiquette Festival, actif via param2) */
 function adminMailsAction(cle, ids, action, param, param2) {
   verifierCle_(cle);
+  oublierCache_(['gm:dossiers']);
   if (action === 'creerLibelle') {
     var nouveau = String(param || '').trim(); if (!nouveau) throw new Error('Donnez un nom au libellé.');
     idLibelle_(nouveau, true);

@@ -77,10 +77,16 @@ function prechargerBoiteMx() {
     MX.cache[cle] = r; noterCopieMx(cle, r); preparerRecentsMx();
   }, function (e) { finir(); route.suites.forEach(function (x) { x[1](e); }); return true; }, true);
 }
-/* Conversations récentes préparées en arrière-plan (15 sur ordinateur, 6 sur téléphone), toutes les 3 minutes. */
+/* Économie du quota Gmail (20 000 appels par jour pour tout le script) : les relectures automatiques ne tournent que si
+   quelqu'un a touché l'appli dans les 30 dernières minutes et si l'onglet est visible. */
+var ACTIF_MX = Date.now();
+['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { ACTIF_MX = Date.now(); }, { passive: true }); });
+document.addEventListener('visibilitychange', function () { if (!document.hidden) ACTIF_MX = Date.now(); });
+function actifMx() { return !document.hidden && Date.now() - ACTIF_MX < 30 * 60000; }
+/* Conversations récentes préparées en arrière-plan (10 sur ordinateur, 4 sur téléphone), toutes les 10 minutes, une seule fois par fil. */
 function preparerRecentsMx() {
   if (document.hidden || !D || !droit('boite')) return;
-  var l = (MX.cache[cleBoiteDefautMx()] || {}).fils || [], n = surTelephone() ? 6 : 15, k = 0;
+  var l = (MX.cache[cleBoiteDefautMx()] || {}).fils || [], n = surTelephone() ? 4 : 10, k = 0;
   l.slice(0, n).forEach(function (f, i) { if (MX.filsGardes[f.id] || MX.enCours[f.id] || f.brouillon) return; setTimeout(function () { prechargerFilMx(f.id); }, 400 * k++); });
 }
 function prechargerFilMx(id) {
@@ -95,8 +101,8 @@ function garderFilMx(f) {
   while (MX.ordre.length > 40) delete MX.filsGardes[MX.ordre.shift()];
 }
 function oublierListesMx() { var garde = MX.cache[cleListeMx()]; MX.cache = {}; if (garde && !garde.attente) MX.cache[cleListeMx()] = garde; }
-setInterval(function () { if (D && droit('boite')) { if (!prechargerBoiteMx.fait) prechargerBoiteMx(); else if (!document.hidden) { if (vue !== 'boite') rafraichirListeDefautMx(); preparerRecentsMx(); } } }, 180000);
-setInterval(function () { if (vue === 'boite' && D && !document.hidden && !MX.charge && !MX.fil) chargerFilsMx(true); }, 90000);
+setInterval(function () { if (D && droit('boite') && actifMx()) { if (!prechargerBoiteMx.fait) prechargerBoiteMx(); else { if (vue !== 'boite') rafraichirListeDefautMx(); preparerRecentsMx(); } } }, 600000);
+setInterval(function () { if (vue === 'boite' && D && actifMx() && !MX.charge && !MX.fil) chargerFilsMx(true); }, 240000);
 function rafraichirListeDefautMx() {
   var cle = cleBoiteDefautMx();
   appelMx('adminMailsListe', [{ dossier: 'reception', libelle: '', recherche: '', jeton: '', public: MX.public }], function (r) { if (r.fils.length || !(MX.cache[cle] || {}).fils) { MX.cache[cle] = r; noterCopieMx(cle, r); } }, function () { return true; }, true);
