@@ -13,8 +13,10 @@ var REPONSES_RAPIDES = [
   ['Merci', 'Bonjour {prenom},\n\nMerci pour votre message !\n\n{festival}']
 ];
 function badgeBoite() {
-  var b = $('nav [data-vue=boite]'); if (!b) return;
-  b.innerHTML = 'Mails' + (BOITE_NL > 0 ? ' <span class="pastille">' + BOITE_NL + '</span>' : '');
+  document.querySelectorAll('[data-vue=boite], [data-bvue=boite]').forEach(function (b) {
+    var p = b.querySelector('.pastille');
+    if (BOITE_NL > 0) { if (!p) { p = document.createElement('span'); p.className = 'pastille'; b.appendChild(p); } p.textContent = BOITE_NL; } else if (p) p.remove();
+  });
 }
 function surTelephone() { return innerWidth < 1000; }
 function mxFixe() { return document.documentElement.classList.contains('mx-fixe'); }
@@ -215,7 +217,7 @@ function dessinerFilsMx() {
     return '<div class="conv' + (f.nonLu ? ' nonLu' : '') + (actif ? ' actif' : '') + (MX.coches[f.id] ? ' cochee' : '') + (part ? ' enEnvoi' : '') + '" data-conv="' + esc(f.id) + '" role="button" tabindex="0">' +
       '<span class="conv-gauche"><input type="checkbox" data-coche="' + esc(f.id) + '"' + (MX.coches[f.id] ? ' checked' : '') + ' aria-label="Sélectionner"><button type="button" class="etoile' + (f.suivi ? ' on' : '') + '" data-etoile="' + esc(f.id) + '" aria-label="' + (f.suivi ? 'Ne plus suivre' : 'Suivre') + '">★</button></span>' +
       '<span class="conv-corps"><span class="conv-tete"><span class="conv-de" title="' + esc(f.email) + '">' + esc(f.de) + '</span>' + (f.nb > 1 ? '<span class="conv-nb">' + f.nb + '</span>' : '') + '<span class="conv-date">' + esc(quandCourt(f.date)) + '</span></span>' +
-      '<span class="conv-objet">' + esc(f.objet) + (f.pieces ? ' <small title="Pièce jointe">📎</small>' : '') + '</span><span class="conv-extrait">' + esc(f.extrait) + '</span>' +
+      '<span class="conv-objet">' + (f.pieces ? '<small title="Pièce jointe">📎</small> ' : '') + esc(f.objet) + '</span><span class="conv-extrait">' + esc(f.extrait) + '</span>' +
       '<span class="conv-puces">' + (part ? '<span class="eti prog">Envoi en cours…</span>' : '') + (f.brouillon && MX.dossier !== 'brouillons' ? '<span class="eti brouillon">Brouillon</span>' : '') + (f.auto ? '<span class="eti">Réponse automatique</span>' : '') + (f.repondu ? '<span class="eti ok">Répondu</span>' : '') +
       (f.libelles || []).filter(function (e) { return e !== 'Traité' || MX.libelle !== ((MX.dossiers && MX.dossiers.traite) || 'Festival/Traité'); }).map(function (e) { return '<span class="eti' + (e === 'Traité' ? ' ok' : '') + '">' + esc(e) + '</span>'; }).join('') +
       (f.resas && f.resas[0] ? '<span class="eti resa">' + resumeResa(f.resas[0]) + (f.nbResas > 1 ? ' +' + (f.nbResas - 1) : '') + '</span>' : '') + '</span></span></div>';

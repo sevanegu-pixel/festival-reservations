@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-skin="festival" data-theme="sombre">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -13,21 +13,46 @@
 <link rel="icon" href="icone_192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+/* Apparence (thème et mode) appliquée avant le dessin de la page, depuis ce que l'appareil a retenu. */
+var APPARENCE = (function () { try { return JSON.parse(localStorage.getItem('festival_resa_apparence') || '{}') || {}; } catch (e) { return {}; } })();
+var SKINS = [['festival', 'Festival'], ['ocean', 'Océan'], ['foret', 'Forêt'], ['terracotta', 'Terracotta'], ['papier', 'Papier']];
+function appliquerApparence() {
+  var h = document.documentElement, skin = SKINS.some(function (s) { return s[0] === APPARENCE.skin; }) ? APPARENCE.skin : 'festival';
+  var sombre = APPARENCE.mode === 'sombre' || (APPARENCE.mode !== 'clair' && !(window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches));
+  h.setAttribute('data-skin', skin); h.setAttribute('data-theme', sombre ? 'sombre' : 'clair');
+  h.setAttribute('data-volet', APPARENCE.volet === 'fixe' ? 'fixe' : '');
+  setTimeout(function () { var m = document.querySelector('meta[name=theme-color]'); if (m) m.content = getComputedStyle(h).getPropertyValue('--barre').trim() || '#0b0a10'; }, 0);
+}
+function garderApparence(o) { Object.keys(o).forEach(function (k) { APPARENCE[k] = o[k]; }); try { localStorage.setItem('festival_resa_apparence', JSON.stringify(APPARENCE)); } catch (e) {} appliquerApparence(); }
+appliquerApparence();
+if (window.matchMedia) matchMedia('(prefers-color-scheme: light)').addEventListener('change', appliquerApparence);
+</script>
 <style>
-:root{--fond:#0b0a10;--carte:#17141f;--ligne:#2c2640;--texte:#f4f1ff;--doux:#b9aee6;--lav:#ff5a5f;--lav2:#ff8f92;--rouge:#ff7a8a;--vert:#7ee0b0}
+/* ---------- Apparence : thèmes (skins) × mode clair / sombre, choisis dans « Apparence », gardés sur l'appareil ---------- */
+:root{--rouge:#ff7a8a;--vert:#7ee0b0;--jaune:#ffd23f;--bleu:#8fd3ff;--rayon:12px;--rayon-petit:8px;--haut:56px;--volet:280px;color-scheme:dark}
+[data-theme="clair"]{--rouge:#b42318;--vert:#067647;--jaune:#9a6700;--bleu:#0b62a8;color-scheme:light}
+:root,[data-skin="festival"][data-theme="sombre"]{--fond:#0b0a10;--carte:#17141f;--carte2:#100e17;--ligne:#2c2640;--texte:#f4f1ff;--doux:#b9aee6;--barre:#110e18;--sur-barre:#f4f1ff;--accent:#ff5a5f;--accent2:#ff8f92;--sur-accent:#0b0a10}
+[data-skin="festival"][data-theme="clair"]{--fond:#f6f3fb;--carte:#ffffff;--carte2:#f0ecf7;--ligne:#dfd8ec;--texte:#1d1830;--doux:#68617f;--barre:#2a1f3d;--sur-barre:#f7f1ff;--accent:#e23c41;--accent2:#b8262b;--sur-accent:#ffffff}
+[data-skin="ocean"][data-theme="clair"]{--fond:#f2f6f9;--carte:#fff;--carte2:#e9f0f6;--texte:#142230;--doux:#5a6b7a;--ligne:#dbe4ec;--barre:#0d3550;--sur-barre:#e3eef7;--accent:#0f6aa8;--accent2:#0b5587;--sur-accent:#fff}
+[data-skin="ocean"][data-theme="sombre"]{--fond:#0f1720;--carte:#16212c;--carte2:#1c2935;--texte:#e6eef5;--doux:#9fb1c2;--ligne:#2a3a49;--barre:#0a1118;--sur-barre:#d8e6f2;--accent:#6cb4ea;--accent2:#9ccbf0;--sur-accent:#0a1118}
+[data-skin="foret"][data-theme="clair"]{--fond:#f3f5f0;--carte:#fff;--carte2:#eaeee6;--texte:#1b2418;--doux:#5f6b59;--ligne:#dde3d7;--barre:#233d26;--sur-barre:#e4efe2;--accent:#3b6e40;--accent2:#2f5833;--sur-accent:#fff}
+[data-skin="foret"][data-theme="sombre"]{--fond:#121712;--carte:#1a211a;--carte2:#202920;--texte:#e8efe6;--doux:#a3b39f;--ligne:#2f3a2e;--barre:#0c100c;--sur-barre:#dbe8d8;--accent:#8cc792;--accent2:#aedbb3;--sur-accent:#0c100c}
+[data-skin="terracotta"][data-theme="clair"]{--fond:#faf5f0;--carte:#fff;--carte2:#f3ebe3;--texte:#2a1d15;--doux:#76665a;--ligne:#eaddd2;--barre:#5a2814;--sur-barre:#fae9de;--accent:#a8481f;--accent2:#8a3a18;--sur-accent:#fff}
+[data-skin="terracotta"][data-theme="sombre"]{--fond:#1a1310;--carte:#241b16;--carte2:#2c211b;--texte:#f3e8e0;--doux:#bba798;--ligne:#3d2f26;--barre:#110c09;--sur-barre:#f0ddd0;--accent:#f0a07a;--accent2:#f5bb9e;--sur-accent:#110c09}
+[data-skin="papier"][data-theme="clair"]{--fond:#fff;--carte:#fff;--carte2:#f4f4f4;--texte:#111;--doux:#555;--ligne:#d4d4d4;--barre:#f2f2f2;--sur-barre:#111;--accent:#111;--accent2:#111;--sur-accent:#fff}
+[data-skin="papier"][data-theme="sombre"]{--fond:#000;--carte:#0d0d0d;--carte2:#161616;--texte:#f2f2f2;--doux:#aaa;--ligne:#333;--barre:#000;--sur-barre:#f2f2f2;--accent:#f2f2f2;--accent2:#f2f2f2;--sur-accent:#000}
+:root{--lav:var(--accent);--lav2:var(--accent2)}
+[data-skin="papier"]{--rayon:6px;--rayon-petit:4px}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--fond);color:var(--texte);font:16px/1.45 Barlow,system-ui,sans-serif}
-header{position:sticky;top:0;z-index:5;background:var(--fond);border-bottom:1px solid var(--ligne);padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-h1{font:700 22px/1.1 "Bricolage Grotesque",sans-serif;margin:0;flex:1;min-width:180px}
-h1 small{display:block;font:500 13px Barlow,sans-serif;color:var(--doux);letter-spacing:.04em;text-transform:uppercase}
 h2{font:700 20px "Bricolage Grotesque",sans-serif;margin:24px 0 10px}
-nav button,.btn{font:600 15px Barlow,sans-serif;border:1px solid var(--lav);background:transparent;color:var(--lav2);border-radius:999px;padding:8px 14px;cursor:pointer}
-nav button.on,.btn.plein{background:var(--lav);color:#0b0a10;border-color:var(--lav)}
+.btn{font:600 14.5px Barlow,sans-serif;border:1px solid var(--lav);background:transparent;color:var(--lav2);border-radius:999px;padding:8px 14px;cursor:pointer;line-height:1.25}
+.btn.plein{background:var(--lav);color:var(--sur-accent);border-color:var(--lav)}
 .btn.petit{padding:4px 10px;font-size:13px}
 a.btn{text-decoration:none;display:inline-block}
 .btn.danger{border-color:var(--rouge);color:var(--rouge)}
 .btn:disabled{opacity:.5;cursor:default}
-main{max-width:980px;margin:0 auto;padding:8px 16px 80px}
 .liste{display:grid;gap:10px}
 .ev{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:12px;cursor:pointer;text-align:left;color:inherit;font:inherit;width:100%}
 .ev:hover{border-color:var(--lav)}
@@ -67,18 +92,17 @@ main{max-width:980px;margin:0 auto;padding:8px 16px 80px}
 .coches input{width:auto;margin-top:3px}
 .bandeau{background:var(--carte);border:1px solid var(--lav);border-radius:10px;padding:10px 14px;margin:10px 0;font-size:14px}
 .bandeau a{color:var(--lav2)}
-nav button.discret{border-color:var(--ligne);color:var(--doux)}
 input.arrivee{width:auto;transform:scale(1.3);margin:4px}
 tr.arrivee td{color:var(--vert)}
 .vide{color:var(--doux);font-style:italic}
 form .grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 form .grille>div{display:flex;flex-direction:column;justify-content:flex-end}form .grille>div label{margin-top:auto}form .grille>div .aide{margin-top:4px}
 label{display:block;font-size:13px;color:var(--doux);margin-bottom:4px}
-input,select,textarea{width:100%;font:inherit;color:var(--texte);background:#100e17;border:1px solid var(--ligne);border-radius:8px;padding:9px 10px}
+input,select,textarea{width:100%;font:inherit;color:var(--texte);background:var(--carte2);border:1px solid var(--ligne);border-radius:8px;padding:9px 10px}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--lav);border-color:var(--lav)}
 textarea{min-height:110px;resize:vertical}
 .large{grid-column:1/-1}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 .panneau{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:16px;margin-top:12px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--ligne);vertical-align:top}
@@ -87,21 +111,21 @@ tr.annulee td{opacity:.45;text-decoration:line-through}
 tr.annulee td:last-child{text-decoration:none}
 .tableau{overflow-x:auto}
 .aide{font-size:13px;color:var(--doux);margin:4px 0 0}
-#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--lav);color:#0b0a10;font-weight:600;padding:10px 16px;border-radius:18px;display:none;z-index:20;max-width:92vw;text-align:center;line-height:1.35}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--lav);color:var(--sur-accent);font-weight:600;padding:10px 16px;border-radius:18px;display:none;z-index:80;max-width:92vw;text-align:center;line-height:1.35}
 #toast.erreur{background:var(--rouge)}
-#charge{position:fixed;top:0;left:0;height:3px;width:100%;background:var(--lav);display:none;z-index:30;animation:c 1s infinite linear}
+#charge{position:fixed;top:0;left:0;height:3px;width:100%;background:var(--lav);display:none;z-index:90;animation:c 1s infinite linear}
 @keyframes c{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
 /* Photos et recadrage */
 .photos{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 8px}
 #photos .photo{width:180px}
-.photo{position:relative;width:150px;aspect-ratio:3/2;background:#100e17;border:1px solid var(--ligne);border-radius:8px;overflow:hidden}
+.photo{position:relative;width:150px;aspect-ratio:3/2;background:var(--carte2);border:1px solid var(--ligne);border-radius:8px;overflow:hidden}
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
 .photo .outils{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;background:rgba(11,10,16,.8);padding:3px 4px}
 .photo .outils button,.photo .outils a{background:none;border:0;color:var(--texte);font:600 12px Barlow,sans-serif;cursor:pointer;padding:3px 5px;text-decoration:none}
 .photo .outils button:hover,.photo .outils a:hover{color:var(--lav2)}
-.photo .num{position:absolute;left:6px;top:4px;font:700 12px Barlow,sans-serif;background:var(--lav);color:#0b0a10;border-radius:999px;padding:1px 7px}
+.photo .num{position:absolute;left:6px;top:4px;font:700 12px Barlow,sans-serif;background:var(--lav);color:var(--sur-accent);border-radius:999px;padding:1px 7px}
 .photos .ajout{width:150px;aspect-ratio:3/2;border:1px dashed var(--lav);border-radius:8px;background:none;color:var(--lav2);font:600 14px Barlow,sans-serif;cursor:pointer}
-#recadrage{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:40;display:none;align-items:center;justify-content:center;padding:12px}
+#recadrage{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:70;display:none;align-items:center;justify-content:center;padding:12px}
 #recadrage.ouvert{display:flex}
 #recadrage .boite{background:var(--carte);border:1px solid var(--ligne);border-radius:14px;padding:16px;width:min(96vw,640px)}
 #recadrage canvas{display:block;width:100%;aspect-ratio:3/2;background:#000;border-radius:8px;cursor:grab;touch-action:none}
@@ -112,14 +136,14 @@ tr.annulee td:last-child{text-decoration:none}
 .apercu .onglets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 @media (max-width:560px){.ev{grid-template-columns:52px 48px 1fr}.mini,.vide-mini{width:48px;height:48px}.jauge{grid-column:2;text-align:left}.jauge .barre{width:120px}}
 .tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.tuile{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:14px}.tuile b{display:block;font:700 30px/1 "Bricolage Grotesque"}.tuile span{font-size:13px;color:var(--doux)}.tuile.chaud{border-color:var(--lav)}
-.btn.ok{background:var(--vert);border-color:var(--vert);color:#0b0a10}
+.btn.ok{background:var(--vert);border-color:var(--vert);color:var(--sur-accent)}
 .afaire{margin:0;padding-left:18px}.afaire a{color:var(--lav2)}
 .ev{grid-template-columns:64px 56px 1fr auto}.mini{width:56px;height:56px;object-fit:cover;border-radius:8px}.vide-mini{display:grid;place-items:center;width:56px;height:56px;border-radius:8px;background:var(--ligne);font-weight:700}
 .barreEv{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.barreEv h2{flex:1;margin:0}
-.editeur.avecApercu{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,44%);gap:16px}.voletApercu{position:sticky;top:70px;align-self:start}.voletApercu iframe{height:80vh}
+.editeur.avecApercu{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,44%);gap:16px}.voletApercu{position:sticky;top:calc(var(--haut) + 12px);align-self:start}.voletApercu iframe{height:80vh}
 .zones{display:grid;grid-template-columns:minmax(200px,1fr) 2fr;gap:14px}.photo.principale{width:260px}
 h3.section{margin:14px 0 0;font:700 18px "Bricolage Grotesque"}
-.barreTexte{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px}.barreTexte button{font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--ligne);background:var(--carte);color:var(--texte);cursor:pointer}
+.barreTexte{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}.barreTexte button{font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--ligne);background:var(--carte);color:var(--texte);cursor:pointer}
 .coche{display:flex;gap:8px;align-items:center;color:var(--texte)}.coche input{width:auto}
 .photo .legende{position:absolute;left:6px;bottom:30px;font-size:11px;background:rgba(11,10,16,.8);padding:1px 6px;border-radius:6px}
 .groupe.aClasser h3{color:var(--lav2)}
@@ -127,7 +151,7 @@ h3.section{margin:14px 0 0;font:700 18px "Bricolage Grotesque"}
 tr.attente td{color:var(--doux)}
 @media (max-width:960px){.editeur.avecApercu{display:block}.voletApercu{position:static}.voletApercu iframe{height:60vh}}
 /* Boîte de dialogue interne (remplace les fenêtres du navigateur) */
-#dialogue{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:45;display:none;align-items:center;justify-content:center;padding:16px}
+#dialogue{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:72;display:none;align-items:center;justify-content:center;padding:16px}
 #dialogue.ouvert{display:flex}
 #dialogue .boite{background:var(--carte);border:1px solid var(--ligne);border-radius:14px;padding:18px;width:min(94vw,440px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
 #dialogue h3{margin:0 0 8px;font:700 18px "Bricolage Grotesque"}
@@ -139,38 +163,38 @@ tr.attente td{color:var(--doux)}
 .barreTri input{flex:1;min-width:160px}
 .barreTri .compte{font-size:13px;color:var(--doux);margin-left:auto}
 /* Éditeur de texte mis en forme */
-.editeurTexte{min-height:110px;background:#100e17;border:1px solid var(--ligne);border-radius:8px;padding:9px 12px;line-height:1.5;outline:none}
+.editeurTexte{min-height:110px;background:var(--carte2);border:1px solid var(--ligne);border-radius:8px;padding:9px 12px;line-height:1.5;outline:none}
 .editeurTexte:focus{border-color:var(--lav)}
 .editeurTexte:empty:before{content:attr(data-vide);color:var(--doux)}
 .editeurTexte p{margin:0 0 .7em}.editeurTexte p:last-child{margin-bottom:0}
 .editeurTexte h3{margin:.4em 0 .4em;font:700 17px "Bricolage Grotesque"}
 .editeurTexte blockquote{margin:.4em 0;padding:2px 12px;border-left:3px solid var(--lav);color:var(--doux);font-style:italic}
 .editeurTexte ul{margin:.3em 0;padding-left:22px}
-.barreTexte button.on{background:var(--lav);color:#0b0a10;border-color:var(--lav)}
+.barreTexte button.on{background:var(--lav);color:var(--sur-accent);border-color:var(--lav)}
 /* Aperçu : vrai rendu ordinateur, mis à l'échelle, ou largeur téléphone */
-.apercu .cadre{overflow:hidden;height:min(78vh,900px);border:1px solid var(--ligne);border-radius:12px;background:#120f24}
-.apercu iframe{display:block;width:1200px;height:900px;border:0;border-radius:0;transform-origin:0 0;background:#120f24}
-.apercu.tel .cadre{display:flex;justify-content:center;background:#0b0a10}
+.apercu .cadre{overflow:hidden;height:min(78vh,900px);border:1px solid var(--ligne);border-radius:12px;background:var(--carte2)}
+.apercu iframe{display:block;width:1200px;height:900px;border:0;border-radius:0;transform-origin:0 0;background:var(--carte2)}
+.apercu.tel .cadre{display:flex;justify-content:center;background:var(--fond)}
 .apercu.tel iframe{width:390px;height:100%;max-width:100%;margin:0;transform:none}
-.aide.alerte{color:var(--jaune,#ffd23f)}
+.aide.alerte{color:var(--jaune)}
 /* Vignette « envoi en cours » */
 .photo.envoi{display:grid;place-items:center;color:var(--doux);font-size:13px;border-style:dashed}
 .photo.envoi i{display:block;width:22px;height:22px;border:3px solid var(--ligne);border-top-color:var(--lav);border-radius:50%;animation:tourne .8s linear infinite;margin:0 auto 6px}
 @keyframes tourne{to{transform:rotate(360deg)}}
 /* Réglages : e-mails avec variables à insérer et aperçu en direct */
-.ongletsMail{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 10px}
+.ongletsMail{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px}
 .ongletsMail button{background:var(--carte);border:1px solid var(--ligne);color:var(--texte);border-radius:999px;padding:7px 14px;font:600 14px Barlow,sans-serif;cursor:pointer}
-.ongletsMail button.on{background:var(--lav);border-color:var(--lav);color:#0b0a10}
+.ongletsMail button.on{background:var(--lav);border-color:var(--lav);color:var(--sur-accent)}
 .editeurMail{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,46%);gap:16px;align-items:start}
 .editeurMail textarea{min-height:220px;font-size:15px}
 .puces{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 10px}
 .puces span{font-size:12px;color:var(--doux);align-self:center;margin-right:4px}
 .puces button{font:600 12px Barlow,sans-serif;background:var(--carte);border:1px dashed var(--lav);color:var(--lav2);border-radius:999px;padding:3px 9px;cursor:pointer}
-.puces button:hover{background:var(--lav);color:#0b0a10}
+.puces button:hover{background:var(--lav);color:var(--sur-accent)}
 .apercuMail{border:1px solid var(--ligne);border-radius:12px;overflow:hidden;background:var(--carte)}
 .apercuMail .entete{padding:10px 14px;background:var(--carte);border-bottom:1px solid var(--ligne);font-size:13px;color:var(--doux);line-height:1.5}
 .apercuMail .entete b{color:var(--texte)}
-.apercuMail .rendu{padding:14px;background:#2a2733;overflow-x:auto}
+.apercuMail .rendu{padding:14px;background:var(--carte2);overflow-x:auto}
 .apercuMail iframe{display:block;border:0;width:100%;min-height:300px;background:#fff;margin:0 auto}
 .apercuMail .cadreMail{margin:0 auto;max-width:100%}
 .apercuMail .cadreMail.ordi{width:640px}
@@ -179,14 +203,14 @@ tr.attente td{color:var(--doux)}
 .barreApercu b{flex:1;font:700 15px "Bricolage Grotesque",sans-serif;color:var(--texte)}
 .segment{display:inline-flex;border:1px solid var(--lav);border-radius:999px;overflow:hidden}
 .segment button{background:transparent;border:0;color:var(--lav2);font:600 13px Barlow,sans-serif;padding:6px 12px;cursor:pointer}
-.segment button.on{background:var(--lav);color:#0b0a10}
+.segment button.on{background:var(--lav);color:var(--sur-accent)}
 main.large{max-width:none}
 .atelier{display:grid;grid-template-columns:minmax(420px,var(--col-editeur,.9fr)) 10px minmax(380px,1.1fr);gap:0 6px;align-items:start}
-.atelier .voletApercuMail{position:sticky;top:70px;max-height:calc(100vh - 84px);overflow:auto}
+.atelier .voletApercuMail{position:sticky;top:calc(var(--haut) + 12px);max-height:calc(100vh - var(--haut) - 24px);overflow:auto}
 .poignee{align-self:stretch;cursor:col-resize;position:relative;touch-action:none}
 .poignee::after{content:"";position:absolute;top:40px;bottom:40px;left:4px;width:2px;border-radius:2px;background:var(--ligne)}
 .poignee:hover::after,.poignee.tire::after{background:var(--lav)}
-.ongletsAtelier{display:none;position:sticky;top:62px;z-index:6;margin:0 0 10px;box-shadow:0 0 0 6px var(--fond,#0b0a10);background:var(--fond,#0b0a10)}
+.ongletsAtelier{display:none;position:sticky;top:calc(var(--haut) + env(safe-area-inset-top));z-index:6;margin:0 0 10px;box-shadow:0 0 0 6px var(--fond,#0b0a10);background:var(--fond,#0b0a10)}
 .ongletsAtelier button{flex:1;padding:9px 12px;font-size:15px}
 .couleursMail{grid-column:1/-1;border-top:1px solid var(--ligne);padding-top:10px}
 .couleursMail summary{cursor:pointer;color:var(--texte);font-weight:600}
@@ -241,9 +265,93 @@ td.quand,th.quand{white-space:nowrap}
 .tableau.dernieres td.quand{grid-column:1/3;grid-row:3;font-size:12px;color:var(--doux)}
 .tableau.dernieres tr.annulee td{text-decoration:none;opacity:.5}
 }
+/* ---------- Disposition : barre du haut + menu en volet (à gauche) ; téléphone : barre du bas avec le bouton + ---------- */
+.haut{position:sticky;top:0;z-index:50;height:calc(var(--haut) + env(safe-area-inset-top));padding:env(safe-area-inset-top) 12px 0 6px;background:var(--barre);color:var(--sur-barre);display:flex;align-items:center;gap:8px;box-shadow:0 1px 0 color-mix(in srgb,var(--sur-barre) 12%,transparent)}
+.menu-btn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border:0;border-radius:10px;background:none;color:inherit;cursor:pointer;flex:none}
+.menu-btn svg{width:24px;height:24px}
+.menu-btn:hover,.menu-btn:active{background:color-mix(in srgb,currentColor 12%,transparent)}
+.haut-titre{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;line-height:1.15}
+.haut-titre small{display:block;font:500 11px Barlow,sans-serif;letter-spacing:.08em;text-transform:uppercase;opacity:.72;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.haut-titre h1{font:700 18px/1.15 "Bricolage Grotesque",sans-serif;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.haut-outils{display:flex;gap:8px;align-items:center;flex:none}
+.haut-outils .btn{border-color:color-mix(in srgb,var(--sur-barre) 35%,transparent);color:var(--sur-barre);padding:6px 12px;font-size:14px}
+.haut-outils .btn.plein{background:var(--accent);border-color:var(--accent);color:var(--sur-accent)}
+.volet{position:fixed;top:0;bottom:0;left:0;width:min(var(--volet),86vw);z-index:60;background:var(--barre);color:var(--sur-barre);display:flex;flex-direction:column;gap:2px;padding:calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));overflow-y:auto;overscroll-behavior:contain;transform:translateX(-105%);transition:transform .26s cubic-bezier(.2,.8,.2,1);visibility:hidden}
+.volet.ouvert{transform:none;visibility:visible;box-shadow:10px 0 34px rgba(0,0,0,.32)}
+.volet.glisse{transition:none;visibility:visible}
+.fond-volet{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .26s}
+.fond-volet.ouvert{opacity:1;pointer-events:auto}
+.marque{display:flex;gap:12px;align-items:center;padding:6px 6px 16px}
+.marque img{width:44px;height:44px;border-radius:12px;flex:none}
+.marque div{min-width:0}
+.marque span{display:block;font:500 11px Barlow,sans-serif;letter-spacing:.1em;text-transform:uppercase;opacity:.72;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.marque b{display:block;font:700 19px/1.1 "Bricolage Grotesque",sans-serif}
+.marque .epingle{margin-left:auto;display:none;width:34px;height:34px;border:0;border-radius:8px;background:none;color:inherit;cursor:pointer;opacity:.7;flex:none}
+.marque .epingle svg{width:18px;height:18px}
+.marque .epingle:hover{opacity:1;background:color-mix(in srgb,currentColor 12%,transparent)}
+.volet .nav{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;color:inherit;font:500 15px Barlow,sans-serif;padding:10px 12px;border-radius:var(--rayon-petit);cursor:pointer;text-align:left;opacity:.86}
+.volet .nav:hover{opacity:1;background:color-mix(in srgb,var(--sur-barre) 10%,transparent)}
+.volet .nav.on{opacity:1;background:var(--accent);color:var(--sur-accent);font-weight:600}
+.volet .nav svg{width:20px;height:20px;flex:none}
+.volet .nav .txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.volet .nav .pastille{margin-left:auto}
+.volet .nav.on .pastille{background:var(--sur-accent);color:var(--accent)}
+.volet .nav[hidden]{display:none}
+.volet-bas{margin-top:auto;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--sur-barre) 15%,transparent);display:flex;flex-direction:column;gap:2px}
+.volet-bas small{display:block;padding:8px 12px 0;font-size:11px;opacity:.55}
+.volet .nav.discret{opacity:.6}
+.volet .nav.discret:hover{opacity:1}
+.pastille{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--sur-accent);font-size:12px;line-height:20px;text-align:center;margin-left:4px;font-weight:600}
+main{max-width:1000px;margin:0 auto;padding:10px 16px 80px}
+/* Grand écran : le volet peut rester ouvert (épingle) ; la page se décale */
+@media (min-width:1100px){
+.marque .epingle{display:inline-flex;align-items:center;justify-content:center}
+html[data-volet="fixe"] .volet{transform:none;visibility:visible;box-shadow:none;border-right:1px solid color-mix(in srgb,var(--sur-barre) 12%,transparent)}
+html[data-volet="fixe"] .fond-volet{display:none}
+html[data-volet="fixe"] .haut,html[data-volet="fixe"] main,html[data-volet="fixe"] #bandeauVoir{margin-left:var(--volet)}
+html[data-volet="fixe"] main{max-width:none;padding-left:28px;padding-right:28px}
+html[data-volet="fixe"] .haut .menu-btn{display:none}
+html[data-volet="fixe"] .marque .epingle{opacity:1;color:var(--accent)}
+}
+/* Barre du bas (téléphone) */
+.barre-bas{display:none}
+.feuille-plus{position:fixed;left:0;right:0;bottom:0;z-index:66;background:var(--carte);border-radius:18px 18px 0 0;padding:10px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -12px 30px -12px rgba(0,0,0,.4);transform:translateY(105%);transition:transform .22s;display:flex;flex-direction:column;gap:4px}
+.feuille-plus.ouvert{transform:none}
+.feuille-plus h3{margin:4px 0 8px;font:700 16px "Bricolage Grotesque",sans-serif}
+.feuille-plus button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:none;color:var(--texte);font:500 16px Barlow,sans-serif;padding:12px 10px;border-radius:10px;cursor:pointer}
+.feuille-plus button:hover{background:var(--carte2)}
+.feuille-plus button svg{width:22px;height:22px;color:var(--accent);flex:none}
+@media (max-width:759px){
+.barre-bas{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:48;align-items:flex-end;justify-content:space-around;background:var(--carte);border-top:1px solid var(--ligne);padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -6px 20px rgba(0,0,0,.08)}
+.barre-bas button{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;color:var(--doux);font:500 clamp(10px,2.9vw,11.5px) Barlow,sans-serif;letter-spacing:-.01em;padding:6px 2px;cursor:pointer;position:relative}
+.barre-bas button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.barre-bas button svg{width:24px;height:24px}
+.barre-bas button.on{color:var(--accent);font-weight:600}
+.barre-bas button[hidden]{display:none}
+.barre-bas .plus{flex:none;width:68px;margin-top:-26px;z-index:2}
+.barre-bas .plus svg{width:56px;height:56px;padding:14px;border-radius:50%;background:var(--accent);color:var(--sur-accent);box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.barre-bas .plus span{color:var(--texte)}
+.barre-bas .pastille{position:absolute;top:0;left:calc(50% + 4px);min-width:18px;line-height:18px;font-size:11px}
+main{padding:10px 12px calc(96px + env(safe-area-inset-bottom))}
+#toast{bottom:calc(92px + env(safe-area-inset-bottom))}
+#bandeauVoir{bottom:calc(68px + env(safe-area-inset-bottom))}
+body.voir main{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+.haut-titre small{display:none}
+.haut-titre h1{font-size:17px}
+h2{font-size:18px;margin:18px 0 8px}
+}
+/* Apparence */
+.skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0 16px}
+.skin{border:2px solid var(--ligne);border-radius:12px;background:var(--carte);padding:0;cursor:pointer;overflow:hidden;color:var(--texte);font:inherit;text-align:left}
+.skin.on{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.skin .apercu-skin{display:grid;grid-template-columns:30% 1fr;height:64px}
+.skin .apercu-skin i{display:block}
+.skin .apercu-skin .fond-sk{padding:8px;display:flex;flex-direction:column;gap:5px}
+.skin .apercu-skin .fond-sk i{height:8px;border-radius:4px;width:70%}
+.skin .apercu-skin .fond-sk i:last-child{width:40%}
+.skin b{display:block;padding:8px 10px 9px;font:600 14px Barlow,sans-serif}
+.segment.modes{margin:4px 0 8px}
 /* ===== Mails : boîte Gmail du festival (reprise de l'appli Diffusion) ===== */
-.pastille{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--lav);color:#0b0a10;font-size:12px;line-height:20px;text-align:center;margin-left:4px}
-nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .mx{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
 .mx-tete{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
 .mx-tete h2{margin:0;flex:1}
@@ -253,7 +361,7 @@ nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .mx-dossiers .dossier.actif,.mx-chips .dossier.actif{background:var(--carte);border-color:var(--lav);color:var(--lav2)}
 .mx-dossiers .dossier span,.mx-chips .dossier span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mx-dossiers .dossier b,.mx-chips .dossier b{font-size:12px;background:var(--ligne);color:var(--texte);border-radius:999px;padding:1px 7px;font-weight:600}
-.mx-dossiers .dossier.actif b{background:var(--lav);color:#0b0a10}
+.mx-dossiers .dossier.actif b{background:var(--lav);color:var(--sur-accent)}
 .mx-dossiers .titre-libelles{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--doux);margin:14px 10px 4px}
 .mx-dossiers .lien-libelles{background:none;border:0;color:var(--lav2);font:600 13px Barlow,sans-serif;cursor:pointer;padding:6px 10px;text-align:left}
 .mx-ecrire-btn{width:100%;margin-bottom:10px;padding:10px 14px;font-size:15px}
@@ -262,10 +370,10 @@ nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .mx-chips .dossier{width:auto;flex:none;padding:6px 12px;font-size:14px;border-color:var(--ligne);border-radius:999px;background:var(--carte)}
 .mx-chips select{width:auto;flex:none;padding:6px 10px;font-size:14px;border-radius:999px;background:var(--carte)}
 .mx-col{min-width:0;display:flex;flex-direction:column;gap:8px}
-.mx-barre{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.mx-barre{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .mx-barre input[type=search]{flex:1;min-width:140px;padding:8px 12px;border-radius:999px;font-size:14px}
 .mx-barre .btn.petit{white-space:nowrap}
-.mx-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-height:30px}
+.mx-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-height:30px}
 .mx-actions .coche-tout{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--doux);margin-right:4px}
 .mx-actions input[type=checkbox]{width:18px;height:18px;margin:0;accent-color:var(--lav)}
 .mx-actions select{width:auto;padding:4px 8px;font-size:13px;border-radius:999px}
@@ -276,14 +384,14 @@ nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .conv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:start;background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:9px 10px 9px 8px;color:var(--texte);cursor:pointer;position:relative}
 .conv:hover{border-color:var(--lav)}
 .conv.actif{border-color:var(--lav);box-shadow:inset 3px 0 0 var(--lav)}
-.conv.nonLu{background:#1c1826}
-.conv.nonLu .conv-de,.conv.nonLu .conv-objet{font-weight:700;color:#fff}
-.conv.cochee{border-color:var(--lav2);background:#241a26}
+.conv.nonLu{background:color-mix(in srgb,var(--accent) 8%,var(--carte))}
+.conv.nonLu .conv-de,.conv.nonLu .conv-objet{font-weight:700;color:var(--texte)}
+.conv.cochee{border-color:var(--lav2);background:color-mix(in srgb,var(--accent) 14%,var(--carte))}
 .conv.enEnvoi{opacity:.55;pointer-events:none}
 .conv-gauche{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px}
 .conv-gauche input{width:18px;height:18px;margin:0;accent-color:var(--lav);cursor:pointer}
 .etoile{background:none;border:0;color:var(--ligne);font-size:18px;line-height:1;cursor:pointer;padding:0 2px}
-.etoile.on{color:#ffd23f}
+.etoile.on{color:var(--jaune)}
 .conv-corps{min-width:0}
 .conv-tete{display:flex;gap:6px;align-items:baseline}
 .conv-de{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
@@ -293,7 +401,7 @@ nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .conv-extrait{display:block;font-size:13px;color:var(--doux);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .conv-puces{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
 .eti{font-size:11px;border:1px solid var(--ligne);border-radius:999px;padding:1px 7px;color:var(--doux);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.eti.ok{color:var(--vert);border-color:var(--vert)}.eti.resa{color:var(--lav2);border-color:var(--lav)}.eti.brouillon{color:#ffd23f;border-color:#ffd23f}.eti.prog{color:#8fd3ff;border-color:#8fd3ff}
+.eti.ok{color:var(--vert);border-color:var(--vert)}.eti.resa{color:var(--lav2);border-color:var(--lav)}.eti.brouillon{color:var(--jaune);border-color:var(--jaune)}.eti.prog{color:var(--bleu);border-color:var(--bleu)}
 .mx-pages{display:flex;gap:8px;align-items:center;justify-content:center;font-size:13px;color:var(--doux);padding:4px 0}
 .mx-pages .btn.petit{min-width:38px}
 .mx-vide{color:var(--doux);font-style:italic;padding:16px 6px}
@@ -302,10 +410,10 @@ nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .fil-tete{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
 .fil-tete h2{margin:0;flex:1;min-width:0;font-size:19px;overflow-wrap:anywhere}
 .fil-libelles{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
-.fil-actions{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 12px}
+.fil-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 12px}
 .fil-actions .btn{padding:7px 12px;font-size:14px}
 .menu-actions{position:relative}
-.menu-liste{position:absolute;top:calc(100% + 4px);left:0;z-index:12;background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:6px;min-width:220px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none}
+.menu-liste{position:absolute;top:calc(100% + 4px);left:0;z-index:40;background:var(--carte);border:1px solid var(--ligne);border-radius:10px;padding:6px;min-width:220px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none}
 .menu-liste.ouvert{display:block}
 .menu-liste button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--texte);font:500 14px Barlow,sans-serif;padding:8px 10px;border-radius:7px;cursor:pointer}
 .menu-liste button:hover{background:var(--ligne)}
@@ -315,10 +423,10 @@ nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .resa-fil{background:var(--carte);border:1px dashed var(--lav);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .resa-fil .texte{flex:1;min-width:180px}
 .resa-fil .actions{margin:0}
-.etiquettes-festival{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.etiquettes-festival{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
 .messages-fil{display:grid;gap:10px}
 .fm{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:10px 12px;min-width:0}
-.fm.moi{border-color:#3b2f44;background:#1b1521}
+.fm.moi{border-color:color-mix(in srgb,var(--accent) 30%,var(--ligne));background:color-mix(in srgb,var(--accent) 5%,var(--carte))}
 .fm.nonLu{border-left:3px solid var(--lav)}
 .fm header{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--doux);margin-bottom:6px;cursor:pointer}
 .fm header b{color:var(--texte);font-size:15px;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -328,30 +436,30 @@ nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .fm.plie iframe,.fm.plie .pieces,.fm.plie .fm-actions,.fm.plie .dest:not(.extrait-plie){display:none}
 .fm header .extrait-plie{color:var(--doux);font-style:italic}
 .fm:not(.plie) .extrait-plie{display:none}
-.fm.brouillon{border-style:dashed;border-color:#ffd23f}
-.fm.programme{border-style:dashed;border-color:#8fd3ff}
+.fm.brouillon{border-style:dashed;border-color:var(--jaune)}
+.fm.programme{border-style:dashed;border-color:var(--bleu)}
 .fm .badge-b{display:inline-block;font-size:11px;border-radius:999px;padding:1px 8px;margin-right:4px;font-weight:700}
-.fm.brouillon .badge-b{background:#ffd23f;color:#0b0a10}
-.fm.programme .badge-b{background:#8fd3ff;color:#0b0a10}
-.fm-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.fm.brouillon .badge-b{background:var(--jaune);color:var(--sur-accent)}
+.fm.programme .badge-b{background:var(--bleu);color:var(--sur-accent)}
+.fm-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .fm-actions .btn.petit{font-size:13px}
 .pieces{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.pj{display:flex;gap:6px;align-items:center;background:#100e17;border:1px solid var(--ligne);border-radius:8px;padding:5px 6px 5px 10px;font-size:13px;max-width:100%}
+.pj{display:flex;gap:6px;align-items:center;background:var(--carte2);border:1px solid var(--ligne);border-radius:8px;padding:5px 6px 5px 10px;font-size:13px;max-width:100%}
 .pj .nom{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pj small{color:var(--doux)}
 .pj .btn.petit{padding:2px 8px;font-size:12px}
-.fil-bas{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 20px}
-.prog-ligne{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--carte);border:1px dashed #8fd3ff;border-radius:10px;padding:8px 12px;font-size:14px;margin-top:8px}
+.fil-bas{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 20px}
+.prog-ligne{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--carte);border:1px dashed var(--bleu);border-radius:10px;padding:8px 12px;font-size:14px;margin-top:8px}
 .prog-ligne.echec{border-color:var(--rouge)}
 .prog-ligne .texte{flex:1;min-width:180px}
 .prog-ligne small{display:block;color:var(--doux)}
 .prog-ligne .btns{display:flex;gap:6px;flex-wrap:wrap}
 /* Fenêtre d'écriture */
-#mx-ecrire{position:fixed;right:16px;bottom:0;width:min(680px,calc(100vw - 32px));max-height:min(86vh,900px);background:var(--carte);border:1px solid var(--ligne);border-bottom:0;border-radius:14px 14px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.6);z-index:42;display:flex;flex-direction:column}
+#mx-ecrire{position:fixed;right:16px;bottom:0;width:min(680px,calc(100vw - 32px));max-height:min(86vh,900px);background:var(--carte);border:1px solid var(--ligne);border-bottom:0;border-radius:14px 14px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.6);z-index:65;display:flex;flex-direction:column}
 #mx-ecrire[hidden]{display:none}
 #mx-ecrire.grand{right:50%;transform:translateX(50%);width:min(1100px,calc(100vw - 32px));max-height:calc(100vh - 20px)}
 #mx-ecrire.reduit{max-height:46px;overflow:hidden}
-.ec-tete{display:flex;gap:8px;align-items:center;padding:8px 10px 8px 14px;background:#100e17;border-radius:14px 14px 0 0;cursor:default}
+.ec-tete{display:flex;gap:8px;align-items:center;padding:8px 10px 8px 14px;background:var(--carte2);border-radius:14px 14px 0 0;cursor:default}
 .ec-tete b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 15px "Bricolage Grotesque",sans-serif}
 .ec-tete button{background:none;border:0;color:var(--doux);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:6px;line-height:1}
 .ec-tete button:hover{color:var(--texte);background:var(--ligne)}
@@ -365,14 +473,14 @@ nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .ec-ligne input{flex:1;min-width:0;background:none;border:0;padding:6px 0;font-size:15px}
 .ec-ligne input:focus{outline:none}
 .chips{flex:1;display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-width:0}
-.chips .chip{display:inline-flex;align-items:center;gap:4px;background:#100e17;border:1px solid var(--ligne);border-radius:999px;padding:2px 6px 2px 10px;font-size:13px;max-width:100%}
+.chips .chip{display:inline-flex;align-items:center;gap:4px;background:var(--carte2);border:1px solid var(--ligne);border-radius:999px;padding:2px 6px 2px 10px;font-size:13px;max-width:100%}
 .chips .chip.resa{border-color:var(--lav)}
 .chips .chip.mauvais{border-color:var(--rouge);color:var(--rouge)}
 .chips .chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chips .chip button{background:none;border:0;color:var(--doux);cursor:pointer;font-size:14px;padding:0 4px;line-height:1}
 .chips input{flex:1;min-width:120px}
 .ec-outils{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
-.ec-outils button{background:#100e17;border:1px solid var(--ligne);color:var(--texte);border-radius:7px;padding:4px 9px;font:600 13px Barlow,sans-serif;cursor:pointer}
+.ec-outils button{background:var(--carte2);border:1px solid var(--ligne);color:var(--texte);border-radius:7px;padding:4px 9px;font:600 13px Barlow,sans-serif;cursor:pointer}
 .ec-outils button.on,.ec-outils button:hover{border-color:var(--lav);color:var(--lav2)}
 .ec-outils .espace{flex:1}
 .ec-outils select{width:auto;padding:4px 8px;font-size:13px;border-radius:7px}
@@ -392,13 +500,15 @@ nav button.on .pastille{background:#0b0a10;color:var(--lav)}
 .ec-bas .lien.danger{color:var(--rouge)}
 .ec-bas .coche{font-size:13px;color:var(--doux);margin-left:auto}
 .prog-choix{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
-.prog-choix .btn.petit.on{background:var(--lav);color:#0b0a10}
+.prog-choix .btn.petit.on{background:var(--lav);color:var(--sur-accent)}
 .prog-champs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .prog-champs label{margin:0}
 #dialogue .prog-phrase{margin:10px 0 0;font-size:13px;color:var(--vert)}
 #dialogue .prog-phrase.avert{color:var(--rouge)}
 /* Écrans étroits : liste puis conversation ; fenêtre d'écriture plein écran */
 @media (max-width:999px){
+  .mx-tete h2,.mx-tete #mx-moi,.mx-tete #mx-ecrire-haut{display:none}
+  .mx-tete{justify-content:flex-end;margin:0 0 6px}
   .mx.detail .mx-col,.mx.detail .mx-chips{display:none}
   .mx:not(.detail) .mx-fil{display:none}
   #mx-ecrire{right:0;left:0;bottom:0;top:0;width:auto;max-height:none;border-radius:0;border:0;transform:none}
@@ -428,11 +538,11 @@ html.glisse-col iframe{pointer-events:none}
 
 .renvoi #renvoiDetail{margin:8px 0 0 26px;display:grid;gap:6px;max-width:560px}
 .resumeEv .grandeDate{font:700 20px "Bricolage Grotesque",sans-serif}.resumeEv p{margin:6px 0 0;color:var(--doux)}
-#bandeauVoir{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--lav);color:#0b0a10;padding:8px 16px;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+#bandeauVoir{position:fixed;left:0;right:0;bottom:0;z-index:47;background:var(--lav);color:var(--sur-accent);padding:8px 16px;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
 #bandeauVoir[hidden]{display:none}
-#bandeauVoir .btn{background:#0b0a10;color:var(--lav);border-color:#0b0a10}
+#bandeauVoir .btn{background:var(--sur-accent);color:var(--lav);border-color:var(--sur-accent)}
 body.voir main{padding-bottom:120px}
-.fenetre{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:44;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+.fenetre{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
 .fenetre[hidden]{display:none}
 .fenetre .boite{background:var(--carte);border:1px solid var(--ligne);border-radius:14px;padding:18px;width:min(96vw,620px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .fenetre h4{margin:16px 0 6px;font:700 15px "Bricolage Grotesque",sans-serif}
@@ -440,7 +550,7 @@ body.voir main{padding-bottom:120px}
 .retrait{margin:8px 0 0 26px;display:grid;gap:6px}
 .typesMailsEv{display:grid;gap:4px}
 .fenetre textarea{min-height:90px}
-.optionResa{display:grid;grid-template-columns:auto 1fr 1.4fr auto auto;gap:8px 10px;align-items:end;background:#100e17;border:1px solid var(--ligne);border-radius:10px;padding:10px;margin-bottom:8px}
+.optionResa{display:grid;grid-template-columns:auto 1fr 1.4fr auto auto;gap:8px 10px;align-items:end;background:var(--carte2);border:1px solid var(--ligne);border-radius:10px;padding:10px;margin-bottom:8px}
 .optionResa .badge{align-self:center}.optionResa label{font-size:13px;color:var(--doux)}
 #ajoutOption{width:auto;max-width:100%}
 .optsResa{display:block;font-size:12px;color:var(--lav2)}
@@ -450,11 +560,44 @@ body.voir main{padding-bottom:120px}
 <body>
 <div id="charge"></div>
 <div id="bandeauVoir" hidden>👁 Vous voyez l'appli comme <b></b>. C'est un aperçu : vos actions restent réelles. <button type="button" class="btn petit plein" id="finVoir">Revenir à mon compte</button></div>
-<header>
-  <h1><small id="nomFestival">Festival</small>Réservations</h1>
-  <nav><button data-vue="accueil" class="on">Accueil</button> <button data-vue="evenements">Événements</button> <button data-vue="photos" data-droit="photos">Visuels</button> <button data-vue="mails" data-droit="reglages">E-mails</button> <button data-vue="boite" data-droit="boite">Mails</button> <button data-vue="reglages" data-droit="reglages,comptes">Réglages</button> <button type="button" class="discret" id="quitter" title="Changer de compte">Quitter</button></nav>
+<header class="haut" id="haut">
+  <button type="button" class="menu-btn" id="menu-btn" aria-label="Ouvrir le menu" aria-controls="volet" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <div class="haut-titre"><small id="nomFestival">Festival</small><h1 id="titreVue">Réservations</h1></div>
+  <div class="haut-outils" id="haut-outils"></div>
 </header>
+<aside class="volet" id="volet" aria-label="Menu">
+  <div class="marque"><img src="icone_192.png" alt=""><div><span class="nom-festival">Festival</span><b>Réservations</b></div><button type="button" class="epingle" id="epingle" title="Garder le menu ouvert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 7 3 3H7l3-3z"/></svg></button></div>
+  <nav class="volet-nav">
+    <button type="button" class="nav on" data-vue="accueil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span class="txt">Accueil</span></button>
+    <button type="button" class="nav" data-vue="evenements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="txt">Événements</span></button>
+    <button type="button" class="nav" data-vue="photos" data-droit="photos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg><span class="txt">Visuels</span></button>
+    <button type="button" class="nav" data-vue="boite" data-droit="boite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span class="txt">Mails</span></button>
+    <button type="button" class="nav" data-vue="mails" data-droit="reglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg><span class="txt">E-mails automatiques</span></button>
+    <button type="button" class="nav" data-vue="reglages" data-droit="reglages,comptes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="txt">Réglages</span></button>
+  </nav>
+  <div class="volet-bas">
+    <button type="button" class="nav" data-vue="apparence"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.8 2-2v-1a2 2 0 0 1 2-2h1a4 4 0 0 0 4-4 9 9 0 0 0-9-9z"/><circle cx="7.5" cy="11.5" r="1.2"/><circle cx="11" cy="7.5" r="1.2"/><circle cx="16" cy="8.5" r="1.2"/></svg><span class="txt">Apparence</span></button>
+    <button type="button" class="nav discret" id="quitter" title="Changer de compte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5M15 12H3M13 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg><span class="txt">Quitter</span></button>
+    <small id="volet-version"></small>
+  </div>
+</aside>
+<div class="fond-volet" id="fond-volet"></div>
 <main id="vue"><p class="vide">Chargement…</p></main>
+<nav class="barre-bas" id="barre-bas" aria-label="Rubriques">
+  <button type="button" data-bvue="accueil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Accueil</span></button>
+  <button type="button" data-bvue="evenements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Événements</span></button>
+  <button type="button" class="plus" id="bb-plus" aria-label="Nouveau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span id="bb-plus-txt">Nouveau</span></button>
+  <button type="button" data-bvue="boite" data-droit="boite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>Mails</span></button>
+  <button type="button" data-bvue="photos" data-droit="photos" data-sinon="reglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg><span>Visuels</span></button>
+  <button type="button" id="bb-menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span></button>
+</nav>
+<div class="fond-volet" id="fond-plus"></div>
+<div class="feuille-plus" id="feuille-plus" role="dialog" aria-label="Nouveau"><h3>Nouveau</h3>
+  <button type="button" data-plus="evenement"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M12 13v6M9 16h6"/></svg>Nouvel événement</button>
+  <button type="button" data-plus="reservation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z"/><path d="M12 5v14"/></svg>Ajouter une réservation</button>
+  <button type="button" data-plus="mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l3-1 12-12-2-2L4 17z"/><path d="M14 5l2 2"/></svg>Écrire un mail</button>
+  <button type="button" data-plus="fermer" style="color:var(--doux)">Annuler</button>
+</div>
 <input type="file" id="fichierPhoto" accept="image/*" multiple hidden>
 <input type="file" id="fichiersGalerie" accept="image/*" multiple hidden>
 <div id="recadrage"><div class="boite"><canvas id="cv"></canvas><div class="reglage">Zoom <input type="range" id="zoom" min="1" max="4" step="0.01" value="1"> <button type="button" class="btn petit" id="tourner">Tourner</button> <button type="button" class="btn petit" id="recentrer">Recentrer</button> <label class="coche"><input type="checkbox" id="reperes" checked> Repères</label></div>
@@ -659,7 +802,7 @@ var MAIL = (function () {
   return { pied: pied, VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
 })();
 
-var VERSION_APPLI = '5c6d73cea7f6', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
+var VERSION_APPLI = 'e833f124ae1d', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
 function lireLocal(k) { try { return localStorage.getItem('festival_resa_' + k) || ''; } catch (e) { return ''; } }
 function garderLocal(k, v) { try { if (v) localStorage.setItem('festival_resa_' + k, v); else localStorage.removeItem('festival_resa_' + k); } catch (e) {} }
 // Cet appareil : un identifiant gardé dans le navigateur + un nom lisible (pour la liste des appareils connectés).
@@ -680,7 +823,7 @@ function voirComme(nom, droits) {
   b.hidden = !VOIR_COMME; document.body.classList.toggle('voir', !!VOIR_COMME);
   if (VOIR_COMME) b.querySelector('b').textContent = nom;
   vue = VOIR_COMME ? 'evenements' : 'reglages'; ouvert = null;
-  document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); });
+  marquerVue();
   recharger(D); scrollTo(0, 0);
 }
 function deconnexion() { garderLocal('pin', ''); garderLocal('cle', ''); garderLocal('jeton', ''); PIN = ''; JETON = ''; COMPTE = null; D = null; location.reload(); }
@@ -739,19 +882,107 @@ function appel(fn, args, ok, options) {
 function recharger(res) {
   D = res; COMPTE = res.compte || null; $('#nomFestival').textContent = D.reglages.nomFestival || 'Festival';
   if (res.jeton) { JETON = res.jeton; garderLocal('jeton', JETON); garderLocal('pin', ''); } // cet appareil est reconnu : plus de code PIN à redonner
-  document.querySelectorAll('nav [data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
+  document.querySelectorAll('[data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
+  document.querySelectorAll('.nom-festival').forEach(function (e) { e.textContent = D.reglages.nomFestival || 'Festival'; });
+  if (VERSION_APPLI !== 'e833f124ae1d') $('#volet-version').textContent = 'Version ' + VERSION_APPLI;
   $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
   if (typeof res.boiteNonLus === 'number') { BOITE_NL = res.boiteNonLus; badgeBoite(); }
   if (droit('boite')) setTimeout(prechargerBoiteMx, 3000);
-  if ((vue === 'photos' && !droit('photos')) || (vue === 'mails' && !droit('reglages')) || (vue === 'boite' && !droit('boite')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); }); }
+  if ((vue === 'photos' && !droit('photos')) || (vue === 'mails' && !droit('reglages')) || (vue === 'boite' && !droit('boite')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; marquerVue(); }
   afficher();
 }
 
 $('#finVoir').onclick = function () { voirComme(null); };
 $('#quitter').onclick = function () { confirmer('Quitter ce compte sur cet appareil ? Il faudra redonner le code PIN.', function () { if (JETON) appel('adminQuitterAppareil', [], deconnexion); else deconnexion(); }, { oui: 'Quitter' }); };
-document.querySelectorAll('nav button[data-vue]').forEach(function (b) {
-  b.onclick = function () { vue = b.dataset.vue; ouvert = null; document.querySelectorAll('nav button').forEach(function (x) { x.classList.toggle('on', x === b); }); afficher(); };
-});
+// ---------- Menu en volet, barre du bas (téléphone), bouton + ----------
+var TITRES_VUE = { accueil: 'Accueil', evenements: 'Événements', photos: 'Visuels', mails: 'E-mails automatiques', boite: 'Mails', reglages: 'Réglages', apparence: 'Apparence' };
+function volet(ouvrir) {
+  var v = $('#volet'), f = $('#fond-volet');
+  v.classList.toggle('ouvert', !!ouvrir); f.classList.toggle('ouvert', !!ouvrir);
+  $('#menu-btn').setAttribute('aria-expanded', ouvrir ? 'true' : 'false');
+}
+function marquerVue() {
+  document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); });
+  document.querySelectorAll('.barre-bas button[data-bvue]').forEach(function (x) { x.classList.toggle('on', x.dataset.bvue === vue); });
+  var t = $('#titreVue'); if (t) t.textContent = ouvert && vue === 'evenements' ? (ouvert === 'nouveau' || ouvert === 'copie' ? 'Nouvel événement' : 'Événement') : (TITRES_VUE[vue] || 'Réservations');
+  var p = $('#bb-plus'), txt = $('#bb-plus-txt');
+  if (p) {
+    var quoi = vue === 'boite' ? (droit('boite') ? 'Écrire' : '') : vue === 'evenements' && ouvert && ouvert !== 'nouveau' && ouvert !== 'copie' ? (droit('reservations') ? 'Réservation' : '') : vue === 'evenements' && !ouvert ? (droit('evenements') ? 'Événement' : droit('reservations') ? 'Réservation' : '') : (droit('evenements') || droit('reservations') || droit('boite') ? 'Nouveau' : '');
+    p.hidden = !quoi; if (txt) txt.textContent = quoi || 'Nouveau';
+  }
+}
+function allerVue(v, garderOuvert) {
+  vue = v; if (!garderOuvert) ouvert = null;
+  marquerVue(); volet(false); afficher(); scrollTo(0, 0);
+}
+$('#menu-btn').onclick = function () { volet(!$('#volet').classList.contains('ouvert')); };
+$('#fond-volet').onclick = function () { volet(false); };
+$('#bb-menu').onclick = function () { volet(true); };
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if ($('#volet').classList.contains('ouvert')) volet(false); if ($('#feuille-plus').classList.contains('ouvert')) feuillePlus(false); } });
+document.querySelectorAll('nav button[data-vue]').forEach(function (b) { b.onclick = function () { allerVue(b.dataset.vue); }; });
+document.querySelectorAll('.barre-bas button[data-bvue]').forEach(function (b) { b.onclick = function () { allerVue(b.dataset.bvue); }; });
+$('#epingle').onclick = function () { garderApparence({ volet: APPARENCE.volet === 'fixe' ? '' : 'fixe' }); volet(false); if (typeof majMxFixe === 'function') setTimeout(majMxFixe, 50); };
+// Glissement depuis le bord gauche pour ouvrir le volet (téléphone)
+(function () {
+  var depart = null, largeur = 290;
+  document.addEventListener('touchstart', function (e) {
+    if (document.documentElement.getAttribute('data-volet') === 'fixe' && innerWidth >= 1100) return;
+    var t = e.touches[0], ouvertDeja = $('#volet').classList.contains('ouvert');
+    if (!ouvertDeja && t.clientX > 24) return;
+    if (ouvertDeja && !e.target.closest('.volet, .fond-volet')) return;
+    depart = { x: t.clientX, y: t.clientY, ouvert: ouvertDeja, bouge: false }; largeur = $('#volet').offsetWidth || 290;
+  }, { passive: true });
+  document.addEventListener('touchmove', function (e) {
+    if (!depart) return; var t = e.touches[0], dx = t.clientX - depart.x, dy = t.clientY - depart.y;
+    if (!depart.bouge) { if (Math.abs(dy) > Math.abs(dx)) { depart = null; return; } if (Math.abs(dx) < 8) return; depart.bouge = true; $('#volet').classList.add('glisse'); }
+    var pos = depart.ouvert ? Math.min(0, dx) : Math.min(0, dx - largeur);
+    $('#volet').style.transform = 'translateX(' + pos + 'px)'; $('#fond-volet').classList.add('ouvert'); $('#fond-volet').style.opacity = String(1 + pos / largeur);
+  }, { passive: true });
+  function fin(e) {
+    if (!depart) return; var d = depart; depart = null; $('#volet').classList.remove('glisse'); $('#volet').style.transform = ''; $('#fond-volet').style.opacity = '';
+    if (!d.bouge) { if (!d.ouvert) $('#fond-volet').classList.remove('ouvert'); return; }
+    var t = (e.changedTouches || [])[0], dx = t ? t.clientX - d.x : 0;
+    volet(d.ouvert ? dx > -largeur / 3 : dx > largeur / 3);
+  }
+  document.addEventListener('touchend', fin); document.addEventListener('touchcancel', fin);
+})();
+// Bouton + : selon l'écran, écrit un mail, crée un événement ou ajoute une réservation ; sinon propose.
+function feuillePlus(ouvrir) {
+  var f = $('#feuille-plus'); f.classList.toggle('ouvert', !!ouvrir); $('#fond-plus').classList.toggle('ouvert', !!ouvrir);
+  if (ouvrir) { f.querySelector('[data-plus=evenement]').hidden = !droit('evenements'); f.querySelector('[data-plus=reservation]').hidden = !droit('reservations'); f.querySelector('[data-plus=mail]').hidden = !droit('boite'); }
+}
+function actionPlus(quoi) {
+  feuillePlus(false);
+  if (quoi === 'mail') { if (vue !== 'boite') allerVue('boite'); if (typeof composerMx === 'function') setTimeout(function () { composerMx('nouveau'); }, vue === 'boite' ? 0 : 400); return; }
+  if (quoi === 'evenement') { vue = 'evenements'; ouvert = 'nouveau'; marquerVue(); volet(false); afficher(); scrollTo(0, 0); return; }
+  if (quoi === 'reservation') {
+    if (vue === 'evenements' && ouvert && $('#ajout')) { $('#ajout').scrollIntoView({ behavior: 'smooth', block: 'start' }); var c = $('#ajout input'); if (c) setTimeout(function () { c.focus(); }, 350); return; }
+    allerVue('evenements'); toast('Choisissez le spectacle, puis « Ajouter une réservation à la main » (ou le bouton +).');
+  }
+}
+$('#bb-plus').onclick = function () {
+  if (vue === 'boite' && droit('boite')) return actionPlus('mail');
+  if (vue === 'evenements' && ouvert && ouvert !== 'nouveau' && ouvert !== 'copie' && droit('reservations')) return actionPlus('reservation');
+  if (vue === 'evenements' && !ouvert && droit('evenements')) return actionPlus('evenement');
+  feuillePlus(true);
+};
+$('#fond-plus').onclick = function () { feuillePlus(false); };
+document.querySelectorAll('#feuille-plus [data-plus]').forEach(function (b) { b.onclick = function () { b.dataset.plus === 'fermer' ? feuillePlus(false) : actionPlus(b.dataset.plus); }; });
+// ---------- Apparence ----------
+function afficherApparence() {
+  var h = '<h2>Apparence</h2><div class="panneau"><label>Mode</label><div class="segment modes">' + [['auto', 'Automatique'], ['clair', 'Clair'], ['sombre', 'Sombre']].map(function (m) { return '<button type="button" data-mode="' + m[0] + '"' + ((APPARENCE.mode || 'auto') === m[0] ? ' class="on"' : '') + '>' + m[1] + '</button>'; }).join('') + '</div>' +
+    '<p class="aide">« Automatique » suit le réglage clair ou sombre de l\'appareil.</p>' +
+    '<label style="margin-top:14px">Thème</label><div class="skins">' + SKINS.map(function (s) {
+      var th = document.documentElement.getAttribute('data-theme');
+      return '<button type="button" class="skin' + ((APPARENCE.skin || 'festival') === s[0] ? ' on' : '') + '" data-skin-choix="' + s[0] + '"><span class="apercu-skin" data-skin="' + s[0] + '" data-theme="' + th + '"><i style="background:var(--barre)"></i><span class="fond-sk" style="background:var(--fond)"><i style="background:var(--accent)"></i><i style="background:var(--ligne)"></i></span></span><b>' + s[1] + '</b></button>';
+    }).join('') + '</div>' +
+    '<label style="margin-top:14px">Menu</label><label class="coche"><input type="checkbox" id="ap-volet"' + (APPARENCE.volet === 'fixe' ? ' checked' : '') + '> Garder le menu ouvert sur grand écran (ordinateur)</label>' +
+    '<p class="aide">Ces choix sont gardés sur cet appareil seulement.</p></div>';
+  $('#vue').innerHTML = h;
+  document.querySelectorAll('[data-mode]').forEach(function (b) { b.onclick = function () { garderApparence({ mode: b.dataset.mode }); afficherApparence(); }; });
+  document.querySelectorAll('[data-skin-choix]').forEach(function (b) { b.onclick = function () { garderApparence({ skin: b.dataset.skinChoix }); afficherApparence(); }; });
+  $('#ap-volet').onchange = function () { garderApparence({ volet: this.checked ? 'fixe' : '' }); };
+}
 
 // ---------- Tableau de bord (page d'accueil) ----------
 function afficherAccueil() {
@@ -800,7 +1031,7 @@ function afficherAccueil() {
   activerListe();
   if (!window.SPECTACLES && siteUrl()) chargerSite(function () { if (vue === 'accueil' && !ouvert) afficherAccueil(); });
 }
-function ouvrirEvenement(id) { vue = 'evenements'; ouvert = id; document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === 'evenements'); }); afficher(); scrollTo(0, 0); }
+function ouvrirEvenement(id) { vue = 'evenements'; ouvert = id; marquerVue(); afficher(); scrollTo(0, 0); }
 function ficheSite(titre) { var SP = window.SPECTACLES || {}, k = Object.keys(SP).filter(function (k) { return normTitre(k) === normTitre(titre); })[0]; return k ? SP[k] : {}; }
 function photosSitePour(titre) { var s = ficheSite(titre); return s.photos || (s.photo ? [{ src: s.photo, credit: s.credit }] : []); }
 function miniature(e) {
@@ -825,13 +1056,15 @@ function activerListe() {
 var TRI_EV = { statut: '', ordre: 'date', q: '' };
 function afficher() {
   if (!D) return;
+  marquerVue();
+  if (vue === 'apparence') return afficherApparence();
   $('#vue').classList.toggle('large', vue === 'mails' || vue === 'boite');
   if (vue !== 'boite' && typeof majMxFixe === 'function') majMxFixe();
   if (vue === 'reglages') return afficherReglages();
   if (vue === 'mails') return afficherMails();
   if (vue === 'boite') return afficherBoite();
   if (vue === 'photos') return afficherPhotos();
-  if (ouvert) return afficherEvenement(ouvert);
+  if (ouvert) { afficherEvenement(ouvert); return marquerVue(); }
   if (vue === 'accueil') return afficherAccueil();
   var today = aujourdhui(), q = normTitre(TRI_EV.q);
   var evs = D.evenements.filter(function (e) {
@@ -852,7 +1085,7 @@ function afficher() {
   h += '<div class="barreTri"><select id="triStatut" aria-label="Filtrer par statut"><option value="">Tous les statuts</option>' + D.statuts.map(function (s) { return '<option' + (s === TRI_EV.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '<option value="Complet"' + (TRI_EV.statut === 'Complet' ? ' selected' : '') + '>Complets</option></select>' +
     '<select id="triOrdre" aria-label="Trier"><option value="date">Par date</option><option value="titre"' + (TRI_EV.ordre === 'titre' ? ' selected' : '') + '>Par titre</option><option value="remplissage"' + (TRI_EV.ordre === 'remplissage' ? ' selected' : '') + '>Par remplissage</option><option value="recent"' + (TRI_EV.ordre === 'recent' ? ' selected' : '') + '>Derniers créés</option></select>' +
     '<input id="triQ" type="search" placeholder="Chercher un titre, une compagnie…" value="' + esc(TRI_EV.q) + '"><span class="compte">' + evs.length + ' / ' + D.evenements.length + '</span></div>';
-  if (D.version && VERSION_APPLI !== '5c6d73cea7f6' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
+  if (D.version && VERSION_APPLI !== 'e833f124ae1d' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
   if (COMPTE && COMPTE.id === 'cle' && droit('comptes') && !PIN && !D.nbComptes) h += '<div class="bandeau" id="bandeauPin">Vous êtes entrée avec le lien personnel. Créez votre code PIN et ceux des bénévoles dans <a href="#" id="versComptes">Réglages → Comptes</a> : ensuite l\'appli s\'ouvre avec le code, sur n\'importe quel appareil.</div>';
   h += parDate ? '<h2>À venir</h2>' + liste(avenir) + '<h2>Passés</h2>' + liste(passes) : liste(avenir);
   $('#vue').innerHTML = h;
@@ -1439,8 +1672,10 @@ var REPONSES_RAPIDES = [
   ['Merci', 'Bonjour {prenom},\n\nMerci pour votre message !\n\n{festival}']
 ];
 function badgeBoite() {
-  var b = $('nav [data-vue=boite]'); if (!b) return;
-  b.innerHTML = 'Mails' + (BOITE_NL > 0 ? ' <span class="pastille">' + BOITE_NL + '</span>' : '');
+  document.querySelectorAll('[data-vue=boite], [data-bvue=boite]').forEach(function (b) {
+    var p = b.querySelector('.pastille');
+    if (BOITE_NL > 0) { if (!p) { p = document.createElement('span'); p.className = 'pastille'; b.appendChild(p); } p.textContent = BOITE_NL; } else if (p) p.remove();
+  });
 }
 function surTelephone() { return innerWidth < 1000; }
 function mxFixe() { return document.documentElement.classList.contains('mx-fixe'); }
@@ -1641,7 +1876,7 @@ function dessinerFilsMx() {
     return '<div class="conv' + (f.nonLu ? ' nonLu' : '') + (actif ? ' actif' : '') + (MX.coches[f.id] ? ' cochee' : '') + (part ? ' enEnvoi' : '') + '" data-conv="' + esc(f.id) + '" role="button" tabindex="0">' +
       '<span class="conv-gauche"><input type="checkbox" data-coche="' + esc(f.id) + '"' + (MX.coches[f.id] ? ' checked' : '') + ' aria-label="Sélectionner"><button type="button" class="etoile' + (f.suivi ? ' on' : '') + '" data-etoile="' + esc(f.id) + '" aria-label="' + (f.suivi ? 'Ne plus suivre' : 'Suivre') + '">★</button></span>' +
       '<span class="conv-corps"><span class="conv-tete"><span class="conv-de" title="' + esc(f.email) + '">' + esc(f.de) + '</span>' + (f.nb > 1 ? '<span class="conv-nb">' + f.nb + '</span>' : '') + '<span class="conv-date">' + esc(quandCourt(f.date)) + '</span></span>' +
-      '<span class="conv-objet">' + esc(f.objet) + (f.pieces ? ' <small title="Pièce jointe">📎</small>' : '') + '</span><span class="conv-extrait">' + esc(f.extrait) + '</span>' +
+      '<span class="conv-objet">' + (f.pieces ? '<small title="Pièce jointe">📎</small> ' : '') + esc(f.objet) + '</span><span class="conv-extrait">' + esc(f.extrait) + '</span>' +
       '<span class="conv-puces">' + (part ? '<span class="eti prog">Envoi en cours…</span>' : '') + (f.brouillon && MX.dossier !== 'brouillons' ? '<span class="eti brouillon">Brouillon</span>' : '') + (f.auto ? '<span class="eti">Réponse automatique</span>' : '') + (f.repondu ? '<span class="eti ok">Répondu</span>' : '') +
       (f.libelles || []).filter(function (e) { return e !== 'Traité' || MX.libelle !== ((MX.dossiers && MX.dossiers.traite) || 'Festival/Traité'); }).map(function (e) { return '<span class="eti' + (e === 'Traité' ? ' ok' : '') + '">' + esc(e) + '</span>'; }).join('') +
       (f.resas && f.resas[0] ? '<span class="eti resa">' + resumeResa(f.resas[0]) + (f.nbResas > 1 ? ' +' + (f.nbResas - 1) : '') + '</span>' : '') + '</span></span></div>';
@@ -2575,7 +2810,7 @@ function afficherPhotos() {
     }
     var h = '<h2>Visuels</h2>';
     if (!window.SPECTACLES && siteUrl()) h += '<div class="bandeau">Le site (' + esc(siteUrl()) + ') ne répond pas pour l\'instant : seuls les visuels de la bibliothèque sont affichés.</div>';
-    if (D.version && VERSION_APPLI !== '5c6d73cea7f6' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
+    if (D.version && VERSION_APPLI !== 'e833f124ae1d' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
     h += '<div class="panneau"><p>Photos, affiches, dessins : tout ce qui peut illustrer un spectacle. <b>1.</b> Choisissez le spectacle, <b>2.</b> ajoutez les fichiers. Ensuite, dans chaque événement, vous choisissez lesquels afficher et dans quel ordre.</p>' +
       '<div class="grille"><div><label for="g-titre">1. Spectacle</label><select id="g-titre">' + options($('#g-titre') ? $('#g-titre').value : '') + '</select></div>' +
       '<div><label>2. Fichiers</label><button type="button" class="btn plein" id="ajoutGalerie" style="width:100%">+ Ajouter des visuels</button></div>' +
