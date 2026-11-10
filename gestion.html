@@ -22,6 +22,7 @@ function appliquerApparence() {
   var sombre = APPARENCE.mode === 'sombre' || (APPARENCE.mode !== 'clair' && !(window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches));
   h.setAttribute('data-skin', skin); h.setAttribute('data-theme', sombre ? 'sombre' : 'clair');
   h.setAttribute('data-volet', APPARENCE.volet === 'fixe' ? 'fixe' : '');
+  h.setAttribute('data-menu-tel', APPARENCE.menuTel === 'volet' ? 'volet' : 'barre');
   setTimeout(function () { var m = document.querySelector('meta[name=theme-color]'); if (m) m.content = getComputedStyle(h).getPropertyValue('--barre').trim() || '#0b0a10'; }, 0);
 }
 function garderApparence(o) { Object.keys(o).forEach(function (k) { APPARENCE[k] = o[k]; }); try { localStorage.setItem('festival_resa_apparence', JSON.stringify(APPARENCE)); } catch (e) {} appliquerApparence(); }
@@ -45,9 +46,9 @@ if (window.matchMedia) matchMedia('(prefers-color-scheme: light)').addEventListe
 :root{--lav:var(--accent);--lav2:var(--accent2)}
 [data-skin="papier"]{--rayon:6px;--rayon-petit:4px}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--fond);color:var(--texte);font:16px/1.45 Barlow,system-ui,sans-serif}
-h2{font:700 20px "Bricolage Grotesque",sans-serif;margin:24px 0 10px}
-.btn{font:600 14.5px Barlow,sans-serif;border:1px solid var(--lav);background:transparent;color:var(--lav2);border-radius:999px;padding:8px 14px;cursor:pointer;line-height:1.25}
+html,body{margin:0;background:var(--fond);color:var(--texte);font:15px/1.45 Barlow,system-ui,sans-serif}
+h2{font:700 19px "Bricolage Grotesque",sans-serif;margin:22px 0 10px}
+.btn{font:600 14px Barlow,sans-serif;border:1px solid var(--lav);background:transparent;color:var(--lav2);border-radius:999px;padding:8px 14px;cursor:pointer;line-height:1.25}
 .btn.plein{background:var(--lav);color:var(--sur-accent);border-color:var(--lav)}
 .btn.petit{padding:4px 10px;font-size:13px}
 a.btn{text-decoration:none;display:inline-block}
@@ -59,7 +60,7 @@ a.btn{text-decoration:none;display:inline-block}
 .jour{text-align:center;border-right:1px solid var(--ligne);padding-right:10px}
 .jour b{display:block;font:700 26px/1 "Bricolage Grotesque",sans-serif}
 .jour span{font-size:12px;text-transform:uppercase;color:var(--doux)}
-.ev h3{margin:0 0 2px;font-size:17px}
+.ev h3{margin:0 0 2px;font-size:16px}
 .ev p{margin:0;color:var(--doux);font-size:14px}
 .jauge{min-width:92px;text-align:right;font-size:14px}
 .jauge .barre{height:5px;background:var(--ligne);border-radius:3px;margin-top:5px;overflow:hidden}
@@ -67,16 +68,16 @@ a.btn{text-decoration:none;display:inline-block}
 .badge{display:inline-block;font-size:12px;border-radius:999px;padding:1px 8px;margin-left:6px;border:1px solid var(--ligne);color:var(--doux);vertical-align:2px}
 .badge.Ouvert{border-color:var(--vert);color:var(--vert)}
 .badge.Annulé{border-color:var(--rouge);color:var(--rouge)}
-.statutRapide{width:auto;font-size:13px;padding:4px 6px;margin-top:6px;border-radius:999px}
+.statutRapide{width:auto;font-size:13px;padding:4px 26px 4px 10px;margin-top:6px;border-radius:999px;background-position:right 8px center}
 .galerie{margin:14px 0 0}
 .galerie h4{margin:12px 0 4px;font:600 14px Barlow,sans-serif;color:var(--doux)}
 .galerie details{margin-top:10px}
 .galerie summary{cursor:pointer;color:var(--lav2);font-weight:600;font-size:14px}
 .photo .etiquette{position:absolute;right:6px;top:4px;font:600 11px Barlow,sans-serif;background:rgba(11,10,16,.8);color:var(--vert);border-radius:999px;padding:1px 7px}
 .photo .etiquette.drive{color:var(--doux)}
-.photo .outils{flex-wrap:wrap;gap:0 2px}
+.photo .outils{flex-wrap:nowrap;gap:0 2px}
 .photo.portrait img{object-fit:contain;background:#000}
-.groupe{margin-top:18px}
+.groupe{margin-top:22px}
 .groupe h3{margin:0 0 6px;font:700 17px "Bricolage Grotesque",sans-serif}
 .pin{max-width:360px;margin:40px auto;text-align:center}
 .pin img{width:96px;height:96px;border-radius:22px}
@@ -95,14 +96,17 @@ a.btn{text-decoration:none;display:inline-block}
 input.arrivee{width:auto;transform:scale(1.3);margin:4px}
 tr.arrivee td{color:var(--vert)}
 .vide{color:var(--doux);font-style:italic}
-form .grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-form .grille>div{display:flex;flex-direction:column;justify-content:flex-end}form .grille>div label{margin-top:auto}form .grille>div .aide{margin-top:4px}
-label{display:block;font-size:13px;color:var(--doux);margin-bottom:4px}
-input,select,textarea{width:100%;font:inherit;color:var(--texte);background:var(--carte2);border:1px solid var(--ligne);border-radius:8px;padding:9px 10px}
+.grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px 12px}
+.grille>div{display:flex;flex-direction:column;justify-content:flex-end}.grille>div label{margin-top:auto}.grille>div .aide{margin-top:4px}
+label{display:block;font-size:13px;color:var(--doux);margin-bottom:6px}
+input,select,textarea{width:100%;font:inherit;font-size:14.5px;color:var(--texte);background:var(--carte2);border:1px solid var(--ligne);border-radius:8px;padding:7px 10px;line-height:1.35}
+select{padding-right:28px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23888' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--lav);border-color:var(--lav)}
 textarea{min-height:110px;resize:vertical}
 .large{grid-column:1/-1}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 14px}
+#vue>.actions:first-child{margin-top:6px}
+.badge{white-space:nowrap}
 .panneau{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:16px;margin-top:12px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--ligne);vertical-align:top}
@@ -116,15 +120,16 @@ tr.annulee td:last-child{text-decoration:none}
 #charge{position:fixed;top:0;left:0;height:3px;width:100%;background:var(--lav);display:none;z-index:90;animation:c 1s infinite linear}
 @keyframes c{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
 /* Photos et recadrage */
-.photos{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 8px}
+.photos{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 10px}
 #photos .photo{width:180px}
-.photo{position:relative;width:150px;aspect-ratio:3/2;background:var(--carte2);border:1px solid var(--ligne);border-radius:8px;overflow:hidden}
+.photo{position:relative;width:180px;aspect-ratio:3/2;background:var(--carte2);border:1px solid var(--ligne);border-radius:8px;overflow:hidden}
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
-.photo .outils{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;background:rgba(11,10,16,.8);padding:3px 4px}
-.photo .outils button,.photo .outils a{background:none;border:0;color:var(--texte);font:600 12px Barlow,sans-serif;cursor:pointer;padding:3px 5px;text-decoration:none}
-.photo .outils button:hover,.photo .outils a:hover{color:var(--lav2)}
+.photo .outils{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;background:rgba(11,10,16,.8);padding:3px 4px;white-space:nowrap}
+.photo .outils button,.photo .outils a{background:none;border:0;color:#fff;font:600 11.5px Barlow,sans-serif;cursor:pointer;padding:3px 4px;text-decoration:none;flex:none}
+.photo .outils button:hover,.photo .outils a:hover{color:#ffd166}
+.photo img{cursor:zoom-in}
 .photo .num{position:absolute;left:6px;top:4px;font:700 12px Barlow,sans-serif;background:var(--lav);color:var(--sur-accent);border-radius:999px;padding:1px 7px}
-.photos .ajout{width:150px;aspect-ratio:3/2;border:1px dashed var(--lav);border-radius:8px;background:none;color:var(--lav2);font:600 14px Barlow,sans-serif;cursor:pointer}
+.photos .ajout{width:180px;aspect-ratio:3/2;border:1px dashed var(--lav);border-radius:8px;background:none;color:var(--lav2);font:600 14px Barlow,sans-serif;cursor:pointer}
 #recadrage{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:70;display:none;align-items:center;justify-content:center;padding:12px}
 #recadrage.ouvert{display:flex}
 #recadrage .boite{background:var(--carte);border:1px solid var(--ligne);border-radius:14px;padding:16px;width:min(96vw,640px)}
@@ -135,7 +140,7 @@ tr.annulee td:last-child{text-decoration:none}
 .apercu{margin-top:12px}
 .apercu .onglets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 @media (max-width:560px){.ev{grid-template-columns:52px 48px 1fr}.mini,.vide-mini{width:48px;height:48px}.jauge{grid-column:2;text-align:left}.jauge .barre{width:120px}}
-.tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.tuile{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:14px}.tuile b{display:block;font:700 30px/1 "Bricolage Grotesque"}.tuile span{font-size:13px;color:var(--doux)}.tuile.chaud{border-color:var(--lav)}
+.tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.tuile{background:var(--carte);border:1px solid var(--ligne);border-radius:12px;padding:14px}.tuile b{display:block;font:700 28px/1 "Bricolage Grotesque"}.tuile span{font-size:13px;color:var(--doux)}.tuile.chaud{border-color:var(--lav)}
 .btn.ok{background:var(--vert);border-color:var(--vert);color:var(--sur-accent)}
 .afaire{margin:0;padding-left:18px}.afaire a{color:var(--lav2)}
 .ev{grid-template-columns:64px 56px 1fr auto}.mini{width:56px;height:56px;object-fit:cover;border-radius:8px}.vide-mini{display:grid;place-items:center;width:56px;height:56px;border-radius:8px;background:var(--ligne);font-weight:700}
@@ -145,7 +150,22 @@ tr.annulee td:last-child{text-decoration:none}
 h3.section{margin:14px 0 0;font:700 18px "Bricolage Grotesque"}
 .barreTexte{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}.barreTexte button{font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--ligne);background:var(--carte);color:var(--texte);cursor:pointer}
 .coche{display:flex;gap:8px;align-items:center;color:var(--texte)}.coche input{width:auto}
-.photo .legende{position:absolute;left:6px;bottom:30px;font-size:11px;background:rgba(11,10,16,.8);padding:1px 6px;border-radius:6px}
+.photo .legende{position:absolute;left:6px;right:6px;bottom:28px;font-size:11px;color:#fff;background:rgba(11,10,16,.8);padding:1px 6px;border-radius:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:560px){.photos .photo,.photos .ajout,#photos .photo{width:calc(50% - 5px)}}
+/* Visionneuse : aperçu des visuels dans l'appli, avec précédent / suivant */
+#visionneuse{position:fixed;inset:0;z-index:75;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0}
+#visionneuse[hidden]{display:none}
+#visionneuse img{max-width:calc(100vw - 24px);max-height:calc(100vh - 120px);object-fit:contain;border-radius:6px;box-shadow:0 10px 40px rgba(0,0,0,.6);user-select:none;-webkit-user-drag:none}
+#visionneuse .vs-haut{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;color:#fff;font-size:14px}
+#visionneuse .vs-haut span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.85}
+#visionneuse .vs-haut a{color:#fff;opacity:.85;font-size:13px;white-space:nowrap}
+#visionneuse button{background:rgba(255,255,255,.12);border:0;color:#fff;width:42px;height:42px;border-radius:50%;font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none}
+#visionneuse button:hover{background:rgba(255,255,255,.25)}
+#visionneuse button:disabled{opacity:.25;cursor:default}
+#visionneuse .vs-prec,#visionneuse .vs-suiv{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px}
+#visionneuse .vs-prec{left:10px}#visionneuse .vs-suiv{right:10px}
+#visionneuse .vs-bas{position:absolute;left:0;right:0;bottom:0;padding:10px 16px calc(12px + env(safe-area-inset-bottom));color:#fff;text-align:center;font-size:13px;opacity:.85}
+@media (max-width:759px){#visionneuse .vs-prec,#visionneuse .vs-suiv{top:auto;bottom:calc(44px + env(safe-area-inset-bottom));transform:none}}
 .groupe.aClasser h3{color:var(--lav2)}
 .classer{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}.classer img{width:180px;border-radius:8px}
 tr.attente td{color:var(--doux)}
@@ -158,8 +178,8 @@ tr.attente td{color:var(--doux)}
 #dialogue p{margin:0 0 10px;color:var(--doux);white-space:pre-line}
 #dialogue .actions{justify-content:flex-end;margin-top:14px}
 /* Barre de tri et de filtre des événements */
-.barreTri{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
-.barreTri select,.barreTri input{width:auto;min-width:150px;padding:7px 10px;font-size:14px}
+.barreTri{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+.barreTri select,.barreTri input{width:auto;min-width:150px;padding:6px 10px;font-size:14px}
 .barreTri input{flex:1;min-width:160px}
 .barreTri .compte{font-size:13px;color:var(--doux);margin-left:auto}
 /* Éditeur de texte mis en forme */
@@ -264,6 +284,16 @@ td.quand,th.quand{white-space:nowrap}
 .tableau.dernieres td.etat{grid-column:2;grid-row:2;text-align:right;font-size:13px;color:var(--doux)}
 .tableau.dernieres td.quand{grid-column:1/3;grid-row:3;font-size:12px;color:var(--doux)}
 .tableau.dernieres tr.annulee td{text-decoration:none;opacity:.5}
+.tableau.appareils table,.tableau.appareils tbody{display:block}
+.tableau.appareils tr:first-child{display:none}
+.tableau.appareils tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:start;border:1px solid var(--ligne);border-radius:10px;padding:10px 12px;margin:0 0 8px}
+.tableau.appareils td{display:block;border:0;padding:0;white-space:normal}
+.tableau.appareils td.qui{grid-column:1;grid-row:1;font-weight:600}
+.tableau.appareils td.faire{grid-column:2;grid-row:1/3}
+.tableau.appareils td.quoi{grid-column:1;grid-row:2;color:var(--doux);font-size:13px}
+.tableau.appareils td.quand{grid-column:1/3;font-size:12px;color:var(--doux)}
+.tableau.appareils td.q1::before{content:"Première fois "}
+.tableau.appareils td.q2::before{content:"Dernière fois "}
 }
 /* ---------- Disposition : barre du haut + menu en volet (à gauche) ; téléphone : barre du bas avec le bouton + ---------- */
 .haut{position:sticky;top:0;z-index:50;height:calc(var(--haut) + env(safe-area-inset-top));padding:env(safe-area-inset-top) 12px 0 6px;background:var(--barre);color:var(--sur-barre);display:flex;align-items:center;gap:8px;box-shadow:0 1px 0 color-mix(in srgb,var(--sur-barre) 12%,transparent)}
@@ -314,7 +344,7 @@ html[data-volet="fixe"] .haut .menu-btn{display:none}
 html[data-volet="fixe"] .marque .epingle{opacity:1;color:var(--accent)}
 }
 /* Barre du bas (téléphone) */
-.barre-bas{display:none}
+.barre-bas,.fab-plus{display:none}
 .feuille-plus{position:fixed;left:0;right:0;bottom:0;z-index:66;background:var(--carte);border-radius:18px 18px 0 0;padding:10px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -12px 30px -12px rgba(0,0,0,.4);transform:translateY(105%);transition:transform .22s;display:flex;flex-direction:column;gap:4px}
 .feuille-plus.ouvert{transform:none}
 .feuille-plus h3{margin:4px 0 8px;font:700 16px "Bricolage Grotesque",sans-serif}
@@ -332,6 +362,13 @@ html[data-volet="fixe"] .marque .epingle{opacity:1;color:var(--accent)}
 .barre-bas .plus svg{width:56px;height:56px;padding:14px;border-radius:50%;background:var(--accent);color:var(--sur-accent);box-shadow:0 8px 20px rgba(0,0,0,.25)}
 .barre-bas .plus span{color:var(--texte)}
 .barre-bas .pastille{position:absolute;top:0;left:calc(50% + 4px);min-width:18px;line-height:18px;font-size:11px}
+html[data-menu-tel="barre"] .haut .menu-btn{display:none}
+html[data-menu-tel="barre"] .haut{padding-left:16px}
+html[data-menu-tel="volet"] .barre-bas{display:none}
+html[data-menu-tel="volet"] main{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+html[data-menu-tel="volet"] .fab-plus{display:flex;align-items:center;justify-content:center;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));z-index:48;width:60px;height:60px;border-radius:50%;border:0;background:var(--accent);color:var(--sur-accent);box-shadow:0 8px 22px rgba(0,0,0,.3);cursor:pointer}
+html[data-menu-tel="volet"] .fab-plus svg{width:28px;height:28px}
+html[data-menu-tel="volet"] .fab-plus[hidden]{display:none}
 main{padding:10px 12px calc(96px + env(safe-area-inset-bottom))}
 #toast{bottom:calc(92px + env(safe-area-inset-bottom))}
 #bandeauVoir{bottom:calc(68px + env(safe-area-inset-bottom))}
@@ -432,7 +469,11 @@ h2{font-size:18px;margin:18px 0 8px}
 .fm header b{color:var(--texte);font-size:15px;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .fm header .date{margin-left:auto;white-space:nowrap}
 .fm header .dest{width:100%;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm{scroll-margin-top:calc(var(--haut) + env(safe-area-inset-top) + 10px)}
 .fm iframe{display:block;width:100%;border:0;background:#fff;border-radius:8px;min-height:60px}
+.fm .voir-cite{display:block;margin:6px 0 0;background:none;border:0;color:var(--doux);font:500 13px Barlow,sans-serif;cursor:pointer;padding:4px 0;text-decoration:underline dotted}
+.fm .voir-cite:hover{color:var(--texte)}
+.fm.plie .voir-cite{display:none}
 .fm.plie iframe,.fm.plie .pieces,.fm.plie .fm-actions,.fm.plie .dest:not(.extrait-plie){display:none}
 .fm header .extrait-plie{color:var(--doux);font-style:italic}
 .fm:not(.plie) .extrait-plie{display:none}
@@ -591,6 +632,7 @@ body.voir main{padding-bottom:120px}
   <button type="button" data-bvue="photos" data-droit="photos" data-sinon="reglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg><span>Visuels</span></button>
   <button type="button" id="bb-menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span></button>
 </nav>
+<button type="button" class="fab-plus" id="fab-plus" aria-label="Nouveau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
 <div class="fond-volet" id="fond-plus"></div>
 <div class="feuille-plus" id="feuille-plus" role="dialog" aria-label="Nouveau"><h3>Nouveau</h3>
   <button type="button" data-plus="evenement"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M12 13v6M9 16h6"/></svg>Nouvel événement</button>
@@ -604,6 +646,7 @@ body.voir main{padding-bottom:120px}
 <p class="aide">Déplacez la photo pour choisir le cadrage. Le cadre correspond aux photos du programme.</p>
 <div class="actions"><button type="button" class="btn plein" id="recadrerOk">Utiliser cette photo</button><button type="button" class="btn" id="recadrerNon">Annuler</button></div></div></div>
 <div id="toast"></div>
+<div id="visionneuse" hidden role="dialog" aria-label="Aperçu du visuel"><div class="vs-haut"><span id="vs-titre"></span><a id="vs-original" href="#" target="_blank" rel="noopener">Ouvrir l'original</a><button type="button" id="vs-fermer" aria-label="Fermer">×</button></div><img id="vs-img" alt=""><button type="button" class="vs-prec" id="vs-prec" aria-label="Précédent">‹</button><button type="button" class="vs-suiv" id="vs-suiv" aria-label="Suivant">›</button><div class="vs-bas" id="vs-bas"></div></div>
 <div id="mx-ecrire" hidden aria-label="Écrire un mail" role="dialog"></div>
 <div id="dialogue" role="dialog" aria-modal="true"><div class="boite"><h3 id="dlgTitre"></h3><p id="dlgTexte"></p><input id="dlgChamp" hidden><div class="actions"><button type="button" class="btn" id="dlgNon">Annuler</button><button type="button" class="btn plein" id="dlgOui">OK</button></div></div></div>
 
@@ -802,7 +845,7 @@ var MAIL = (function () {
   return { pied: pied, VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
 })();
 
-var VERSION_APPLI = 'e833f124ae1d', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
+var VERSION_APPLI = '49c02ceea244', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
 function lireLocal(k) { try { return localStorage.getItem('festival_resa_' + k) || ''; } catch (e) { return ''; } }
 function garderLocal(k, v) { try { if (v) localStorage.setItem('festival_resa_' + k, v); else localStorage.removeItem('festival_resa_' + k); } catch (e) {} }
 // Cet appareil : un identifiant gardé dans le navigateur + un nom lisible (pour la liste des appareils connectés).
@@ -884,7 +927,7 @@ function recharger(res) {
   if (res.jeton) { JETON = res.jeton; garderLocal('jeton', JETON); garderLocal('pin', ''); } // cet appareil est reconnu : plus de code PIN à redonner
   document.querySelectorAll('[data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
   document.querySelectorAll('.nom-festival').forEach(function (e) { e.textContent = D.reglages.nomFestival || 'Festival'; });
-  if (VERSION_APPLI !== 'e833f124ae1d') $('#volet-version').textContent = 'Version ' + VERSION_APPLI;
+  if (VERSION_APPLI !== '49c02ceea244') $('#volet-version').textContent = 'Version ' + VERSION_APPLI;
   $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
   if (typeof res.boiteNonLus === 'number') { BOITE_NL = res.boiteNonLus; badgeBoite(); }
   if (droit('boite')) setTimeout(prechargerBoiteMx, 3000);
@@ -902,13 +945,13 @@ function volet(ouvrir) {
   $('#menu-btn').setAttribute('aria-expanded', ouvrir ? 'true' : 'false');
 }
 function marquerVue() {
-  document.querySelectorAll('nav button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); });
+  document.querySelectorAll('.volet button[data-vue]').forEach(function (x) { x.classList.toggle('on', x.dataset.vue === vue); });
   document.querySelectorAll('.barre-bas button[data-bvue]').forEach(function (x) { x.classList.toggle('on', x.dataset.bvue === vue); });
   var t = $('#titreVue'); if (t) t.textContent = ouvert && vue === 'evenements' ? (ouvert === 'nouveau' || ouvert === 'copie' ? 'Nouvel événement' : 'Événement') : (TITRES_VUE[vue] || 'Réservations');
-  var p = $('#bb-plus'), txt = $('#bb-plus-txt');
+  var p = $('#bb-plus'), txt = $('#bb-plus-txt'), fab = $('#fab-plus');
   if (p) {
     var quoi = vue === 'boite' ? (droit('boite') ? 'Écrire' : '') : vue === 'evenements' && ouvert && ouvert !== 'nouveau' && ouvert !== 'copie' ? (droit('reservations') ? 'Réservation' : '') : vue === 'evenements' && !ouvert ? (droit('evenements') ? 'Événement' : droit('reservations') ? 'Réservation' : '') : (droit('evenements') || droit('reservations') || droit('boite') ? 'Nouveau' : '');
-    p.hidden = !quoi; if (txt) txt.textContent = quoi || 'Nouveau';
+    p.hidden = !quoi; if (fab) { fab.hidden = !quoi; fab.setAttribute('aria-label', quoi || 'Nouveau'); } if (txt) txt.textContent = quoi || 'Nouveau';
   }
 }
 function allerVue(v, garderOuvert) {
@@ -919,7 +962,7 @@ $('#menu-btn').onclick = function () { volet(!$('#volet').classList.contains('ou
 $('#fond-volet').onclick = function () { volet(false); };
 $('#bb-menu').onclick = function () { volet(true); };
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if ($('#volet').classList.contains('ouvert')) volet(false); if ($('#feuille-plus').classList.contains('ouvert')) feuillePlus(false); } });
-document.querySelectorAll('nav button[data-vue]').forEach(function (b) { b.onclick = function () { allerVue(b.dataset.vue); }; });
+document.querySelectorAll('.volet button[data-vue]').forEach(function (b) { b.onclick = function () { allerVue(b.dataset.vue); }; });
 document.querySelectorAll('.barre-bas button[data-bvue]').forEach(function (b) { b.onclick = function () { allerVue(b.dataset.bvue); }; });
 $('#epingle').onclick = function () { garderApparence({ volet: APPARENCE.volet === 'fixe' ? '' : 'fixe' }); volet(false); if (typeof majMxFixe === 'function') setTimeout(majMxFixe, 50); };
 // Glissement depuis le bord gauche pour ouvrir le volet (téléphone)
@@ -960,7 +1003,7 @@ function actionPlus(quoi) {
     allerVue('evenements'); toast('Choisissez le spectacle, puis « Ajouter une réservation à la main » (ou le bouton +).');
   }
 }
-$('#bb-plus').onclick = function () {
+$('#bb-plus').onclick = $('#fab-plus').onclick = function () {
   if (vue === 'boite' && droit('boite')) return actionPlus('mail');
   if (vue === 'evenements' && ouvert && ouvert !== 'nouveau' && ouvert !== 'copie' && droit('reservations')) return actionPlus('reservation');
   if (vue === 'evenements' && !ouvert && droit('evenements')) return actionPlus('evenement');
@@ -968,6 +1011,40 @@ $('#bb-plus').onclick = function () {
 };
 $('#fond-plus').onclick = function () { feuillePlus(false); };
 document.querySelectorAll('#feuille-plus [data-plus]').forEach(function (b) { b.onclick = function () { b.dataset.plus === 'fermer' ? feuillePlus(false) : actionPlus(b.dataset.plus); }; });
+// ---------- Visionneuse des visuels (« Voir » ou clic sur une vignette) ----------
+var VS = { liste: [], i: 0 };
+function ouvrirVisionneuse(conteneur, carte) {
+  var cartes = Array.prototype.slice.call((conteneur || document).querySelectorAll('.photo')).filter(function (c) { return c.querySelector('img') && !c.classList.contains('envoi'); });
+  VS.liste = cartes.map(function (c) { var im = c.querySelector('img'), a = c.querySelector('.outils a[href]'); return { src: (a && /^Voir$/.test(a.textContent.trim()) ? a.href : im.src), titre: c.getAttribute('title') || '' }; });
+  VS.i = Math.max(0, cartes.indexOf(carte)); if (!VS.liste.length) return;
+  $('#visionneuse').hidden = false; document.body.style.overflow = 'hidden'; montrerVisionneuse();
+}
+function montrerVisionneuse() {
+  var v = VS.liste[VS.i]; if (!v) return;
+  $('#vs-img').src = v.src; $('#vs-original').href = v.src; $('#vs-titre').textContent = v.titre;
+  $('#vs-bas').textContent = VS.liste.length > 1 ? (VS.i + 1) + ' / ' + VS.liste.length : '';
+  $('#vs-prec').disabled = VS.i === 0; $('#vs-suiv').disabled = VS.i >= VS.liste.length - 1;
+  $('#vs-prec').hidden = $('#vs-suiv').hidden = VS.liste.length < 2;
+}
+function fermerVisionneuse() { $('#visionneuse').hidden = true; $('#vs-img').src = ''; document.body.style.overflow = ''; }
+$('#vs-fermer').onclick = fermerVisionneuse;
+$('#vs-prec').onclick = function () { if (VS.i > 0) { VS.i--; montrerVisionneuse(); } };
+$('#vs-suiv').onclick = function () { if (VS.i < VS.liste.length - 1) { VS.i++; montrerVisionneuse(); } };
+$('#visionneuse').onclick = function (ev) { if (ev.target === this || ev.target.id === 'vs-img' && VS.liste.length < 2) fermerVisionneuse(); };
+document.addEventListener('keydown', function (e) {
+  if ($('#visionneuse').hidden) return;
+  if (e.key === 'Escape') fermerVisionneuse(); else if (e.key === 'ArrowLeft') $('#vs-prec').click(); else if (e.key === 'ArrowRight') $('#vs-suiv').click();
+});
+(function () { var x0 = null; var v = $('#visionneuse');
+  v.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+  v.addEventListener('touchend', function (e) { if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; x0 = null; if (dx < -50) $('#vs-suiv').click(); else if (dx > 50) $('#vs-prec').click(); });
+})();
+document.addEventListener('click', function (e) {
+  var a = e.target.closest('.photo .outils a[href]');
+  if (a && /^Voir$/.test(a.textContent.trim())) { e.preventDefault(); return ouvrirVisionneuse(a.closest('.photos') || a.closest('.zones') || a.closest('#vue'), a.closest('.photo')); }
+  var im = e.target.closest('.photo > img');
+  if (im && !e.target.closest('.outils') && !e.target.closest('#recadrage')) { var c = im.closest('.photo'); if (c && !c.classList.contains('envoi') && !c.classList.contains('ajout')) { e.preventDefault(); ouvrirVisionneuse(c.closest('.photos') || c.closest('.zones') || c.closest('#vue'), c); } }
+});
 // ---------- Apparence ----------
 function afficherApparence() {
   var h = '<h2>Apparence</h2><div class="panneau"><label>Mode</label><div class="segment modes">' + [['auto', 'Automatique'], ['clair', 'Clair'], ['sombre', 'Sombre']].map(function (m) { return '<button type="button" data-mode="' + m[0] + '"' + ((APPARENCE.mode || 'auto') === m[0] ? ' class="on"' : '') + '>' + m[1] + '</button>'; }).join('') + '</div>' +
@@ -976,12 +1053,15 @@ function afficherApparence() {
       var th = document.documentElement.getAttribute('data-theme');
       return '<button type="button" class="skin' + ((APPARENCE.skin || 'festival') === s[0] ? ' on' : '') + '" data-skin-choix="' + s[0] + '"><span class="apercu-skin" data-skin="' + s[0] + '" data-theme="' + th + '"><i style="background:var(--barre)"></i><span class="fond-sk" style="background:var(--fond)"><i style="background:var(--accent)"></i><i style="background:var(--ligne)"></i></span></span><b>' + s[1] + '</b></button>';
     }).join('') + '</div>' +
-    '<label style="margin-top:14px">Menu</label><label class="coche"><input type="checkbox" id="ap-volet"' + (APPARENCE.volet === 'fixe' ? ' checked' : '') + '> Garder le menu ouvert sur grand écran (ordinateur)</label>' +
+    '<label style="margin-top:14px">Menu sur téléphone</label><div class="segment modes">' + [['barre', 'Barre du bas'], ['volet', 'Volet ☰ et bouton +']].map(function (m) { return '<button type="button" data-menu-tel="' + m[0] + '"' + ((APPARENCE.menuTel || 'barre') === m[0] ? ' class="on"' : '') + '>' + m[1] + '</button>'; }).join('') + '</div>' +
+    '<p class="aide">Barre du bas : Accueil, Événements, +, Mails, Visuels, Menu. Volet : le menu ☰ en haut et un gros bouton + en bas.</p>' +
+    '<label style="margin-top:14px">Menu sur ordinateur</label><label class="coche"><input type="checkbox" id="ap-volet"' + (APPARENCE.volet === 'fixe' ? ' checked' : '') + '> Garder le menu ouvert sur grand écran</label>' +
     '<p class="aide">Ces choix sont gardés sur cet appareil seulement.</p></div>';
   $('#vue').innerHTML = h;
   document.querySelectorAll('[data-mode]').forEach(function (b) { b.onclick = function () { garderApparence({ mode: b.dataset.mode }); afficherApparence(); }; });
   document.querySelectorAll('[data-skin-choix]').forEach(function (b) { b.onclick = function () { garderApparence({ skin: b.dataset.skinChoix }); afficherApparence(); }; });
   $('#ap-volet').onchange = function () { garderApparence({ volet: this.checked ? 'fixe' : '' }); };
+  document.querySelectorAll('[data-menu-tel]').forEach(function (b) { b.onclick = function () { garderApparence({ menuTel: b.dataset.menuTel }); afficherApparence(); }; });
 }
 
 // ---------- Tableau de bord (page d'accueil) ----------
@@ -1085,7 +1165,7 @@ function afficher() {
   h += '<div class="barreTri"><select id="triStatut" aria-label="Filtrer par statut"><option value="">Tous les statuts</option>' + D.statuts.map(function (s) { return '<option' + (s === TRI_EV.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '<option value="Complet"' + (TRI_EV.statut === 'Complet' ? ' selected' : '') + '>Complets</option></select>' +
     '<select id="triOrdre" aria-label="Trier"><option value="date">Par date</option><option value="titre"' + (TRI_EV.ordre === 'titre' ? ' selected' : '') + '>Par titre</option><option value="remplissage"' + (TRI_EV.ordre === 'remplissage' ? ' selected' : '') + '>Par remplissage</option><option value="recent"' + (TRI_EV.ordre === 'recent' ? ' selected' : '') + '>Derniers créés</option></select>' +
     '<input id="triQ" type="search" placeholder="Chercher un titre, une compagnie…" value="' + esc(TRI_EV.q) + '"><span class="compte">' + evs.length + ' / ' + D.evenements.length + '</span></div>';
-  if (D.version && VERSION_APPLI !== 'e833f124ae1d' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
+  if (D.version && VERSION_APPLI !== '49c02ceea244' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
   if (COMPTE && COMPTE.id === 'cle' && droit('comptes') && !PIN && !D.nbComptes) h += '<div class="bandeau" id="bandeauPin">Vous êtes entrée avec le lien personnel. Créez votre code PIN et ceux des bénévoles dans <a href="#" id="versComptes">Réglages → Comptes</a> : ensuite l\'appli s\'ouvre avec le code, sur n\'importe quel appareil.</div>';
   h += parDate ? '<h2>À venir</h2>' + liste(avenir) + '<h2>Passés</h2>' + liste(passes) : liste(avenir);
   $('#vue').innerHTML = h;
@@ -1093,7 +1173,7 @@ function afficher() {
   $('#triOrdre').onchange = function () { TRI_EV.ordre = this.value; afficher(); };
   $('#triQ').oninput = function () { TRI_EV.q = this.value; var pos = this.selectionStart; afficher(); var c = $('#triQ'); c.focus(); c.setSelectionRange(pos, pos); };
   if ($('#nouveau')) $('#nouveau').onclick = function () { ouvert = 'nouveau'; afficher(); };
-  if ($('#versComptes')) $('#versComptes').onclick = function (ev) { ev.preventDefault(); $('nav [data-vue=reglages]').click(); setTimeout(function () { var c = $('#comptes'); if (c) c.scrollIntoView({ behavior: 'smooth' }); }, 300); };
+  if ($('#versComptes')) $('#versComptes').onclick = function (ev) { ev.preventDefault(); allerVue('reglages'); setTimeout(function () { var c = $('#comptes'); if (c) c.scrollIntoView({ behavior: 'smooth' }); }, 300); };
   activerListe();
   if (!window.SPECTACLES && siteUrl()) chargerSite(function () { if (vue === 'evenements' && !ouvert) afficher(); });
 }
@@ -1940,6 +2020,26 @@ function actionMx(action, param, ids) {
 }
 
 // ---------- Conversation ----------
+/** Le message sans la conversation citée en dessous (Gmail, Apple Mail, Outlook, Thunderbird, Yahoo) ; citation = true s'il y en avait une. */
+function separerCitationMx(html) {
+  try {
+    var d = document.createElement('div'); d.innerHTML = String(html || '');
+    var n = 0;
+    d.querySelectorAll('.gmail_quote, .gmail_quote_container, blockquote[type=cite], .yahoo_quoted, [id^=divRplyFwdMsg], #appendonsend, .OutlookMessageHeader, .moz-cite-prefix, .protonmail_quote, .zmail_extra, .ms-outlook-mobile-reference-message').forEach(function (e) {
+      var p = e.previousElementSibling; n++;
+      if (p && /(a écrit|wrote|schrieb|ha scritto|escribió)\s*:?\s*$/i.test((p.textContent || '').trim()) && (p.textContent || '').length < 300) p.remove();
+      var s = e; while (s.nextSibling) s.nextSibling.remove(); // Outlook : tout ce qui suit l'en-tête « De : … » est l'ancien mail
+      e.remove();
+    });
+    if (!n) return { corps: html, citation: false };
+    var reste = d.innerHTML; if (!reste.replace(/<[^>]+>|&nbsp;|\s/g, '')) return { corps: html, citation: false };
+    return { corps: reste, citation: true };
+  } catch (e) { return { corps: html, citation: false }; }
+}
+function docMessageMx(html) {
+  return '<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>body{margin:0;font:14px/1.5 Arial,Helvetica,sans-serif;color:#222;background:#fff;padding:6px 4px;word-wrap:break-word;overflow-wrap:anywhere}img{max-width:100%;height:auto}blockquote{margin:6px 0;padding-left:10px;border-left:2px solid #ccc;color:#555}</style></head><body>' + html + '</body></html>';
+}
+function ajusterIframeMx(fr) { try { var d = fr.contentDocument; if (d && d.documentElement) fr.style.height = Math.min(4000, Math.max(60, d.documentElement.scrollHeight + 8)) + 'px'; } catch (e) { /* autre origine */ } }
 function ouvrirConversationMx(id, force) {
   var gardee = MX.filsGardes[id];
   if (gardee && (force || (gardee.messages || []).some(function (m) { return m.brouillon || m.programme; }))) { delete MX.filsGardes[id]; gardee = null; }
@@ -2017,10 +2117,12 @@ function afficherFilMx(f) {
     '<div class="fil-bas"><button type="button" class="btn plein" data-composer="repondre">Répondre</button><button type="button" class="btn" data-composer="repondreTous">Répondre à tous</button><button type="button" class="btn" data-composer="transferer">Transférer</button></div>';
   z.innerHTML = h;
   z.querySelectorAll('iframe[data-msg]').forEach(function (fr) {
-    var m = f.messages[Number(fr.dataset.msg)];
+    var m = f.messages[Number(fr.dataset.msg)], sep = separerCitationMx(m.html);
+    if (sep.citation) { var bc = document.createElement('button'); bc.type = 'button'; bc.className = 'voir-cite'; bc.textContent = 'Afficher les messages précédents'; fr.after(bc); bc.onclick = function () { var tout = bc.classList.toggle('on'); bc.textContent = tout ? 'Masquer les messages précédents' : 'Afficher les messages précédents'; fr.srcdoc = docMessageMx(tout ? m.html : sep.corps); }; }
     fr.addEventListener('load', function () { try { var d = fr.contentDocument; d.querySelectorAll('a').forEach(function (a) { a.target = '_blank'; a.rel = 'noopener'; }); fr.style.height = Math.min(4000, d.documentElement.scrollHeight + 8) + 'px'; d.querySelectorAll('img').forEach(function (im) { im.addEventListener('load', function () { fr.style.height = Math.min(4000, d.documentElement.scrollHeight + 8) + 'px'; }); }); } catch (e) { fr.style.height = '400px'; } });
-    fr.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>body{margin:0;font:14px/1.5 Arial,Helvetica,sans-serif;color:#222;background:#fff;padding:6px 4px;word-wrap:break-word;overflow-wrap:anywhere}img{max-width:100%;height:auto}blockquote{margin:6px 0;padding-left:10px;border-left:2px solid #ccc;color:#555}</style></head><body>' + m.html + '</body></html>';
+    fr.srcdoc = docMessageMx(sep.corps);
   });
+  setTimeout(function () { var ouverts = z.querySelectorAll('.fm:not(.plie)'), d = ouverts[ouverts.length - 1]; if (d && derniers.length > 1 && f.messages.length > 1) d.scrollIntoView({ block: 'start' }); }, 350);
   $('#mx-retour').onclick = retourListeMx;
   $('#mx-fil-etoile').onclick = function () { actionMx(f.suivi ? 'nePlusSuivre' : 'suivre', '', [f.id]); };
   $('#mx-traite').onclick = function () { actionMx(f.traite ? 'nonTraite' : 'traite', '', [f.id]); };
@@ -2050,7 +2152,7 @@ function afficherFilMx(f) {
     if (a === 'supprimerBrouillon') return confirmer('Supprimer ce brouillon ? La conversation et les vrais messages restent.', function () { supprimerBrouillonMx(m.brouillonId, f); }, { oui: 'Supprimer', danger: true });
     composerMx(a, { fil: f, message: m });
   }; });
-  z.querySelectorAll('.fm header').forEach(function (hd) { hd.onclick = function (ev) { if (ev.target.closest('button')) return; hd.parentNode.classList.toggle('plie'); }; });
+  z.querySelectorAll('.fm header').forEach(function (hd) { hd.onclick = function (ev) { if (ev.target.closest('button')) return; var art = hd.parentNode; art.classList.toggle('plie'); if (!art.classList.contains('plie')) { var fr = art.querySelector('iframe'); if (fr) setTimeout(function () { ajusterIframeMx(fr); }, 30); } }; });
   z.querySelectorAll('[data-pj]').forEach(function (b) { b.onclick = function () {
     var m = f.messages[Number(b.dataset.i)], p = m.pieces[Number(b.dataset.k)];
     b.disabled = true; b.textContent = '…';
@@ -2523,8 +2625,8 @@ function afficherReglages() {
 function appareilsAfficher(l) {
   var z = $('#zoneAppareils'); if (!z) return;
   if (!l.length) { z.innerHTML = '<p class="vide">Aucun appareil pour l\'instant (le lien personnel n\'en crée pas).</p>'; return; }
-  z.innerHTML = '<p class="aide">Chaque appareil qui a donné un code PIN reste connecté (sans redemander le code) jusqu\'à ce qu\'on le déconnecte ici, ou après six mois sans utilisation.</p><div class="tableau"><table><tr><th>Compte</th><th>Appareil</th><th>Première fois</th><th>Dernière fois</th><th></th></tr>' +
-    l.map(function (a) { return '<tr><td>' + esc(a.compte) + '</td><td>' + esc(a.nom) + (COMPTE && a.id === COMPTE.appareil ? ' <span class="badge Ouvert">celui-ci</span>' : '') + '</td><td class="quand">' + esc(dateCourteFr(a.cree)) + '</td><td class="quand">' + esc(dateCourteFr(a.dernier)) + '</td><td><button type="button" class="btn petit danger" data-deco="' + esc(a.id) + '">Déconnecter</button></td></tr>'; }).join('') + '</table></div>';
+  z.innerHTML = '<p class="aide">Chaque appareil qui a donné un code PIN reste connecté (sans redemander le code) jusqu\'à ce qu\'on le déconnecte ici, ou après six mois sans utilisation.</p><div class="tableau appareils"><table><tr><th>Compte</th><th>Appareil</th><th>Première fois</th><th>Dernière fois</th><th></th></tr>' +
+    l.map(function (a) { return '<tr><td class="qui">' + esc(a.compte) + '</td><td class="quoi">' + esc(a.nom) + (COMPTE && a.id === COMPTE.appareil ? ' <span class="badge Ouvert">celui-ci</span>' : '') + '</td><td class="quand q1">' + esc(dateCourteFr(a.cree)) + '</td><td class="quand q2">' + esc(dateCourteFr(a.dernier)) + '</td><td class="faire"><button type="button" class="btn petit danger" data-deco="' + esc(a.id) + '">Déconnecter</button></td></tr>'; }).join('') + '</table></div>';
   z.querySelectorAll('[data-deco]').forEach(function (b) { b.onclick = function () {
     confirmer('Déconnecter cet appareil ? Il devra redonner un code PIN.', function () {
       appel('adminDeconnecterAppareil', [b.dataset.deco], function (r) { appareilsAfficher(r); toast('Appareil déconnecté'); if (COMPTE && b.dataset.deco === COMPTE.appareil) deconnexion(); });
@@ -2810,7 +2912,7 @@ function afficherPhotos() {
     }
     var h = '<h2>Visuels</h2>';
     if (!window.SPECTACLES && siteUrl()) h += '<div class="bandeau">Le site (' + esc(siteUrl()) + ') ne répond pas pour l\'instant : seuls les visuels de la bibliothèque sont affichés.</div>';
-    if (D.version && VERSION_APPLI !== 'e833f124ae1d' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
+    if (D.version && VERSION_APPLI !== '49c02ceea244' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
     h += '<div class="panneau"><p>Photos, affiches, dessins : tout ce qui peut illustrer un spectacle. <b>1.</b> Choisissez le spectacle, <b>2.</b> ajoutez les fichiers. Ensuite, dans chaque événement, vous choisissez lesquels afficher et dans quel ordre.</p>' +
       '<div class="grille"><div><label for="g-titre">1. Spectacle</label><select id="g-titre">' + options($('#g-titre') ? $('#g-titre').value : '') + '</select></div>' +
       '<div><label>2. Fichiers</label><button type="button" class="btn plein" id="ajoutGalerie" style="width:100%">+ Ajouter des visuels</button></div>' +

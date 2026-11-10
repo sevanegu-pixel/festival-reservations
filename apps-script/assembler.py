@@ -32,8 +32,9 @@ morceaux = [
     lire("MiseAJour.js"),
     "var ADMIN_HTML = " + json.dumps(ecran(), ensure_ascii=False) + ";\n",
 ]
-# Numéro de version = empreinte des sources (le script en ligne se compare à celui du dépôt grâce à lui)
-VERSION = hashlib.sha1("\n".join(morceaux).encode("utf-8")).hexdigest()[:12]
+# Numéro de version = empreinte du code côté script seulement (sans l'écran) : l'écran publié sur GitHub Pages peut
+# changer sans nouvelle version du script ; le bandeau « script plus ancien » n'apparaît que si le code serveur a changé.
+VERSION = hashlib.sha1("\n".join(morceaux[:-1]).encode("utf-8")).hexdigest()[:12]
 morceaux = [m.replace("__VERSION__", VERSION) for m in morceaux]
 open(os.path.join(ICI, "a-coller.gs"), "w", encoding="utf-8").write("\n".join(morceaux))
 print("version :", VERSION)

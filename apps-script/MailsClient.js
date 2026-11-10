@@ -281,6 +281,26 @@ function actionMx(action, param, ids) {
 }
 
 // ---------- Conversation ----------
+/** Le message sans la conversation citée en dessous (Gmail, Apple Mail, Outlook, Thunderbird, Yahoo) ; citation = true s'il y en avait une. */
+function separerCitationMx(html) {
+  try {
+    var d = document.createElement('div'); d.innerHTML = String(html || '');
+    var n = 0;
+    d.querySelectorAll('.gmail_quote, .gmail_quote_container, blockquote[type=cite], .yahoo_quoted, [id^=divRplyFwdMsg], #appendonsend, .OutlookMessageHeader, .moz-cite-prefix, .protonmail_quote, .zmail_extra, .ms-outlook-mobile-reference-message').forEach(function (e) {
+      var p = e.previousElementSibling; n++;
+      if (p && /(a écrit|wrote|schrieb|ha scritto|escribió)\s*:?\s*$/i.test((p.textContent || '').trim()) && (p.textContent || '').length < 300) p.remove();
+      var s = e; while (s.nextSibling) s.nextSibling.remove(); // Outlook : tout ce qui suit l'en-tête « De : … » est l'ancien mail
+      e.remove();
+    });
+    if (!n) return { corps: html, citation: false };
+    var reste = d.innerHTML; if (!reste.replace(/<[^>]+>|&nbsp;|\s/g, '')) return { corps: html, citation: false };
+    return { corps: reste, citation: true };
+  } catch (e) { return { corps: html, citation: false }; }
+}
+function docMessageMx(html) {
+  return '<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>body{margin:0;font:14px/1.5 Arial,Helvetica,sans-serif;color:#222;background:#fff;padding:6px 4px;word-wrap:break-word;overflow-wrap:anywhere}img{max-width:100%;height:auto}blockquote{margin:6px 0;padding-left:10px;border-left:2px solid #ccc;color:#555}</style></head><body>' + html + '</body></html>';
+}
+function ajusterIframeMx(fr) { try { var d = fr.contentDocument; if (d && d.documentElement) fr.style.height = Math.min(4000, Math.max(60, d.documentElement.scrollHeight + 8)) + 'px'; } catch (e) { /* autre origine */ } }
 function ouvrirConversationMx(id, force) {
   var gardee = MX.filsGardes[id];
   if (gardee && (force || (gardee.messages || []).some(function (m) { return m.brouillon || m.programme; }))) { delete MX.filsGardes[id]; gardee = null; }
@@ -358,10 +378,12 @@ function afficherFilMx(f) {
     '<div class="fil-bas"><button type="button" class="btn plein" data-composer="repondre">Répondre</button><button type="button" class="btn" data-composer="repondreTous">Répondre à tous</button><button type="button" class="btn" data-composer="transferer">Transférer</button></div>';
   z.innerHTML = h;
   z.querySelectorAll('iframe[data-msg]').forEach(function (fr) {
-    var m = f.messages[Number(fr.dataset.msg)];
+    var m = f.messages[Number(fr.dataset.msg)], sep = separerCitationMx(m.html);
+    if (sep.citation) { var bc = document.createElement('button'); bc.type = 'button'; bc.className = 'voir-cite'; bc.textContent = 'Afficher les messages précédents'; fr.after(bc); bc.onclick = function () { var tout = bc.classList.toggle('on'); bc.textContent = tout ? 'Masquer les messages précédents' : 'Afficher les messages précédents'; fr.srcdoc = docMessageMx(tout ? m.html : sep.corps); }; }
     fr.addEventListener('load', function () { try { var d = fr.contentDocument; d.querySelectorAll('a').forEach(function (a) { a.target = '_blank'; a.rel = 'noopener'; }); fr.style.height = Math.min(4000, d.documentElement.scrollHeight + 8) + 'px'; d.querySelectorAll('img').forEach(function (im) { im.addEventListener('load', function () { fr.style.height = Math.min(4000, d.documentElement.scrollHeight + 8) + 'px'; }); }); } catch (e) { fr.style.height = '400px'; } });
-    fr.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>body{margin:0;font:14px/1.5 Arial,Helvetica,sans-serif;color:#222;background:#fff;padding:6px 4px;word-wrap:break-word;overflow-wrap:anywhere}img{max-width:100%;height:auto}blockquote{margin:6px 0;padding-left:10px;border-left:2px solid #ccc;color:#555}</style></head><body>' + m.html + '</body></html>';
+    fr.srcdoc = docMessageMx(sep.corps);
   });
+  setTimeout(function () { var ouverts = z.querySelectorAll('.fm:not(.plie)'), d = ouverts[ouverts.length - 1]; if (d && derniers.length > 1 && f.messages.length > 1) d.scrollIntoView({ block: 'start' }); }, 350);
   $('#mx-retour').onclick = retourListeMx;
   $('#mx-fil-etoile').onclick = function () { actionMx(f.suivi ? 'nePlusSuivre' : 'suivre', '', [f.id]); };
   $('#mx-traite').onclick = function () { actionMx(f.traite ? 'nonTraite' : 'traite', '', [f.id]); };
@@ -391,7 +413,7 @@ function afficherFilMx(f) {
     if (a === 'supprimerBrouillon') return confirmer('Supprimer ce brouillon ? La conversation et les vrais messages restent.', function () { supprimerBrouillonMx(m.brouillonId, f); }, { oui: 'Supprimer', danger: true });
     composerMx(a, { fil: f, message: m });
   }; });
-  z.querySelectorAll('.fm header').forEach(function (hd) { hd.onclick = function (ev) { if (ev.target.closest('button')) return; hd.parentNode.classList.toggle('plie'); }; });
+  z.querySelectorAll('.fm header').forEach(function (hd) { hd.onclick = function (ev) { if (ev.target.closest('button')) return; var art = hd.parentNode; art.classList.toggle('plie'); if (!art.classList.contains('plie')) { var fr = art.querySelector('iframe'); if (fr) setTimeout(function () { ajusterIframeMx(fr); }, 30); } }; });
   z.querySelectorAll('[data-pj]').forEach(function (b) { b.onclick = function () {
     var m = f.messages[Number(b.dataset.i)], p = m.pieces[Number(b.dataset.k)];
     b.disabled = true; b.textContent = '…';

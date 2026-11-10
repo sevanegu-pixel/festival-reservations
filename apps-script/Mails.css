@@ -79,7 +79,11 @@
 .fm header b{color:var(--texte);font-size:15px;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .fm header .date{margin-left:auto;white-space:nowrap}
 .fm header .dest{width:100%;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm{scroll-margin-top:calc(var(--haut) + env(safe-area-inset-top) + 10px)}
 .fm iframe{display:block;width:100%;border:0;background:#fff;border-radius:8px;min-height:60px}
+.fm .voir-cite{display:block;margin:6px 0 0;background:none;border:0;color:var(--doux);font:500 13px Barlow,sans-serif;cursor:pointer;padding:4px 0;text-decoration:underline dotted}
+.fm .voir-cite:hover{color:var(--texte)}
+.fm.plie .voir-cite{display:none}
 .fm.plie iframe,.fm.plie .pieces,.fm.plie .fm-actions,.fm.plie .dest:not(.extrait-plie){display:none}
 .fm header .extrait-plie{color:var(--doux);font-style:italic}
 .fm:not(.plie) .extrait-plie{display:none}
