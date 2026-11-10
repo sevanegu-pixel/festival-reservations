@@ -37,7 +37,7 @@ SCRIPT_ID=$(tr -d ' \n\r' < "$ID_FICHIER")
 rm -rf "$ENVOI"; mkdir -p "$ENVOI"
 cp apps-script/a-coller.gs "$ENVOI/Code.js"
 cp apps-script/appsscript.json "$ENVOI/appsscript.json"
-printf '{"scriptId":"%s","rootDir":"%s"}\n' "$SCRIPT_ID" "$ENVOI" > "$ENVOI/.clasp.json"
+printf '{"scriptId":"%s","rootDir":"."}\n' "$SCRIPT_ID" > "$ENVOI/.clasp.json"
 : > "$LOG"
 cd "$ENVOI"
 echo "→ Envoi du code (version $VERSION)"
