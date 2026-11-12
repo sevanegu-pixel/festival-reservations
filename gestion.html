@@ -592,10 +592,10 @@ body.voir main{padding-bottom:120px}
 .typesMailsEv{display:grid;gap:4px}
 .fenetre textarea{min-height:90px}
 .optionResa{display:grid;grid-template-columns:auto 1fr 1.4fr auto auto;gap:8px 10px;align-items:end;background:var(--carte2);border:1px solid var(--ligne);border-radius:10px;padding:10px;margin-bottom:8px}
-.optionResa .badge{align-self:center}.optionResa label{font-size:13px;color:var(--doux)}
+.optionResa .badge{align-self:center}.optionResa label.large{grid-column:1/-1}.optionResa label{font-size:13px;color:var(--doux)}
 #ajoutOption{width:auto;max-width:100%}
 .optsResa{display:block;font-size:12px;color:var(--lav2)}
-@media (max-width:760px){.optionResa{grid-template-columns:1fr}}
+@media (max-width:760px){.optionResa{grid-template-columns:1fr}.optionResa [data-retirer]{order:9;justify-self:start}}
 </style>
 </head>
 <body>
@@ -750,7 +750,7 @@ var MAIL = (function () {
   var BILLETS = { classique: 'Classique (cadre et lignes)', compact: 'Compact (une carte resserrée)', affiche: 'Affiche (grand titre en couleur)', minimal: 'Minimal (sans cadre)' };
   function lignesBillet(v) {
     return [['Date', v.date], ['Heure', v.heure], ['Lieu', v.lieu], ['Au nom de', v.nom], ['Places', v.places]].concat(v.tarif ? [['Tarif', v.tarif]] : [])
-      .concat(v.options ? [['Options', v.options]] : []).concat([['N°', v.numero]]).filter(function (x) { return x[1]; });
+      .concat(v.options ? [['Options', v.options]] : []).filter(function (x) { return x[1]; });
   }
   function tableLignes(v, p, filet) {
     return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%">' + lignesBillet(v).map(function (x, i, l) {
@@ -774,7 +774,7 @@ var MAIL = (function () {
     if (modele === 'compact') {
       var quand = [v.date, v.heure].filter(Boolean).join(' · ');
       carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.billet + '" style="border-collapse:collapse;width:100%;border:2px solid ' + p.bord + ';background:' + p.billet + '"><tr><td style="padding:14px 16px">' +
-        '<div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.14em;text-transform:uppercase;color:' + p.accent + '">Billet · ' + echapper(v.numero || '') + '</div>' + titre(18) +
+        '<div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.14em;text-transform:uppercase;color:' + p.accent + '">Billet</div>' + titre(18) +
         '<div style="font:15px/1.45 ' + police() + ';color:' + p.texte + '">' + echapper(quand) + '<br>' + echapper(v.lieu || '') + '</div>' +
         '<div style="margin-top:8px;padding-top:8px;border-top:1px solid ' + p.filet + ';font:14px/1.45 ' + police() + ';color:' + p.texte + '"><b>' + echapper(v.places || '') + ' place' + (Number(v.places) > 1 ? 's' : '') + '</b> au nom de ' + echapper(v.nom || '') +
         (v.tarif ? '<br><span style="color:' + p.doux + '">' + echapper(v.tarif) + '</span>' : '') + (v.options ? '<br>' + echapper(v.options) : '') + '</div>' + mention + '</td></tr></table>';
@@ -786,7 +786,7 @@ var MAIL = (function () {
         '<div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.14em;text-transform:uppercase;color:' + p.boutonTexte + '">' + echapper(v.festival || '') + ' · Billet</div>' +
         '<div style="font:700 24px/1.15 ' + police() + ';color:' + p.boutonTexte + ';margin-top:6px">' + echapper(v.titre || '') + '</div>' +
         '<div style="font:15px/1.4 ' + police() + ';color:' + p.boutonTexte + ';margin-top:6px">' + echapper([v.date, v.heure].filter(Boolean).join(' · ')) + '</div></td></tr>' +
-        '<tr><td style="padding:12px 16px">' + tableLignes({ lieu: v.lieu, nom: v.nom, places: v.places, tarif: v.tarif, options: v.options, numero: v.numero }, p, true) + mention + '</td></tr></table>';
+        '<tr><td style="padding:12px 16px">' + tableLignes({ lieu: v.lieu, nom: v.nom, places: v.places, tarif: v.tarif, options: v.options }, p, true) + mention + '</td></tr></table>';
       return '<div style="margin:20px 0">' + ombre(carte, avecOmbre, 5, '100%', p.papier) + '</div>';
     }
     carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.billet + '" style="border-collapse:collapse;width:100%;border:2px solid ' + p.bord + ';background:' + p.billet + '">' + tete +
@@ -833,7 +833,7 @@ var MAIL = (function () {
     var carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.papier + '" style="border-collapse:collapse;width:100%;background:' + p.papier + ';border:2px solid ' + p.bord + '"><tr><td style="padding:0;color:' + p.texte + ';font-family:' + police() + ';font-size:16px;line-height:1.55">' + c + '</td></tr></table>';
     var h = '<div style="background:' + p.fond + ';padding:18px 8px;font-family:' + police() + '"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.fond + '" style="border-collapse:collapse;background:' + p.fond + '"><tr><td align="center" style="padding:0">' +
       '<div style="max-width:606px;margin:0 auto;text-align:left">' + ombre(carte, p.ombre === false ? '' : p.accent2, 6, '100%', p.fond) + '</div></td></tr></table></div>';
-    var texte = corps + (avecBillet ? '\n\n— Billet —\n' + [v.titre, v.date + (v.heure ? ' à ' + v.heure : ''), v.lieu, 'Au nom de ' + v.nom + ' · ' + v.places + ' place(s)', 'N° ' + v.numero].filter(Boolean).join('\n') : '') +
+    var texte = corps + (avecBillet ? '\n\n— Billet —\n' + [v.titre, v.date + (v.heure ? ' à ' + v.heure : ''), v.lieu, 'Au nom de ' + v.nom + ' · ' + v.places + ' place(s)'].filter(Boolean).join('\n') : '') +
       (o.bouton && urlSure(lienBouton) ? '\n\n' + remplir(o.bouton, v) + ' : ' + lienBouton : '') + (pied.trim() ? '\n\n--\n' + pied : '');
     return { sujet: sujet, texte: texte, html: h };
   }
@@ -847,7 +847,7 @@ var MAIL = (function () {
   return { pied: pied, VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, tarifUneLigne: tarifUneLigne, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
 })();
 
-var VERSION_APPLI = 'dc9ec615ad7a', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
+var VERSION_APPLI = '84ce91f801be', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
 function lireLocal(k) { try { return localStorage.getItem('festival_resa_' + k) || ''; } catch (e) { return ''; } }
 function garderLocal(k, v) { try { if (v) localStorage.setItem('festival_resa_' + k, v); else localStorage.removeItem('festival_resa_' + k); } catch (e) {} }
 // Cet appareil : un identifiant gardé dans le navigateur + un nom lisible (pour la liste des appareils connectés).
@@ -929,7 +929,7 @@ function recharger(res) {
   if (res.jeton) { JETON = res.jeton; garderLocal('jeton', JETON); garderLocal('pin', ''); } // cet appareil est reconnu : plus de code PIN à redonner
   document.querySelectorAll('[data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
   document.querySelectorAll('.nom-festival').forEach(function (e) { e.textContent = D.reglages.nomFestival || 'Festival'; });
-  if (VERSION_APPLI !== 'dc9ec615ad7a') $('#volet-version').textContent = 'Version ' + VERSION_APPLI;
+  if (VERSION_APPLI !== '84ce91f801be') $('#volet-version').textContent = 'Version ' + VERSION_APPLI;
   $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
   if (typeof res.boiteNonLus === 'number') { BOITE_NL = res.boiteNonLus; badgeBoite(); }
   if (droit('boite')) setTimeout(prechargerBoiteMx, 3000);
@@ -1184,7 +1184,7 @@ function afficher() {
   h += '<div class="barreTri"><select id="triStatut" aria-label="Filtrer par statut"><option value="">Tous les statuts</option>' + D.statuts.map(function (s) { return '<option' + (s === TRI_EV.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '<option value="Complet"' + (TRI_EV.statut === 'Complet' ? ' selected' : '') + '>Complets</option></select>' +
     '<select id="triOrdre" aria-label="Trier"><option value="date">Par date</option><option value="titre"' + (TRI_EV.ordre === 'titre' ? ' selected' : '') + '>Par titre</option><option value="remplissage"' + (TRI_EV.ordre === 'remplissage' ? ' selected' : '') + '>Par remplissage</option><option value="recent"' + (TRI_EV.ordre === 'recent' ? ' selected' : '') + '>Derniers créés</option></select>' +
     '<input id="triQ" type="search" placeholder="Chercher un titre, une compagnie…" value="' + esc(TRI_EV.q) + '"><span class="compte">' + evs.length + ' / ' + D.evenements.length + '</span></div>';
-  if (D.version && VERSION_APPLI !== 'dc9ec615ad7a' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
+  if (D.version && VERSION_APPLI !== '84ce91f801be' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
   if (COMPTE && COMPTE.id === 'cle' && droit('comptes') && !PIN && !D.nbComptes) h += '<div class="bandeau" id="bandeauPin">Vous êtes entrée avec le lien personnel. Créez votre code PIN et ceux des bénévoles dans <a href="#" id="versComptes">Réglages → Comptes</a> : ensuite l\'appli s\'ouvre avec le code, sur n\'importe quel appareil.</div>';
   h += parDate ? '<h2>À venir</h2>' + liste(avenir) + '<h2>Passés</h2>' + liste(passes) : liste(avenir);
   $('#vue').innerHTML = h;
@@ -1569,7 +1569,7 @@ function initOptionsResa(e) {
         '<label>Nom affiché<input type="text" data-k="nom" value="' + esc(o.nom || '') + '" placeholder="' + (c ? 'Ex. Membre de la Société des écrivains' : 'Ex. Billet + livre') + '"></label>' +
         '<label>Précision (facultatif)<input type="text" data-k="aide" value="' + esc(o.aide || '') + '" placeholder="' + (c ? 'Ex. places réservées aux membres' : 'Ex. 40 francs au lieu de 20, livre remis sur place') + '"></label>' +
         (c ? '<label>Nombre de places réservées<input type="number" min="0" data-k="places" value="' + (Number(o.places) || 0) + '"></label>' : '') +
-        '<button type="button" class="btn petit danger" data-retirer="' + i + '">Retirer</button></div>';
+        '<button type="button" class="btn petit danger" data-retirer="' + i + '">Retirer</button><label class="large">Phrase ajoutée au mail de confirmation quand c\'est coché (facultatif)<input type="text" data-k="mail" value="' + esc(o.mail || '') + '" placeholder="' + (c ? 'Ex. Votre place est gardée avec les membres de la Société.' : 'Ex. Votre livre vous attendra à l\'accueil du théâtre.') + '"></label>' + '</div>';
     }).join('') : '<p class="vide">Aucune option : le formulaire du site reste simple.</p>';
     z.querySelectorAll('input[data-k]').forEach(function (inp) {
       inp.oninput = function () { var o = liste[+inp.closest('.optionResa').dataset.i]; o[inp.dataset.k] = inp.dataset.k === 'places' ? Math.max(0, Math.floor(Number(inp.value) || 0)) : inp.value; ecrire(); };
@@ -2968,7 +2968,7 @@ function afficherPhotos() {
     }
     var h = '<h2>Visuels</h2>';
     if (!window.SPECTACLES && siteUrl()) h += '<div class="bandeau">Le site (' + esc(siteUrl()) + ') ne répond pas pour l\'instant : seuls les visuels de la bibliothèque sont affichés.</div>';
-    if (D.version && VERSION_APPLI !== 'dc9ec615ad7a' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
+    if (D.version && VERSION_APPLI !== '84ce91f801be' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
     h += '<div class="panneau"><p>Photos, affiches, dessins : tout ce qui peut illustrer un spectacle. <b>1.</b> Choisissez le spectacle, <b>2.</b> ajoutez les fichiers. Ensuite, dans chaque événement, vous choisissez lesquels afficher et dans quel ordre.</p>' +
       '<div class="grille"><div><label for="g-titre">1. Spectacle</label><select id="g-titre">' + options($('#g-titre') ? $('#g-titre').value : '') + '</select></div>' +
       '<div><label>2. Fichiers</label><button type="button" class="btn plein" id="ajoutGalerie" style="width:100%">+ Ajouter des visuels</button></div>' +

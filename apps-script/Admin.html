@@ -396,10 +396,10 @@ body.voir main{padding-bottom:120px}
 .typesMailsEv{display:grid;gap:4px}
 .fenetre textarea{min-height:90px}
 .optionResa{display:grid;grid-template-columns:auto 1fr 1.4fr auto auto;gap:8px 10px;align-items:end;background:var(--carte2);border:1px solid var(--ligne);border-radius:10px;padding:10px;margin-bottom:8px}
-.optionResa .badge{align-self:center}.optionResa label{font-size:13px;color:var(--doux)}
+.optionResa .badge{align-self:center}.optionResa label.large{grid-column:1/-1}.optionResa label{font-size:13px;color:var(--doux)}
 #ajoutOption{width:auto;max-width:100%}
 .optsResa{display:block;font-size:12px;color:var(--lav2)}
-@media (max-width:760px){.optionResa{grid-template-columns:1fr}}
+@media (max-width:760px){.optionResa{grid-template-columns:1fr}.optionResa [data-retirer]{order:9;justify-self:start}}
 </style>
 </head>
 <body>
@@ -1173,7 +1173,7 @@ function initOptionsResa(e) {
         '<label>Nom affiché<input type="text" data-k="nom" value="' + esc(o.nom || '') + '" placeholder="' + (c ? 'Ex. Membre de la Société des écrivains' : 'Ex. Billet + livre') + '"></label>' +
         '<label>Précision (facultatif)<input type="text" data-k="aide" value="' + esc(o.aide || '') + '" placeholder="' + (c ? 'Ex. places réservées aux membres' : 'Ex. 40 francs au lieu de 20, livre remis sur place') + '"></label>' +
         (c ? '<label>Nombre de places réservées<input type="number" min="0" data-k="places" value="' + (Number(o.places) || 0) + '"></label>' : '') +
-        '<button type="button" class="btn petit danger" data-retirer="' + i + '">Retirer</button></div>';
+        '<button type="button" class="btn petit danger" data-retirer="' + i + '">Retirer</button><label class="large">Phrase ajoutée au mail de confirmation quand c\'est coché (facultatif)<input type="text" data-k="mail" value="' + esc(o.mail || '') + '" placeholder="' + (c ? 'Ex. Votre place est gardée avec les membres de la Société.' : 'Ex. Votre livre vous attendra à l\'accueil du théâtre.') + '"></label>' + '</div>';
     }).join('') : '<p class="vide">Aucune option : le formulaire du site reste simple.</p>';
     z.querySelectorAll('input[data-k]').forEach(function (inp) {
       inp.oninput = function () { var o = liste[+inp.closest('.optionResa').dataset.i]; o[inp.dataset.k] = inp.dataset.k === 'places' ? Math.max(0, Math.floor(Number(inp.value) || 0)) : inp.value; ecrire(); };

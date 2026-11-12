@@ -94,7 +94,7 @@ var MAIL = (function () {
   var BILLETS = { classique: 'Classique (cadre et lignes)', compact: 'Compact (une carte resserrée)', affiche: 'Affiche (grand titre en couleur)', minimal: 'Minimal (sans cadre)' };
   function lignesBillet(v) {
     return [['Date', v.date], ['Heure', v.heure], ['Lieu', v.lieu], ['Au nom de', v.nom], ['Places', v.places]].concat(v.tarif ? [['Tarif', v.tarif]] : [])
-      .concat(v.options ? [['Options', v.options]] : []).concat([['N°', v.numero]]).filter(function (x) { return x[1]; });
+      .concat(v.options ? [['Options', v.options]] : []).filter(function (x) { return x[1]; });
   }
   function tableLignes(v, p, filet) {
     return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%">' + lignesBillet(v).map(function (x, i, l) {
@@ -118,7 +118,7 @@ var MAIL = (function () {
     if (modele === 'compact') {
       var quand = [v.date, v.heure].filter(Boolean).join(' · ');
       carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.billet + '" style="border-collapse:collapse;width:100%;border:2px solid ' + p.bord + ';background:' + p.billet + '"><tr><td style="padding:14px 16px">' +
-        '<div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.14em;text-transform:uppercase;color:' + p.accent + '">Billet · ' + echapper(v.numero || '') + '</div>' + titre(18) +
+        '<div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.14em;text-transform:uppercase;color:' + p.accent + '">Billet</div>' + titre(18) +
         '<div style="font:15px/1.45 ' + police() + ';color:' + p.texte + '">' + echapper(quand) + '<br>' + echapper(v.lieu || '') + '</div>' +
         '<div style="margin-top:8px;padding-top:8px;border-top:1px solid ' + p.filet + ';font:14px/1.45 ' + police() + ';color:' + p.texte + '"><b>' + echapper(v.places || '') + ' place' + (Number(v.places) > 1 ? 's' : '') + '</b> au nom de ' + echapper(v.nom || '') +
         (v.tarif ? '<br><span style="color:' + p.doux + '">' + echapper(v.tarif) + '</span>' : '') + (v.options ? '<br>' + echapper(v.options) : '') + '</div>' + mention + '</td></tr></table>';
@@ -130,7 +130,7 @@ var MAIL = (function () {
         '<div style="font:700 11px/1.4 ' + sans() + ';letter-spacing:.14em;text-transform:uppercase;color:' + p.boutonTexte + '">' + echapper(v.festival || '') + ' · Billet</div>' +
         '<div style="font:700 24px/1.15 ' + police() + ';color:' + p.boutonTexte + ';margin-top:6px">' + echapper(v.titre || '') + '</div>' +
         '<div style="font:15px/1.4 ' + police() + ';color:' + p.boutonTexte + ';margin-top:6px">' + echapper([v.date, v.heure].filter(Boolean).join(' · ')) + '</div></td></tr>' +
-        '<tr><td style="padding:12px 16px">' + tableLignes({ lieu: v.lieu, nom: v.nom, places: v.places, tarif: v.tarif, options: v.options, numero: v.numero }, p, true) + mention + '</td></tr></table>';
+        '<tr><td style="padding:12px 16px">' + tableLignes({ lieu: v.lieu, nom: v.nom, places: v.places, tarif: v.tarif, options: v.options }, p, true) + mention + '</td></tr></table>';
       return '<div style="margin:20px 0">' + ombre(carte, avecOmbre, 5, '100%', p.papier) + '</div>';
     }
     carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.billet + '" style="border-collapse:collapse;width:100%;border:2px solid ' + p.bord + ';background:' + p.billet + '">' + tete +
@@ -177,7 +177,7 @@ var MAIL = (function () {
     var carte = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.papier + '" style="border-collapse:collapse;width:100%;background:' + p.papier + ';border:2px solid ' + p.bord + '"><tr><td style="padding:0;color:' + p.texte + ';font-family:' + police() + ';font-size:16px;line-height:1.55">' + c + '</td></tr></table>';
     var h = '<div style="background:' + p.fond + ';padding:18px 8px;font-family:' + police() + '"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' + p.fond + '" style="border-collapse:collapse;background:' + p.fond + '"><tr><td align="center" style="padding:0">' +
       '<div style="max-width:606px;margin:0 auto;text-align:left">' + ombre(carte, p.ombre === false ? '' : p.accent2, 6, '100%', p.fond) + '</div></td></tr></table></div>';
-    var texte = corps + (avecBillet ? '\n\n— Billet —\n' + [v.titre, v.date + (v.heure ? ' à ' + v.heure : ''), v.lieu, 'Au nom de ' + v.nom + ' · ' + v.places + ' place(s)', 'N° ' + v.numero].filter(Boolean).join('\n') : '') +
+    var texte = corps + (avecBillet ? '\n\n— Billet —\n' + [v.titre, v.date + (v.heure ? ' à ' + v.heure : ''), v.lieu, 'Au nom de ' + v.nom + ' · ' + v.places + ' place(s)'].filter(Boolean).join('\n') : '') +
       (o.bouton && urlSure(lienBouton) ? '\n\n' + remplir(o.bouton, v) + ' : ' + lienBouton : '') + (pied.trim() ? '\n\n--\n' + pied : '');
     return { sujet: sujet, texte: texte, html: h };
   }

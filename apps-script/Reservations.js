@@ -44,7 +44,7 @@ function optionsEv_(ev) {
   if (!Array.isArray(l)) return [];
   return l.map(function (o) {
     return { id: String(o.id || '').replace(/[^\w-]/g, '').slice(0, 20), type: o.type === 'contingent' ? 'contingent' : 'case',
-      nom: String(o.nom || '').trim().slice(0, 80), aide: String(o.aide || '').trim().slice(0, 300), places: Math.max(0, Math.floor(Number(o.places) || 0)) };
+      nom: String(o.nom || '').trim().slice(0, 80), aide: String(o.aide || '').trim().slice(0, 300), mail: String(o.mail || '').trim().slice(0, 600), places: Math.max(0, Math.floor(Number(o.places) || 0)) };
   }).filter(function (o) { return o.id && o.nom; });
 }
 function nomsOptions_(r) { return String((r && r.options) || '').split(' · ').map(function (x) { return x.trim(); }).filter(String); }
@@ -458,11 +458,20 @@ function mailsEv_(ev) {
   var o = {}; try { o = JSON.parse((ev && ev.mailsEv) || '{}') || {}; } catch (e) { o = {}; }
   return { types: o.types && typeof o.types === 'object' ? o.types : {}, ajout: String(o.ajout || '').slice(0, 2000) };
 }
+var TYPES_AVEC_OPTIONS = ['confirmation', 'liberee', 'rappel'];
+/** Phrases « mail » des options que la personne a cochées (ou de son groupe de places réservées). */
+function textesOptions_(ev, resa) {
+  var noms = nomsOptions_(resa);
+  return optionsEv_(ev).filter(function (o) { return o.mail && noms.indexOf(o.nom) >= 0; }).map(function (o) { return o.mail; }).join('\n\n');
+}
 function envoyerType_(type, ev, resa, r) {
   r = r || reglages_();
   var valeurs = valeursMail_(ev, resa), x = mailsEv_(ev), t = MAIL.TYPES[type];
   if (x.types[type] === 'non') return valeurs; // cet événement n'envoie pas ce mail-là
-  if (x.ajout.trim() && t) { var r2 = {}; Object.keys(r).forEach(function (k) { r2[k] = r[k]; }); r2[t.message] = String(r[t.message] || '').replace(/\s+$/, '') + '\n\n' + x.ajout.trim(); r = r2; }
+  // Phrases des options cochées (ex. « votre livre vous attendra au théâtre ») : dans les mails où la place est confirmée.
+  var parOptions = TYPES_AVEC_OPTIONS.indexOf(type) >= 0 ? textesOptions_(ev, resa) : '';
+  var ajout = [x.ajout.trim(), parOptions].filter(String).join('\n\n');
+  if (ajout && t) { var r2 = {}; Object.keys(r).forEach(function (k) { r2[k] = r[k]; }); r2[t.message] = String(r[t.message] || '').replace(/\s+$/, '') + '\n\n' + ajout; r = r2; }
   var m = MAIL.composer(type, r, valeurs);
   var repondreA = renvoi_(ev) && ev.renvoiReponses === 'Oui' ? renvoi_(ev) : r.copieA;
   MailApp.sendEmail({ to: resa.email, subject: m.sujet, body: m.texte, htmlBody: m.html, name: r.nomFestival, replyTo: repondreA || undefined });
