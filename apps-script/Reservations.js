@@ -498,7 +498,7 @@ function valeursMail_(ev, resa) {
   var r = reglages_(), nom = String(resa.nom || '').trim();
   return {
     nom: nom, prenom: nom.split(/\s+/)[0] || '', places: resa.places, titre: ev.titre, date: dateLongue_(ev.date),
-    heure: ev.debut || '', lieu: [ev.lieu, ev.adresse].filter(String).join(', '), adresse: ev.adresse || '', tarif: ev.tarif || '',
+    heure: ev.debut || '', lieu: [ev.lieu, ev.adresse].filter(String).join(', '), adresse: ev.adresse || '', tarif: MAIL.tarifUneLigne(ev.tarif),
     numero: resa.id || '', email: resa.email || '', telephone: resa.telephone || '', message: resa.message || '', options: resa.options || '',
     festival: r.nomFestival, site: String(r.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, ''),
     lien: ev.id ? String(r.siteUrl || '').replace(/\/?$/, '/') + 'programme.html#' + encodeURIComponent(ev.id) : String(r.siteUrl || ''),
@@ -570,6 +570,14 @@ function adminCharger(cle) {
 
 function adminEnregistrerEvenement(cle, ev) {
   verifierCle_(cle);
+  // Retours à la ligne venus du navigateur (\r\n) ramenés à \n, comme dans la feuille.
+  CHAMPS_EV.forEach(function (c) { if (typeof ev[c] === 'string') ev[c] = ev[c].replace(/\r\n?/g, '\n'); });
+  var avant = ev._avant && typeof ev._avant === 'object' ? ev._avant : null, gardes = [];
+  delete ev._avant;
+  if (avant && ev.id) { // l'appli dit ce qu'elle avait chargé : seuls les champs changés dans l'appli sont écrits
+    var fl = onglet_(RESA.ongletEvenements, COL_EV), nl = ligneDe_(fl, ev.id);
+    if (nl) gardes = fusionnerEvenement_(ev, avant, objetDeLigne_(fl.getRange(nl, 1, 1, COL_EV.length).getDisplayValues()[0], CHAMPS_EV));
+  }
   if (!String(ev.titre || '').trim()) throw new Error('Le titre manque.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(ev.date || '')) throw new Error('La date manque.');
   if (STATUTS_EV.indexOf(ev.statut) < 0) ev.statut = 'Brouillon';
@@ -602,7 +610,25 @@ function adminEnregistrerEvenement(cle, ev) {
   } finally {
     verrou.releaseLock();
   }
-  return adminCharger(cle);
+  var res = adminCharger(cle);
+  if (gardes.length) res.gardes = gardes;
+  return res;
+}
+
+/**
+ * Protège ce qui a été changé ailleurs (dans la feuille, ou depuis un autre appareil) depuis que l'appli a chargé
+ * l'événement : un champ que l'appli n'a pas touché (même valeur qu'au chargement) reprend la valeur actuelle de la feuille.
+ * Un champ absent de la demande garde aussi la valeur de la feuille. Renvoie les champs ainsi gardés (s'ils différaient).
+ */
+function fusionnerEvenement_(ev, avant, actuel) {
+  var gardes = [], norm = function (v) { return v == null ? '' : String(v).replace(/\r\n?/g, '\n'); };
+  CHAMPS_EV.forEach(function (c) {
+    if (c === 'id') return;
+    var absent = !(c in ev), inchange = !absent && norm(ev[c]) === norm(avant[c]);
+    if (!absent && !inchange) return; // changé dans l'appli : on l'écrit
+    if (absent || norm(actuel[c]) !== norm(avant[c])) { if (norm(ev[c]) !== norm(actuel[c]) && !absent) gardes.push(COL_EV[CHAMPS_EV.indexOf(c)]); ev[c] = actuel[c]; }
+  });
+  return gardes;
 }
 
 function adminSupprimerEvenement(cle, id) {

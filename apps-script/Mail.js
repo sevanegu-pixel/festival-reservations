@@ -43,6 +43,8 @@ var MAIL = (function () {
 
   function echapper(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function urlSure(u) { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? u : ''; }
+  // Tarif écrit sur plusieurs lignes (« Libellé : prix », note commençant par *) : une seule ligne pour les e-mails.
+  function tarifUneLigne(t) { return String(t || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean).join(' · '); }
   function remplir(modele, valeurs) {
     return String(modele == null ? '' : modele).replace(/\{(\w+)\}/g, function (tout, cle) { return cle in valeurs ? String(valeurs[cle] == null ? '' : valeurs[cle]) : tout; })
       .replace(/[ \t]+\n/g, '\n');
@@ -186,5 +188,5 @@ var MAIL = (function () {
     var p = palette(options(r, 'confirmation')); p = Object.assign({}, THEMES.clair, { accent: p.accent });
     return piedHtml(remplir(r.piedDePage || '', v), r, p);
   }
-  return { pied: pied, VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
+  return { pied: pied, VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, tarifUneLigne: tarifUneLigne, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
 })();

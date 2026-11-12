@@ -529,7 +529,7 @@ function appel(fn, args, ok, options) {
   r[fn].apply(r, [CLE].concat(args || []));
 }
 function recharger(res) {
-  D = res; COMPTE = res.compte || null; $('#nomFestival').textContent = D.reglages.nomFestival || 'Festival';
+  D = res; CHARGE_LE = Date.now(); COMPTE = res.compte || null; $('#nomFestival').textContent = D.reglages.nomFestival || 'Festival';
   if (res.jeton) { JETON = res.jeton; garderLocal('jeton', JETON); garderLocal('pin', ''); } // cet appareil est reconnu : plus de code PIN à redonner
   document.querySelectorAll('[data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
   document.querySelectorAll('.nom-festival').forEach(function (e) { e.textContent = D.reglages.nomFestival || 'Festival'; });
@@ -734,11 +734,27 @@ function activerListe() {
     s.onchange = function (ev) {
       ev.stopPropagation();
       var e = D.evenements.filter(function (x) { return x.id === s.dataset.id; })[0]; if (!e) return;
-      var o = {}; Object.keys(e).forEach(function (k) { o[k] = e[k]; }); o.statut = s.value;
-      appel('adminEnregistrerEvenement', [o], function (res) { recharger(res); toast('« ' + e.titre + ' » : ' + s.value); });
+      var o = avantDe(e); o.statut = s.value; o._avant = avantDe(e);
+      appel('adminEnregistrerEvenement', [o], function (res) { recharger(res); toast('« ' + (res.evenements.filter(function (x) { return x.id === e.id; })[0] || e).titre + ' » : ' + s.value + noteGardes(res)); });
     };
   });
 }
+
+// Ce que l'appli avait chargé pour un événement : le script n'écrit que les champs changés ici,
+// et garde ce qui a été modifié entre-temps dans la feuille ou sur un autre appareil.
+function avantDe(e) { var a = {}; Object.keys(e).forEach(function (k) { if (k !== 'prises' && typeof e[k] !== 'object') a[k] = e[k]; }); return a; }
+function noteGardes(res) { return res && res.gardes && res.gardes.length ? ' Modifié ailleurs entre-temps, gardé : ' + res.gardes.join(', ') + '.' : ''; }
+// Données relues quand on revient sur l'appli (téléphone en veille, onglet resté ouvert) : jamais de vieille copie.
+var CHARGE_LE = Date.now();
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden || !D || Date.now() - CHARGE_LE < 60000) return;
+  CHARGE_LE = Date.now();
+  appel('adminCharger', [], function (res) {
+    var y = scrollY, va = $('#voletApercu'), enSaisie = MODIFIE || ouvert === 'nouveau' || ouvert === 'copie' || (va && !va.hidden) || document.querySelector('#dialogue.ouvert');
+    if (enSaisie || (vue !== 'accueil' && vue !== 'evenements')) { D = res; return; }
+    recharger(res); scrollTo(0, y);
+  }, { silencieux: true, echec: function () { return true; } });
+});
 
 var TRI_EV = { statut: '', ordre: 'date', q: '' };
 function afficher() {
@@ -916,7 +932,7 @@ function afficherEvenement(id) {
     var d0 = e.date ? e.date.split('-').reverse().join('.') : '';
     h = '<div class="barreEv"><button class="btn" id="retour">← Tous les événements</button><h2>' + esc(e.titre) + '</h2></div>' +
       '<div class="editeur"><div class="colonne"><div class="panneau resumeEv"><div class="grandeDate">' + esc(dateLongueFr(e.date) || d0) + (e.debut ? ' · ' + esc(e.debut) : '') + '</div>' +
-      '<p>' + [e.lieu, e.adresse].filter(Boolean).map(esc).join(', ') + (e.tarif ? ' · ' + esc(e.tarif) : '') + '</p><p><span class="badge ' + esc(e.statut) + '">' + esc(e.statut || 'Brouillon') + '</span>' + (e.attente === 'Oui' ? ' <span class="badge">liste d\'attente ouverte</span>' : '') + '</p></div>';
+      '<p>' + [e.lieu, e.adresse].filter(Boolean).map(esc).join(', ') + (e.tarif ? ' · ' + esc(MAIL.tarifUneLigne(e.tarif)) : '') + '</p><p><span class="badge ' + esc(e.statut) + '">' + esc(e.statut || 'Brouillon') + '</span>' + (e.attente === 'Oui' ? ' <span class="badge">liste d\'attente ouverte</span>' : '') + '</p></div>';
   } else {
   h = '<div class="barreEv"><button class="btn" id="retour">← Tous les événements</button><h2>' + (nouveau ? 'Nouvel événement' : 'Modifier · ' + esc(e.titre)) + '</h2>' +
     (peutModifier ? '<button class="btn plein" type="submit" form="form" id="enregistrerHaut">Enregistrer</button>' : '') +
@@ -934,7 +950,8 @@ function afficherEvenement(id) {
     champ('age', 'Âge', e.age, 'text', 'placeholder="Dès 6 ans, tout public…"') +
     champ('lieu', 'Lieu', e.lieu) +
     champ('adresse', 'Adresse', e.adresse) +
-    champ('tarif', 'Tarif (texte)', e.tarif, 'text', 'placeholder="Prix libre, paiement sur place"') +
+    '<div class="large"><label for="f-tarif">Tarif</label><textarea id="f-tarif" name="tarif" rows="' + Math.max(2, String(e.tarif || '').split('\n').length + 1) + '" placeholder="Prix libre, paiement sur place">' + esc(e.tarif) + '</textarea>' +
+      '<p class="aide">Un seul tarif : une ligne. Plusieurs tarifs : une ligne « Libellé : prix » par tarif (ex. « Tarif réduit : 15 francs ») ; une ligne qui commence par * devient une note sous la grille du site.</p></div>' +
     champ('places', 'Nombre de places (vide = illimité)', e.places, 'number', 'min="0"') +
     '<div><label>Quand c\'est complet</label><label class="coche"><input type="checkbox" name="attente" value="Oui"' + (e.attente === 'Oui' ? ' checked' : '') + '> ouvrir une liste d\'attente</label><p class="aide">Le site affiche « Complet » et bloque les réservations ; avec la liste d\'attente, les gens peuvent s\'inscrire et vous les confirmez ici quand une place se libère.</p></div>' +
     '<div class="large"><h3 class="section">Options de réservation</h3><p class="aide">Elles s\'ajoutent au formulaire de réservation du site pour cet événement : une case en plus (ex. « Billet + livre »), ou des places réservées à un groupe (ex. « Société des écrivains »), que le public ne peut pas prendre.</p>' +
@@ -1014,6 +1031,7 @@ function afficherEvenement(id) {
     ev.preventDefault();
     var o = { id: nouveau ? '' : e.id, attente: '' };
     new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
+    if (!nouveau) o._avant = avantDe(e);
     var mr = lireFenetreMails(); o.renvoi = mr.renvoi; o.renvoiCopie = mr.renvoiCopie; o.renvoiReponses = mr.renvoiReponses;
     if (mr.erreur) { toast(mr.erreur, true); $('#ouvrirMailsEv').click(); return; }
     if (!o.titre || !o.date) { toast(!o.titre ? 'Donnez un titre à l\'événement.' : 'Donnez une date à l\'événement : sans date, il n\'apparaît nulle part.', true); (!o.titre ? $('#f-titre') : $('#f-date')).focus(); return; }
@@ -1025,7 +1043,7 @@ function afficherEvenement(id) {
       if (etaitNouveau) { var cree = res.evenements.filter(function (x) { return x.titre === o.titre && x.date === o.date && x.debut === o.debut; }).pop(); ouvert = cree ? cree.id : null; afficher(); }
       else { afficher(); scrollTo(0, y); }
       [$('#enregistrerHaut'), $('#form button[type=submit]')].forEach(function (b) { if (!b) return; var t = b.textContent; b.textContent = 'Enregistré ✓'; b.classList.add('ok'); setTimeout(function () { b.textContent = t; b.classList.remove('ok'); }, 2500); });
-      toast('Enregistré ✓ ' + (o.statut === 'Ouvert' || o.statut === 'Fermé' ? 'Le site est à jour.' : 'Statut « ' + o.statut + ' » : pas encore visible sur le site.'));
+      toast('Enregistré ✓ ' + (o.statut === 'Ouvert' || o.statut === 'Fermé' ? 'Le site est à jour.' : 'Statut « ' + o.statut + ' » : pas encore visible sur le site.') + noteGardes(res));
     });
   };
   if (nouveau) return;
@@ -1199,7 +1217,7 @@ function brouillonMails() {
 function valeursExemple(o) {
   var v = MAIL.exemple(), evs = (D.evenements || []).filter(function (e) { return e.statut === 'Ouvert' || e.statut === 'Fermé'; });
   var ev = evs.filter(function (e) { return e.id === MAIL_EX; })[0] || evs.filter(function (e) { return e.date >= aujourdhui(); })[0] || evs[0];
-  if (ev) { MAIL_EX = ev.id; v.titre = ev.titre; v.date = dateLongueFr(ev.date); v.heure = ev.debut || ''; v.lieu = [ev.lieu, ev.adresse].filter(Boolean).join(', '); v.adresse = ev.adresse || ''; v.tarif = ev.tarif || ''; v.image = String(ev.image || '').split(/\s*[\n,]\s*/).filter(function (u) { return u && u.charAt(0) !== '#'; })[0] || (window.SPECTACLES && photosSitePour(ev.spectacle || ev.titre)[0] ? siteUrl() + photosSitePour(ev.spectacle || ev.titre)[0].src : ''); v.lien = siteUrl() + 'programme.html#' + encodeURIComponent(ev.id); }
+  if (ev) { MAIL_EX = ev.id; v.titre = ev.titre; v.date = dateLongueFr(ev.date); v.heure = ev.debut || ''; v.lieu = [ev.lieu, ev.adresse].filter(Boolean).join(', '); v.adresse = ev.adresse || ''; v.tarif = MAIL.tarifUneLigne(ev.tarif); v.image = String(ev.image || '').split(/\s*[\n,]\s*/).filter(function (u) { return u && u.charAt(0) !== '#'; })[0] || (window.SPECTACLES && photosSitePour(ev.spectacle || ev.titre)[0] ? siteUrl() + photosSitePour(ev.spectacle || ev.titre)[0].src : ''); v.lien = siteUrl() + 'programme.html#' + encodeURIComponent(ev.id); }
   v.festival = o.nomFestival || v.festival; v.site = String(o.siteUrl || '').replace(/\/apercu\/?$/, '').replace(/\/$/, '') || v.site;
   return v;
 }
