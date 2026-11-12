@@ -1364,6 +1364,36 @@ function afficherMails() {
 
 /*__MAILS_JS__*/
 
+// Formulaire de réservation du site : ce que le public doit remplir (réglage commun à tous les spectacles).
+function formulaireLu(r) {
+  var o = {}; try { o = JSON.parse((r && r.formulaire) || '{}') || {}; } catch (e) { o = {}; }
+  ['telephone', 'message'].forEach(function (c) { if (['masque', 'facultatif', 'obligatoire'].indexOf(o[c]) < 0) o[c] = 'facultatif'; });
+  o.maxPlaces = Math.min(30, Math.max(1, Math.floor(Number(o.maxPlaces) || 10))); o.telDes = Math.max(0, Math.floor(Number(o.telDes) || 0));
+  return o;
+}
+function formulaireReglages(r) {
+  var f = formulaireLu(r);
+  function choix(nom, label, val) {
+    return '<div><label for="f-fo_' + nom + '">' + label + '</label><select id="f-fo_' + nom + '" name="fo_' + nom + '">' +
+      [['facultatif', 'Demandé, facultatif'], ['obligatoire', 'Obligatoire'], ['masque', 'Pas demandé']].map(function (c) { return '<option value="' + c[0] + '"' + (c[0] === val ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('') + '</select></div>';
+  }
+  return '<h3 class="section">Formulaire de réservation du site</h3>' +
+    '<p class="aide">Ce que le public remplit pour réserver, pour tous les spectacles. Le nom et l\'e-mail sont toujours obligatoires.</p><div class="grille" style="margin-top:14px">' +
+    choix('telephone', 'Téléphone', f.telephone) +
+    '<div><label for="f-fo_telDes">Téléphone obligatoire à partir de… places</label><input id="f-fo_telDes" name="fo_telDes" type="number" min="0" max="30" value="' + (f.telDes || '') + '" placeholder="Vide = jamais"></div>' +
+    choix('message', 'Message', f.message) +
+    '<div><label for="f-fo_maxPlaces">Places au maximum par réservation</label><input id="f-fo_maxPlaces" name="fo_maxPlaces" type="number" min="1" max="30" value="' + f.maxPlaces + '"></div>' +
+    '</div><p class="aide" id="resumeFormulaire"></p>';
+}
+function resumeFormulaire() {
+  var z = $('#resumeFormulaire'); if (!z) return;
+  var t = $('#f-fo_telephone').value, n = Number($('#f-fo_telDes').value) || 0, m = $('#f-fo_message').value, x = [];
+  x.push('Téléphone : ' + (t === 'masque' ? 'pas demandé' : t === 'obligatoire' ? 'obligatoire' : n ? 'facultatif, obligatoire à partir de ' + n + ' places (le site l\'indique à côté du champ)' : 'facultatif'));
+  x.push('message : ' + (m === 'masque' ? 'pas demandé' : m));
+  x.push('de 1 à ' + (Number($('#f-fo_maxPlaces').value) || 10) + ' places par réservation');
+  z.textContent = 'Sur le site : ' + x.join(' ; ') + '.';
+  $('#f-fo_telDes').disabled = t !== 'facultatif';
+}
 function afficherReglages() {
   var r = D.reglages, h = '';
   if (droit('reglages')) h += '<h2>Réglages</h2><form id="regl" class="panneau"><div class="grille">' +
@@ -1371,14 +1401,19 @@ function afficherReglages() {
     champ('siteUrl', 'Adresse du site (pour les aperçus)', r.siteUrl, 'url') +
     champ('copieA', 'Adresse qui reçoit une copie de chaque réservation', r.copieA, 'email') + '</div>' +
     '<p class="aide">Les e-mails envoyés au public se règlent dans l\'onglet <b>E-mails</b>.</p>' +
+    formulaireReglages(r) +
     '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button></div></form>';
   if (droit('comptes')) h += '<h2 id="comptes">Comptes et codes PIN</h2><div class="panneau" id="zoneComptes"><p class="vide">Chargement…</p></div>' +
     '<h2>Appareils connectés</h2><div class="panneau" id="zoneAppareils"><p class="vide">Chargement…</p></div>';
   $('#vue').innerHTML = h;
   if ($('#regl')) {
+    ['#f-fo_telephone', '#f-fo_telDes', '#f-fo_message', '#f-fo_maxPlaces'].forEach(function (k) { $(k).addEventListener('input', resumeFormulaire); $(k).addEventListener('change', resumeFormulaire); });
+    resumeFormulaire();
     $('#regl').onsubmit = function (ev) {
       ev.preventDefault();
-      var o = Object.assign({}, D.reglages); new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
+      var o = Object.assign({}, D.reglages); new FormData(ev.target).forEach(function (v, k) { if (k.indexOf('fo_') !== 0) o[k] = v; });
+      var fd = new FormData(ev.target);
+      o.formulaire = JSON.stringify({ telephone: fd.get('fo_telephone'), message: fd.get('fo_message'), telDes: Number(fd.get('fo_telDes')) || 0, maxPlaces: Number(fd.get('fo_maxPlaces')) || 10 });
       appel('adminEnregistrerReglages', [o], function (res) { recharger(res); toast('Réglages enregistrés ✓'); });
     };
   }

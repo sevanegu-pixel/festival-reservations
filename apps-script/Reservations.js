@@ -103,13 +103,29 @@ var REGLAGES_DEFAUT = {
   facebook: '',
   billet: 'Oui',
   optionsMail: '{}',
+  formulaire: '{}',
 };
+
+/**
+ * Formulaire de réservation du site, réglé dans l'appli (Réglages) : champs demandés, obligatoires ou non,
+ * téléphone obligatoire à partir d'un nombre de places, nombre maximum de places par réservation.
+ */
+var CHAMPS_FORM = ['telephone', 'message'];
+function formulaire_(r) {
+  var o = {}; try { o = JSON.parse((r || reglages_()).formulaire || '{}') || {}; } catch (e) { o = {}; }
+  var f = {};
+  CHAMPS_FORM.forEach(function (c) { f[c] = ['masque', 'facultatif', 'obligatoire'].indexOf(o[c]) >= 0 ? o[c] : 'facultatif'; });
+  f.maxPlaces = Math.min(30, Math.max(1, Math.floor(Number(o.maxPlaces) || RESA.maxParReservation)));
+  f.telDes = Math.max(0, Math.floor(Number(o.telDes) || 0)); // 0 = jamais
+  if (f.telephone === 'obligatoire') f.telDes = 0;
+  return f;
+}
 
 // ---------- Point d'entrée web ----------
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
-  if (p.api === 'evenements') return json_({ festival: reglages_().nomFestival, evenements: evenementsPublics_() });
+  if (p.api === 'evenements') { var rg = reglages_(); return json_({ festival: rg.nomFestival, formulaire: formulaire_(rg), evenements: evenementsPublics_() }); }
   if (p.cle && cleValide_(p.cle)) {
     var t = typeof ADMIN_HTML !== 'undefined' ? HtmlService.createTemplate(ADMIN_HTML) : HtmlService.createTemplateFromFile('Admin');
     t.cle = p.cle;
@@ -381,12 +397,18 @@ function reserver_(d) {
   var email = String(d.email || '').trim().slice(0, 200);
   var telephone = String(d.telephone || '').trim().slice(0, 40);
   var message = String(d.message || '').trim().slice(0, 1000);
-  var places = Math.floor(Number(d.places));
+  var places = Math.floor(Number(d.places)), fo = formulaire_();
+  if (fo.telephone === 'masque') telephone = '';
+  if (fo.message === 'masque') message = '';
   if (!nom) return { ok: false, erreur: 'Indiquez votre nom.' };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, erreur: 'L\'adresse e-mail ne semble pas correcte.' };
-  if (!(places >= 1 && places <= RESA.maxParReservation)) {
-    return { ok: false, erreur: 'Choisissez entre 1 et ' + RESA.maxParReservation + ' places.' };
+  if (!(places >= 1 && places <= fo.maxPlaces)) {
+    return { ok: false, erreur: 'Choisissez entre 1 et ' + fo.maxPlaces + ' places.' };
   }
+  if (!telephone && (fo.telephone === 'obligatoire' || (fo.telephone !== 'masque' && fo.telDes && places >= fo.telDes))) {
+    return { ok: false, erreur: fo.telephone === 'obligatoire' ? 'Indiquez votre numéro de téléphone.' : 'Indiquez votre numéro de téléphone : il est demandé à partir de ' + fo.telDes + ' places.' };
+  }
+  if (!message && fo.message === 'obligatoire') return { ok: false, erreur: 'Écrivez un message.' };
 
   var verrou = LockService.getScriptLock();
   verrou.waitLock(20000);

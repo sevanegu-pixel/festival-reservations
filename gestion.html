@@ -847,7 +847,7 @@ var MAIL = (function () {
   return { pied: pied, VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, tarifUneLigne: tarifUneLigne, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
 })();
 
-var VERSION_APPLI = '8fe022c29229', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
+var VERSION_APPLI = 'dc9ec615ad7a', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
 function lireLocal(k) { try { return localStorage.getItem('festival_resa_' + k) || ''; } catch (e) { return ''; } }
 function garderLocal(k, v) { try { if (v) localStorage.setItem('festival_resa_' + k, v); else localStorage.removeItem('festival_resa_' + k); } catch (e) {} }
 // Cet appareil : un identifiant gardé dans le navigateur + un nom lisible (pour la liste des appareils connectés).
@@ -929,7 +929,7 @@ function recharger(res) {
   if (res.jeton) { JETON = res.jeton; garderLocal('jeton', JETON); garderLocal('pin', ''); } // cet appareil est reconnu : plus de code PIN à redonner
   document.querySelectorAll('[data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
   document.querySelectorAll('.nom-festival').forEach(function (e) { e.textContent = D.reglages.nomFestival || 'Festival'; });
-  if (VERSION_APPLI !== '8fe022c29229') $('#volet-version').textContent = 'Version ' + VERSION_APPLI;
+  if (VERSION_APPLI !== 'dc9ec615ad7a') $('#volet-version').textContent = 'Version ' + VERSION_APPLI;
   $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
   if (typeof res.boiteNonLus === 'number') { BOITE_NL = res.boiteNonLus; badgeBoite(); }
   if (droit('boite')) setTimeout(prechargerBoiteMx, 3000);
@@ -1184,7 +1184,7 @@ function afficher() {
   h += '<div class="barreTri"><select id="triStatut" aria-label="Filtrer par statut"><option value="">Tous les statuts</option>' + D.statuts.map(function (s) { return '<option' + (s === TRI_EV.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '<option value="Complet"' + (TRI_EV.statut === 'Complet' ? ' selected' : '') + '>Complets</option></select>' +
     '<select id="triOrdre" aria-label="Trier"><option value="date">Par date</option><option value="titre"' + (TRI_EV.ordre === 'titre' ? ' selected' : '') + '>Par titre</option><option value="remplissage"' + (TRI_EV.ordre === 'remplissage' ? ' selected' : '') + '>Par remplissage</option><option value="recent"' + (TRI_EV.ordre === 'recent' ? ' selected' : '') + '>Derniers créés</option></select>' +
     '<input id="triQ" type="search" placeholder="Chercher un titre, une compagnie…" value="' + esc(TRI_EV.q) + '"><span class="compte">' + evs.length + ' / ' + D.evenements.length + '</span></div>';
-  if (D.version && VERSION_APPLI !== '8fe022c29229' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
+  if (D.version && VERSION_APPLI !== 'dc9ec615ad7a' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
   if (COMPTE && COMPTE.id === 'cle' && droit('comptes') && !PIN && !D.nbComptes) h += '<div class="bandeau" id="bandeauPin">Vous êtes entrée avec le lien personnel. Créez votre code PIN et ceux des bénévoles dans <a href="#" id="versComptes">Réglages → Comptes</a> : ensuite l\'appli s\'ouvre avec le code, sur n\'importe quel appareil.</div>';
   h += parDate ? '<h2>À venir</h2>' + liste(avenir) + '<h2>Passés</h2>' + liste(passes) : liste(avenir);
   $('#vue').innerHTML = h;
@@ -2623,6 +2623,36 @@ window.addEventListener('beforeunload', function (e) { if (ECRITURE && ECRITURE.
 })();
 
 
+// Formulaire de réservation du site : ce que le public doit remplir (réglage commun à tous les spectacles).
+function formulaireLu(r) {
+  var o = {}; try { o = JSON.parse((r && r.formulaire) || '{}') || {}; } catch (e) { o = {}; }
+  ['telephone', 'message'].forEach(function (c) { if (['masque', 'facultatif', 'obligatoire'].indexOf(o[c]) < 0) o[c] = 'facultatif'; });
+  o.maxPlaces = Math.min(30, Math.max(1, Math.floor(Number(o.maxPlaces) || 10))); o.telDes = Math.max(0, Math.floor(Number(o.telDes) || 0));
+  return o;
+}
+function formulaireReglages(r) {
+  var f = formulaireLu(r);
+  function choix(nom, label, val) {
+    return '<div><label for="f-fo_' + nom + '">' + label + '</label><select id="f-fo_' + nom + '" name="fo_' + nom + '">' +
+      [['facultatif', 'Demandé, facultatif'], ['obligatoire', 'Obligatoire'], ['masque', 'Pas demandé']].map(function (c) { return '<option value="' + c[0] + '"' + (c[0] === val ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('') + '</select></div>';
+  }
+  return '<h3 class="section">Formulaire de réservation du site</h3>' +
+    '<p class="aide">Ce que le public remplit pour réserver, pour tous les spectacles. Le nom et l\'e-mail sont toujours obligatoires.</p><div class="grille" style="margin-top:14px">' +
+    choix('telephone', 'Téléphone', f.telephone) +
+    '<div><label for="f-fo_telDes">Téléphone obligatoire à partir de… places</label><input id="f-fo_telDes" name="fo_telDes" type="number" min="0" max="30" value="' + (f.telDes || '') + '" placeholder="Vide = jamais"></div>' +
+    choix('message', 'Message', f.message) +
+    '<div><label for="f-fo_maxPlaces">Places au maximum par réservation</label><input id="f-fo_maxPlaces" name="fo_maxPlaces" type="number" min="1" max="30" value="' + f.maxPlaces + '"></div>' +
+    '</div><p class="aide" id="resumeFormulaire"></p>';
+}
+function resumeFormulaire() {
+  var z = $('#resumeFormulaire'); if (!z) return;
+  var t = $('#f-fo_telephone').value, n = Number($('#f-fo_telDes').value) || 0, m = $('#f-fo_message').value, x = [];
+  x.push('Téléphone : ' + (t === 'masque' ? 'pas demandé' : t === 'obligatoire' ? 'obligatoire' : n ? 'facultatif, obligatoire à partir de ' + n + ' places (le site l\'indique à côté du champ)' : 'facultatif'));
+  x.push('message : ' + (m === 'masque' ? 'pas demandé' : m));
+  x.push('de 1 à ' + (Number($('#f-fo_maxPlaces').value) || 10) + ' places par réservation');
+  z.textContent = 'Sur le site : ' + x.join(' ; ') + '.';
+  $('#f-fo_telDes').disabled = t !== 'facultatif';
+}
 function afficherReglages() {
   var r = D.reglages, h = '';
   if (droit('reglages')) h += '<h2>Réglages</h2><form id="regl" class="panneau"><div class="grille">' +
@@ -2630,14 +2660,19 @@ function afficherReglages() {
     champ('siteUrl', 'Adresse du site (pour les aperçus)', r.siteUrl, 'url') +
     champ('copieA', 'Adresse qui reçoit une copie de chaque réservation', r.copieA, 'email') + '</div>' +
     '<p class="aide">Les e-mails envoyés au public se règlent dans l\'onglet <b>E-mails</b>.</p>' +
+    formulaireReglages(r) +
     '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button></div></form>';
   if (droit('comptes')) h += '<h2 id="comptes">Comptes et codes PIN</h2><div class="panneau" id="zoneComptes"><p class="vide">Chargement…</p></div>' +
     '<h2>Appareils connectés</h2><div class="panneau" id="zoneAppareils"><p class="vide">Chargement…</p></div>';
   $('#vue').innerHTML = h;
   if ($('#regl')) {
+    ['#f-fo_telephone', '#f-fo_telDes', '#f-fo_message', '#f-fo_maxPlaces'].forEach(function (k) { $(k).addEventListener('input', resumeFormulaire); $(k).addEventListener('change', resumeFormulaire); });
+    resumeFormulaire();
     $('#regl').onsubmit = function (ev) {
       ev.preventDefault();
-      var o = Object.assign({}, D.reglages); new FormData(ev.target).forEach(function (v, k) { o[k] = v; });
+      var o = Object.assign({}, D.reglages); new FormData(ev.target).forEach(function (v, k) { if (k.indexOf('fo_') !== 0) o[k] = v; });
+      var fd = new FormData(ev.target);
+      o.formulaire = JSON.stringify({ telephone: fd.get('fo_telephone'), message: fd.get('fo_message'), telDes: Number(fd.get('fo_telDes')) || 0, maxPlaces: Number(fd.get('fo_maxPlaces')) || 10 });
       appel('adminEnregistrerReglages', [o], function (res) { recharger(res); toast('Réglages enregistrés ✓'); });
     };
   }
@@ -2933,7 +2968,7 @@ function afficherPhotos() {
     }
     var h = '<h2>Visuels</h2>';
     if (!window.SPECTACLES && siteUrl()) h += '<div class="bandeau">Le site (' + esc(siteUrl()) + ') ne répond pas pour l\'instant : seuls les visuels de la bibliothèque sont affichés.</div>';
-    if (D.version && VERSION_APPLI !== '8fe022c29229' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
+    if (D.version && VERSION_APPLI !== 'dc9ec615ad7a' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
     h += '<div class="panneau"><p>Photos, affiches, dessins : tout ce qui peut illustrer un spectacle. <b>1.</b> Choisissez le spectacle, <b>2.</b> ajoutez les fichiers. Ensuite, dans chaque événement, vous choisissez lesquels afficher et dans quel ordre.</p>' +
       '<div class="grille"><div><label for="g-titre">1. Spectacle</label><select id="g-titre">' + options($('#g-titre') ? $('#g-titre').value : '') + '</select></div>' +
       '<div><label>2. Fichiers</label><button type="button" class="btn plein" id="ajoutGalerie" style="width:100%">+ Ajouter des visuels</button></div>' +
