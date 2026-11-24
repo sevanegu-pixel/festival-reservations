@@ -93,6 +93,11 @@ a.btn{text-decoration:none;display:inline-block}
 .coches input{width:auto;margin-top:3px}
 .bandeau{background:var(--carte);border:1px solid var(--lav);border-radius:10px;padding:10px 14px;margin:10px 0;font-size:14px}
 .bandeau a{color:var(--lav2)}
+.bandeau.alerte{border-color:var(--rouge);border-width:2px}
+.bandeau.alerte b.titreAlerte{color:var(--rouge);display:block;margin-bottom:6px}
+.bandeau.alerte ul{margin:6px 0 10px;padding-left:18px}
+.bandeau.alerte li{margin:4px 0;overflow-wrap:anywhere}
+.bandeau.alerte small{opacity:.75}
 input.arrivee{width:auto;transform:scale(1.3);margin:4px}
 tr.arrivee td{color:var(--vert)}
 .vide{color:var(--doux);font-style:italic}
@@ -847,7 +852,7 @@ var MAIL = (function () {
   return { pied: pied, VARIABLES: VARIABLES, TYPES: TYPES, THEMES: THEMES, COULEURS: COULEURS, BILLETS: BILLETS, palette: palette, couleurSure: couleurSure, PIEDS: PIEDS, OPTIONS_DEFAUT: OPTIONS_DEFAUT, options: options, remplir: remplir, tarifUneLigne: tarifUneLigne, texteVersHtml: texteVersHtml, billetHtml: billetHtml, composer: composer, exemple: exemple, echapper: echapper, urlSure: urlSure };
 })();
 
-var VERSION_APPLI = '5a57a7c8c72e', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
+var VERSION_APPLI = '31f9ecaac5ad', PIN = '', JETON = (function () { try { return localStorage.getItem('festival_resa_jeton') || ''; } catch (e) { return ''; } })(), COMPTE = null, D = null, vue = 'accueil', ouvert = null;
 function lireLocal(k) { try { return localStorage.getItem('festival_resa_' + k) || ''; } catch (e) { return ''; } }
 function garderLocal(k, v) { try { if (v) localStorage.setItem('festival_resa_' + k, v); else localStorage.removeItem('festival_resa_' + k); } catch (e) {} }
 // Cet appareil : un identifiant gardé dans le navigateur + un nom lisible (pour la liste des appareils connectés).
@@ -929,10 +934,11 @@ function recharger(res) {
   if (res.jeton) { JETON = res.jeton; garderLocal('jeton', JETON); garderLocal('pin', ''); } // cet appareil est reconnu : plus de code PIN à redonner
   document.querySelectorAll('[data-droit]').forEach(function (b) { b.hidden = !b.dataset.droit.split(',').some(droit); });
   document.querySelectorAll('.nom-festival').forEach(function (e) { e.textContent = D.reglages.nomFestival || 'Festival'; });
-  if (VERSION_APPLI !== '5a57a7c8c72e') $('#volet-version').textContent = 'Version ' + VERSION_APPLI;
+  if (VERSION_APPLI !== '31f9ecaac5ad') $('#volet-version').textContent = 'Version ' + VERSION_APPLI;
   $('#quitter').hidden = !COMPTE || (COMPTE.id === 'cle' && !JETON);
   if (typeof res.boiteNonLus === 'number') { BOITE_NL = res.boiteNonLus; badgeBoite(); }
   if (droit('boite')) setTimeout(prechargerBoiteMx, 3000);
+  verifierApresNouvelleVersion();
   if ((vue === 'photos' && !droit('photos')) || (vue === 'mails' && !droit('reglages')) || (vue === 'boite' && !droit('boite')) || (vue === 'reglages' && !droit('reglages') && !droit('comptes'))) { vue = 'evenements'; ouvert = null; marquerVue(); }
   afficher();
 }
@@ -1068,6 +1074,39 @@ function afficherApparence() {
 }
 
 // ---------- Tableau de bord (page d'accueil) ----------
+/** Plantages de réservation pas encore vus : bandeau rouge en haut de l'Accueil et des Événements. */
+function bandeauIncidents() {
+  var l = (D && D.incidents) || [], v = window.VERIF_ECHEC;
+  if (!l.length && !v) return '';
+  var h = '<div class="bandeau alerte" id="bandeauIncidents"><b class="titreAlerte">⚠️ ' + (l.length ? l.length + ' plantage' + (l.length > 1 ? 's' : '') + ' de réservation à regarder' : 'L\'essai des réservations a échoué') + '</b>';
+  if (v) h += '<div>Essai automatique après la nouvelle version du script : ' + esc(v) + '</div>';
+  if (l.length) h += '<ul>' + l.slice().reverse().map(function (i) {
+    return '<li><b>' + esc(dateCourteFr(i.quand)) + '</b> · ' + esc(i.ou) + (i.fois > 1 ? ' (' + i.fois + ' fois)' : '') + (i.detail ? '<br>' + esc(i.detail) : '') + '<br><small>' + esc(i.erreur) + '</small></li>';
+  }).join('') + '</ul><div style="font-size:13px;margin-bottom:8px">Les personnes concernées ont vu un message d\'erreur et n\'ont pas de place (sauf « E-mail de confirmation » : la place est réservée, seul l\'e-mail n\'est pas parti). Tout est gardé dans l\'onglet « Incidents » du classeur. Demandez à Claude de regarder.</div>';
+  h += '<div class="actions">' + (l.length && droit('reservations') ? '<button class="btn petit" id="incidentsVus">C\'est vu</button>' : '') + (v ? '<button class="btn petit" id="reessayerVerif">Refaire l\'essai</button>' : '') + '</div></div>';
+  return h;
+}
+function brancherIncidents() {
+  if ($('#incidentsVus')) $('#incidentsVus').onclick = function () { appel('adminIncidentsVus', [], function (res) { recharger(res); toast('Noté : le bandeau disparaît (tout reste dans l\'onglet Incidents).'); }); };
+  if ($('#reessayerVerif')) $('#reessayerVerif').onclick = function () { garderLocal('verifie', ''); window.VERIF_ECHEC = ''; verifierApresNouvelleVersion(true); };
+}
+/** Après chaque nouvelle version du script (numéro différent de la dernière fois sur cet appareil), essai à blanc des réservations. */
+function verifierApresNouvelleVersion(force) {
+  if (!D || !D.version || verifierApresNouvelleVersion.encours) return;
+  if (!force && (lireLocal('verifie') === D.version || verifierApresNouvelleVersion.tente === D.version)) return;
+  verifierApresNouvelleVersion.tente = D.version; // une fois par ouverture de l'appli si l'essai échoue (« Refaire l'essai » pour relancer)
+  if (VERSION_APPLI !== '31f9ecaac5ad' && D.version !== VERSION_APPLI) return; // script plus ancien que l'écran : il ne connaît pas encore l'essai
+  verifierApresNouvelleVersion.encours = true;
+  appel('adminVerifierReservations', [], function (r) {
+    verifierApresNouvelleVersion.encours = false; garderLocal('verifie', D.version); window.VERIF_ECHEC = '';
+    toast('Réservations vérifiées' + (force ? '' : ' après la nouvelle version') + ' : tout marche (' + r.ouverts + ' spectacle' + (r.ouverts > 1 ? 's' : '') + ' ouvert' + (r.ouverts > 1 ? 's' : '') + ').');
+    if (vue === 'accueil' || vue === 'evenements') afficher();
+  }, { silencieux: true, echec: function (e) {
+    verifierApresNouvelleVersion.encours = false; window.VERIF_ECHEC = e.message || String(e);
+    if (vue === 'accueil' || vue === 'evenements') afficher();
+    toast('Essai des réservations échoué : ' + window.VERIF_ECHEC, true); return true;
+  } });
+}
 function afficherAccueil() {
   var today = aujourdhui(), dans7 = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
   var evs = D.evenements.slice().sort(function (a, b) { return (a.date + a.debut) < (b.date + b.debut) ? -1 : 1; });
@@ -1081,7 +1120,7 @@ function afficherAccueil() {
   var prisesAvenir = avenir.reduce(function (s, e) { return s + (Number(e.prises) || 0); }, 0);
   var complets = avenir.filter(function (e) { return Number(e.places) && e.prises >= Number(e.places); });
   function tuile(n, l, c) { return '<div class="tuile' + (c ? ' ' + c : '') + '"><b>' + n + '</b><span>' + l + '</span></div>'; }
-  var h = '<h2>Tableau de bord</h2><div class="tuiles">' +
+  var h = bandeauIncidents() + '<h2>Tableau de bord</h2><div class="tuiles">' +
     tuile(places, 'place' + (places > 1 ? 's' : '') + ' réservée' + (places > 1 ? 's' : '')) +
     tuile(avenir.length, 'spectacle' + (avenir.length > 1 ? 's' : '') + ' à venir') +
     tuile(capacite ? Math.round(100 * prisesAvenir / capacite) + ' %' : '–', 'de remplissage à venir') +
@@ -1110,6 +1149,7 @@ function afficherAccueil() {
     }).join('') + '</ul>' : '<p class="vide">Rien à signaler : tout est en ordre.</p>') + '</div>';
   }
   $('#vue').innerHTML = h;
+  brancherIncidents();
   document.querySelectorAll('[data-ouvrir]').forEach(function (a) { a.onclick = function (ev) { ev.preventDefault(); ouvrirEvenement(a.dataset.ouvrir); }; });
   activerListe();
   if (!window.SPECTACLES && siteUrl()) chargerSite(function () { if (vue === 'accueil' && !ouvert) afficherAccueil(); });
@@ -1180,11 +1220,11 @@ function afficher() {
   var parDate = TRI_EV.ordre === 'date' || !TRI_EV.ordre;
   var avenir = parDate ? evs.filter(function (e) { return e.date >= today; }) : evs;
   var passes = parDate ? evs.filter(function (e) { return e.date < today; }).reverse() : [];
-  var h = droit('evenements') ? '<div class="actions"><button class="btn plein" id="nouveau">+ Nouvel événement</button></div>' : '';
+  var h = bandeauIncidents() + (droit('evenements') ? '<div class="actions"><button class="btn plein" id="nouveau">+ Nouvel événement</button></div>' : '');
   h += '<div class="barreTri"><select id="triStatut" aria-label="Filtrer par statut"><option value="">Tous les statuts</option>' + D.statuts.map(function (s) { return '<option' + (s === TRI_EV.statut ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '<option value="Complet"' + (TRI_EV.statut === 'Complet' ? ' selected' : '') + '>Complets</option></select>' +
     '<select id="triOrdre" aria-label="Trier"><option value="date">Par date</option><option value="titre"' + (TRI_EV.ordre === 'titre' ? ' selected' : '') + '>Par titre</option><option value="remplissage"' + (TRI_EV.ordre === 'remplissage' ? ' selected' : '') + '>Par remplissage</option><option value="recent"' + (TRI_EV.ordre === 'recent' ? ' selected' : '') + '>Derniers créés</option></select>' +
     '<input id="triQ" type="search" placeholder="Chercher un titre, une compagnie…" value="' + esc(TRI_EV.q) + '"><span class="compte">' + evs.length + ' / ' + D.evenements.length + '</span></div>';
-  if (D.version && VERSION_APPLI !== '5a57a7c8c72e' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
+  if (D.version && VERSION_APPLI !== '31f9ecaac5ad' && D.version !== VERSION_APPLI && droit('comptes')) h += '<div class="bandeau">Le script Google (version ' + esc(D.version) + ') est plus ancien que l\'appli (' + esc(VERSION_APPLI) + ') : demandez à Claude de le mettre à jour, puis cliquez « Déployer › Nouvelle version » avec le compte du festival.</div>';
   if (COMPTE && COMPTE.id === 'cle' && droit('comptes') && !PIN && !D.nbComptes) h += '<div class="bandeau" id="bandeauPin">Vous êtes entrée avec le lien personnel. Créez votre code PIN et ceux des bénévoles dans <a href="#" id="versComptes">Réglages → Comptes</a> : ensuite l\'appli s\'ouvre avec le code, sur n\'importe quel appareil.</div>';
   h += parDate ? '<h2>À venir</h2>' + liste(avenir) + '<h2>Passés</h2>' + liste(passes) : liste(avenir);
   $('#vue').innerHTML = h;
@@ -1192,6 +1232,7 @@ function afficher() {
   $('#triOrdre').onchange = function () { TRI_EV.ordre = this.value; afficher(); };
   $('#triQ').oninput = function () { TRI_EV.q = this.value; var pos = this.selectionStart; afficher(); var c = $('#triQ'); c.focus(); c.setSelectionRange(pos, pos); };
   if ($('#nouveau')) $('#nouveau').onclick = function () { ouvert = 'nouveau'; afficher(); };
+  brancherIncidents();
   if ($('#versComptes')) $('#versComptes').onclick = function (ev) { ev.preventDefault(); allerVue('reglages'); setTimeout(function () { var c = $('#comptes'); if (c) c.scrollIntoView({ behavior: 'smooth' }); }, 300); };
   activerListe();
   if (!window.SPECTACLES && siteUrl()) chargerSite(function () { if (vue === 'evenements' && !ouvert) afficher(); });
@@ -2971,7 +3012,7 @@ function afficherPhotos() {
     }
     var h = '<h2>Visuels</h2>';
     if (!window.SPECTACLES && siteUrl()) h += '<div class="bandeau">Le site (' + esc(siteUrl()) + ') ne répond pas pour l\'instant : seuls les visuels de la bibliothèque sont affichés.</div>';
-    if (D.version && VERSION_APPLI !== '5a57a7c8c72e' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
+    if (D.version && VERSION_APPLI !== '31f9ecaac5ad' && D.version !== VERSION_APPLI) h += '<div class="bandeau">Le script Google n\'est pas encore à la version de l\'appli : les visuels ajoutés peuvent ne pas apparaître ici tant qu\'il ne s\'est pas mis à jour (automatique dans l\'heure' + (droit('comptes') ? ', ou via le bouton sur l\'Accueil' : '') + ').</div>';
     h += '<div class="panneau"><p>Photos, affiches, dessins : tout ce qui peut illustrer un spectacle. <b>1.</b> Choisissez le spectacle, <b>2.</b> ajoutez les fichiers. Ensuite, dans chaque événement, vous choisissez lesquels afficher et dans quel ordre.</p>' +
       '<div class="grille"><div><label for="g-titre">1. Spectacle</label><select id="g-titre">' + options($('#g-titre') ? $('#g-titre').value : '') + '</select></div>' +
       '<div><label>2. Fichiers</label><button type="button" class="btn plein" id="ajoutGalerie" style="width:100%">+ Ajouter des visuels</button></div>' +

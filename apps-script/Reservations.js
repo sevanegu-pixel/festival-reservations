@@ -127,7 +127,10 @@ function formulaire_(r) {
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
-  if (p.api === 'evenements') { var rg = reglages_(); return json_({ festival: rg.nomFestival, formulaire: formulaire_(rg), evenements: evenementsPublics_() }); }
+  if (p.api === 'evenements') {
+    try { var rg = reglages_(); return json_({ festival: rg.nomFestival, formulaire: formulaire_(rg), evenements: evenementsPublics_() }); }
+    catch (err) { noterIncident_('Liste des spectacles du site', err, null); return json_({ festival: '', formulaire: formulaire_({}), evenements: [], erreur: 'Les réservations sont momentanément indisponibles.' }); }
+  }
   if (p.cle && cleValide_(p.cle)) {
     var t = typeof ADMIN_HTML !== 'undefined' ? HtmlService.createTemplate(ADMIN_HTML) : HtmlService.createTemplateFromFile('Admin');
     t.cle = p.cle;
@@ -182,7 +185,14 @@ function doPost(e) {
   } catch (err) {
     return json_({ ok: false, erreur: 'Demande illisible.' });
   }
-  if (donnees.api === 'reserver') return json_(reserver_(donnees));
+  if (donnees.api === 'reserver') {
+    try { return json_(reserver_(donnees)); }
+    catch (err) { // plantage imprévu : gardé pour l'appli (bandeau rouge), et un message clair pour la personne
+      noterIncident_('Réservation', err, donnees);
+      var adr = ''; try { adr = reglages_().copieA || ''; } catch (e) {}
+      return json_({ ok: false, erreur: 'Désolé, la réservation n\'a pas pu être enregistrée (problème technique, l\'équipe du festival est prévenue). Réessayez dans quelques minutes' + (adr ? ' ou écrivez à ' + adr : '') + '.' });
+    }
+  }
   if (donnees.api === 'admin') return json_(adminApi_(donnees));
   return json_({ ok: false, erreur: 'Demande inconnue.' });
 }
@@ -206,6 +216,7 @@ var FONCTION_DROIT = {
   adminEnregistrerEvenement: 'evenements', adminSupprimerEvenement: 'evenements',
   adminAjouterReservation: 'reservations', adminAnnulerReservation: 'reservations', adminPointer: 'reservations', adminConfirmerReservation: 'reservations', adminEnvoyerGroupe: 'reservations',
   adminEnregistrerReglages: 'reglages', adminEssaiMail: 'reglages',
+  adminIncidentsVus: 'reservations', adminVerifierReservations: null,
   adminEnregistrerImage: 'photos', adminListerPhotos: 'photos', adminLireImage: 'photos', adminEnregistrerOriginal: 'photos', adminSupprimerPhoto: 'photos', adminEnregistrerVisuel: 'photos',
   adminListerComptes: 'comptes', adminEnregistrerCompte: 'comptes', adminSupprimerCompte: 'comptes', adminMettreAJour: 'comptes',
   adminListerAppareils: 'comptes', adminDeconnecterAppareil: 'comptes', adminQuitterAppareil: null,
@@ -236,6 +247,7 @@ function adminApi_(d) {
       res.version = VERSION_CODE;
       res.droits = DROITS;
       if (compte.droits.boite && d.fn === 'adminCharger') res.boiteNonLus = boiteNonLus_();
+      if (!compte.droits.reservations) res.incidents = (res.incidents || []).map(function (i) { return { id: i.id, quand: i.quand, ou: i.ou, erreur: i.erreur, fois: i.fois }; });
       if (!compte.droits.reservations) res.reservations = res.reservations.map(function (r) { return { id: r.id, evenement: r.evenement, places: r.places, statut: r.statut }; });
       if (!compte.droits.reglages && !compte.droits.comptes) res.reglages = { nomFestival: res.reglages.nomFestival, siteUrl: res.reglages.siteUrl };
     }
@@ -447,7 +459,7 @@ function reserver_(d) {
     if (attente) envoyerAttente_(ev, resa); else envoyerConfirmation_(ev, resa);
   } catch (err) { // quota d'e-mails dépassé… la réservation est quand même enregistrée
     mailEnvoye = false;
-    console.error('E-mail non envoyé pour ' + resa.id + ' : ' + err);
+    noterIncident_('E-mail de confirmation (la réservation est bien enregistrée)', err, { evenement: ev.id, nom: resa.nom, email: resa.email, places: resa.places });
   }
   if (attente) return { ok: true, id: resa.id, attente: true, mailEnvoye: mailEnvoye, restantes: 0 };
   return { ok: true, id: resa.id, mailEnvoye: mailEnvoye, restantes: max > 0 ? Math.max(0, contingent ? dispo.publiques : libres - places) : null };
@@ -598,7 +610,69 @@ function adminCharger(cle) {
     statuts: STATUTS_EV,
     nbComptes: comptes_().length,
     expediteur: expediteur_(),
+    incidents: incidents_().filter(function (i) { return !i.vu; }),
   };
+}
+
+// ---------- Plantages de réservation : gardés pour être signalés dans l'appli ----------
+// Chaque plantage imprévu (réservation, e-mail de confirmation, liste du site) est noté dans les propriétés du script
+// (les 12 derniers, même si le classeur ne répond plus) et dans l'onglet « Incidents » ; l'appli l'affiche en rouge
+// jusqu'à ce qu'on clique « C'est vu ». Visible aussi dans Apps Script › Exécutions (console.error).
+var CLE_INCIDENTS = 'RESA_INCIDENTS';
+var COL_INC = ['id', 'Quand', 'Où', 'Erreur', 'Détail', 'Version', 'Fois'];
+var CHAMPS_INC = ['id', 'quand', 'ou', 'erreur', 'detail', 'version', 'fois'];
+function incidents_() {
+  try { var l = JSON.parse(PropertiesService.getScriptProperties().getProperty(CLE_INCIDENTS) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; }
+}
+function noterIncident_(ou, err, d) {
+  try {
+    var erreur = String((err && err.message) || err || 'Erreur inconnue').slice(0, 300), detail = '';
+    if (d) {
+      var titre = d.titre || '';
+      if (!titre && d.evenement) { try { titre = (lireEvenements_().filter(function (x) { return x.id === d.evenement; })[0] || {}).titre || d.evenement; } catch (e) { titre = d.evenement; } }
+      detail = [titre, d.nom, d.email, d.places ? d.places + ' pl.' : ''].map(function (x) { return String(x || '').trim(); }).filter(String).join(' · ').slice(0, 200);
+    }
+    console.error('Plantage (' + ou + ') : ' + erreur + (detail ? ' — ' + detail : ''));
+    var verrou = LockService.getScriptLock(); try { verrou.waitLock(5000); } catch (e) {}
+    try {
+      var l = incidents_(), dernier = l[l.length - 1], inc;
+      if (dernier && !dernier.vu && dernier.ou === ou && dernier.erreur === erreur && dernier.detail === detail) { inc = dernier; inc.fois = (inc.fois || 1) + 1; inc.quand = maintenant_(); }
+      else { inc = { id: nouvelId_('I'), quand: maintenant_(), ou: ou, erreur: erreur, detail: detail, version: VERSION_CODE, fois: 1 }; l.push(inc); }
+      PropertiesService.getScriptProperties().setProperty(CLE_INCIDENTS, JSON.stringify(l.slice(-12)));
+    } finally { try { verrou.releaseLock(); } catch (e) {} }
+    try { ajouterLigne_(onglet_('Incidents', COL_INC), CHAMPS_INC, inc); } catch (e) {}
+  } catch (e) { console.error('Plantage non noté : ' + e); }
+}
+/** « C'est vu » dans l'appli : les plantages restent dans l'onglet Incidents, le bandeau disparaît. */
+function adminIncidentsVus(cle) {
+  verifierCle_(cle);
+  var l = incidents_(); l.forEach(function (i) { i.vu = true; });
+  PropertiesService.getScriptProperties().setProperty(CLE_INCIDENTS, JSON.stringify(l));
+  return adminCharger(cle);
+}
+/**
+ * Essai à blanc d'une réservation, lancé par l'appli après chaque nouvelle version du script : lit les événements
+ * ouverts, leurs options et places, le formulaire, la liste du site et le quota d'e-mails, sans rien écrire ni envoyer.
+ */
+function adminVerifierReservations(cle) {
+  verifierCle_(cle);
+  try {
+    var resas = lireReservations_(), parOption = prisesParOption_(resas), pris = placesPrises_(), ouverts = 0;
+    formulaire_();
+    lireEvenements_().forEach(function (ev) {
+      if (ev.statut !== 'Ouvert') return;
+      ouverts++;
+      optionsEv_(ev); mailsEv_(ev); disponibilites_(ev, pris[ev.id] || 0, parOption[ev.id] || {});
+    });
+    evenementsPublics_();
+    if (!onglet_(RESA.ongletReservations, COL_RES).getLastColumn()) throw new Error('Onglet Réservations illisible.');
+    var quota = MailApp.getRemainingDailyQuota();
+    if (quota < 1) throw new Error('Plus aucun e-mail de confirmation possible aujourd\'hui (quota Google épuisé) : les réservations sont enregistrées mais les personnes ne reçoivent rien.');
+    return { ok: true, version: VERSION_CODE, ouverts: ouverts, quota: quota };
+  } catch (err) {
+    noterIncident_('Essai après la nouvelle version ' + VERSION_CODE, err, null);
+    throw err;
+  }
 }
 
 function adminEnregistrerEvenement(cle, ev) {
