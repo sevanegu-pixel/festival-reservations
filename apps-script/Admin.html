@@ -1399,7 +1399,9 @@ function afficherReglages() {
   if (droit('reglages')) h += '<h2>Réglages</h2><form id="regl" class="panneau"><div class="grille">' +
     champ('nomFestival', 'Nom du festival (signature des e-mails)', r.nomFestival) +
     champ('siteUrl', 'Adresse du site (pour les aperçus)', r.siteUrl, 'url') +
-    champ('copieA', 'Adresse qui reçoit une copie de chaque réservation', r.copieA, 'email') + '</div>' +
+    champ('copieA', 'Adresse du festival (réponses du public, e-mails d\'essai)', r.copieA, 'email') + '</div>' +
+    '<label class="coche"><input type="checkbox" name="avisFestival" id="f-avisFestival"' + (r.avisFestival === 'Oui' ? ' checked' : '') + '> recevoir aussi un e-mail « Nouvelle réservation » à cette adresse à chaque réservation</label>' +
+    '<p class="aide">Décoché : la personne qui réserve reçoit toujours sa confirmation, et toutes les réservations restent dans l\'appli et la feuille.</p>' +
     '<p class="aide">Les e-mails envoyés au public se règlent dans l\'onglet <b>E-mails</b>.</p>' +
     formulaireReglages(r) +
     '<div class="actions"><button class="btn plein" type="submit">Enregistrer</button></div></form>';
@@ -1412,6 +1414,7 @@ function afficherReglages() {
     $('#regl').onsubmit = function (ev) {
       ev.preventDefault();
       var o = Object.assign({}, D.reglages); new FormData(ev.target).forEach(function (v, k) { if (k.indexOf('fo_') !== 0) o[k] = v; });
+      o.avisFestival = $('#f-avisFestival').checked ? 'Oui' : 'Non';
       var fd = new FormData(ev.target);
       o.formulaire = JSON.stringify({ telephone: fd.get('fo_telephone'), message: fd.get('fo_message'), telDes: Number(fd.get('fo_telDes')) || 0, maxPlaces: Number(fd.get('fo_maxPlaces')) || 10 });
       appel('adminEnregistrerReglages', [o], function (res) { recharger(res); toast('Réglages enregistrés ✓'); });

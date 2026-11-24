@@ -76,6 +76,8 @@ var REGLAGES_DEFAUT = {
   nomFestival: 'Le Petit Festival au Théâtricul',
   siteUrl: 'https://ptit-festival.ch/apercu/',
   copieA: 'petitfestival.ge@gmail.com',
+  // Avis interne « Nouvelle réservation » / « [Liste d'attente] » à l'adresse du festival : coupé depuis le 24.11.2026 (demande de Sévane).
+  avisFestival: 'Non',
   sujet: 'Votre réservation : {titre}',
   message: 'Bonjour {nom},\n\nNous avons bien reçu votre réservation de {places} place(s) pour « {titre} », ' +
     'le {date} à {heure}, {lieu}.\n\nLe paiement se fait sur place.\n\n' +
@@ -483,7 +485,7 @@ function renvoi_(ev) { var a = String((ev && ev.renvoi) || '').trim(); return /^
 function destinatairesAvis_(ev, r) {
   var l = [], autre = renvoi_(ev);
   if (autre) l.push(autre);
-  if (r.copieA && (!autre || ev.renvoiCopie !== 'Non') && l.indexOf(r.copieA) < 0) l.push(r.copieA);
+  if (r.copieA && r.avisFestival === 'Oui' && (!autre || ev.renvoiCopie !== 'Non') && l.indexOf(r.copieA) < 0) l.push(r.copieA);
   return l;
 }
 function envoyerConfirmation_(ev, resa) {
