@@ -1102,7 +1102,9 @@ function verifierApresNouvelleVersion(force) {
     toast('Réservations vérifiées' + (force ? '' : ' après la nouvelle version') + ' : tout marche (' + r.ouverts + ' spectacle' + (r.ouverts > 1 ? 's' : '') + ' ouvert' + (r.ouverts > 1 ? 's' : '') + ').');
     if (vue === 'accueil' || vue === 'evenements') afficher();
   }, { silencieux: true, echec: function (e) {
-    verifierApresNouvelleVersion.encours = false; window.VERIF_ECHEC = e.message || String(e);
+    verifierApresNouvelleVersion.encours = false;
+    if (/pas à jour|Fonction inconnue|connexion/i.test(e.message || '')) return true; // script pas encore déployé ou réseau coupé : ce n'est pas un plantage des réservations
+    window.VERIF_ECHEC = e.message || String(e);
     if (vue === 'accueil' || vue === 'evenements') afficher();
     toast('Essai des réservations échoué : ' + window.VERIF_ECHEC, true); return true;
   } });
